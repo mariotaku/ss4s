@@ -1,0 +1,1 @@
+ss4s_add_module(pulse pulse.c)
