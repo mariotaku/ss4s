@@ -27,6 +27,8 @@ endif ()
 
 add_subdirectory(modules)
 
+set_target_properties(ss4s PROPERTIES SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY})
+
 # Don't include tests by default if used as library
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     enable_testing()

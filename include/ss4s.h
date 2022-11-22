@@ -24,4 +24,10 @@ void SS4S_PostInit(int argc, char *argv[]);
 
 void SS4S_Quit();
 
+const char *SS4S_GetAppName();
+
+const char *SS4S_GetAudioModuleName();
+
+const char *SS4S_GetVideoModuleName();
+
 #endif // SS4S_MODAPI_H

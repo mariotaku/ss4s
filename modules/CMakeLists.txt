@@ -12,7 +12,9 @@ function(ss4s_add_module NAME SOURCES)
             LIBRARY_OUTPUT_NAME "ss4s-${NAME}"
             LIBRARY_OUTPUT_DIRECTORY "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}")
     set(SS4S_MODULE_NAME ${SS4S_MODULE_NAME} PARENT_SCOPE)
+    add_dependencies(ss4s ${SS4S_MODULE_NAME})
 endfunction()
+
 
 add_subdirectory(alsa)
 add_subdirectory(pulse)

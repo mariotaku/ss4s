@@ -10,9 +10,3 @@ struct SS4S_Player {
 const SS4S_AudioDriver *SS4S_GetAudioDriver();
 
 const SS4S_VideoDriver *SS4S_GetVideoDriver();
-
-const char *SS4S_GetAudioModuleName();
-
-const char *SS4S_GetVideoModuleName();
-
-const char *SS4S_GetAppName();
