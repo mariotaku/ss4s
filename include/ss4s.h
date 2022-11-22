@@ -10,6 +10,10 @@
 #include "ss4s/video.h"
 
 typedef struct SS4S_Config {
+    /**
+     * Name of the application
+     */
+    const char *appName;
     const char *audioDriver;
     const char *videoDriver;
 } SS4S_Config;

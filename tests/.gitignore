@@ -1,2 +1,4 @@
 # 48KHz, S16LE PCM data
 sample.pcm
+# 1280x720, 30fps H264 NAL stream data
+sample.h264

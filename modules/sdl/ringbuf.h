@@ -10,7 +10,7 @@ size_t sdlaud_ringbuf_write(sdlaud_ringbuf *buf, const unsigned char *src, size_
 
 size_t sdlaud_ringbuf_read(sdlaud_ringbuf *buf, unsigned char *dst, size_t size);
 
-size_t sdlaud_ringbuf_clear(sdlaud_ringbuf *buf);
+void sdlaud_ringbuf_clear(sdlaud_ringbuf *buf);
 
 size_t sdlaud_ringbuf_size(const sdlaud_ringbuf *buf);
 

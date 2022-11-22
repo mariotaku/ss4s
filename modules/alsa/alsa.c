@@ -3,42 +3,24 @@
 
 #include <alsa/asoundlib.h>
 
-#define CHECK_RETURN(f) if ((f) < 0) { return NULL; }
-
-#define FRAME_SIZE 240
-#define FRAME_BUFFER 2
+#define CHECK_RETURN(f) if ((f) < 0) return SS4S_AUDIO_OPEN_ERROR
 
 struct SS4S_AudioInstance {
     snd_pcm_t *handle;
+    size_t unitSize;
 };
 
-static SS4S_AudioInstance *Open(const SS4S_AudioInfo *info);
-
-static int Feed(SS4S_AudioInstance *instance, const unsigned char *data, size_t size);
-
-static void Close(SS4S_AudioInstance *instance);
-
-const static SS4S_AudioDriver ALSADriver = {
-        .Open = Open,
-        .Feed = Feed,
-        .Close = Close,
-};
-
-SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_ALSA(SS4S_Module *module) {
-    module->Name = "alsa";
-    module->AudioDriver = &ALSADriver;
-    return true;
-}
-
-static SS4S_AudioInstance *Open(const SS4S_AudioInfo *info) {
+static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance) {
+    if (info->codec != SS4S_AUDIO_PCM_S16LE) {
+        return SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
+    }
     snd_pcm_t *handle = NULL;
-
 
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_sw_params_t *sw_params;
-    // Magic number, needs change later
-    snd_pcm_uframes_t period_size = FRAME_SIZE * FRAME_BUFFER;
-    snd_pcm_uframes_t buffer_size = 2 * period_size;
+    snd_pcm_uframes_t period_size = info->samplesPerFrame;
+    size_t unitSize = sizeof(uint16_t) * info->numOfChannels;
+    snd_pcm_uframes_t buffer_size = unitSize * period_size;
     unsigned int sampleRate = info->sampleRate;
 
     CHECK_RETURN(snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK));
@@ -65,17 +47,23 @@ static SS4S_AudioInstance *Open(const SS4S_AudioInfo *info) {
 
     CHECK_RETURN(snd_pcm_prepare(handle));
 
-    SS4S_AudioInstance *instance = calloc(1, sizeof(SS4S_AudioInstance));
-    instance->handle = handle;
-    return instance;
+    SS4S_AudioInstance *newInstance = calloc(1, sizeof(SS4S_AudioInstance));
+    newInstance->handle = handle;
+    newInstance->unitSize = unitSize;
+    *instance = newInstance;
+
+    return SS4S_AUDIO_OPEN_OK;
 }
 
 static int Feed(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
-    int rc = 0;
-//    if ((rc = snd_pcm_writei(instance->handle, data, size)) == -EPIPE) {
-//        snd_pcm_prepare(instance->handle);
-//    }
-    return rc == 0;
+    int rc;
+    if ((rc = snd_pcm_writei(instance->handle, data, size / instance->unitSize)) == -EPIPE) {
+        rc = snd_pcm_prepare(instance->handle);
+    }
+    if (rc >= 0) {
+        return 0;
+    }
+    return 0;
 }
 
 static void Close(SS4S_AudioInstance *instance) {
@@ -83,4 +71,16 @@ static void Close(SS4S_AudioInstance *instance) {
     snd_pcm_drain(instance->handle);
     snd_pcm_close(instance->handle);
     free(instance);
+}
+
+const static SS4S_AudioDriver ALSADriver = {
+        .Open = Open,
+        .Feed = Feed,
+        .Close = Close,
+};
+
+SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_ALSA(SS4S_Module *module) {
+    module->Name = "alsa";
+    module->AudioDriver = &ALSADriver;
+    return true;
 }

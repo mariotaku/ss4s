@@ -71,7 +71,7 @@ size_t sdlaud_ringbuf_read(sdlaud_ringbuf *buf, unsigned char *dst, size_t size)
     return read_size;
 }
 
-size_t sdlaud_ringbuf_clear(sdlaud_ringbuf *buf) {
+void sdlaud_ringbuf_clear(sdlaud_ringbuf *buf) {
     SDL_LockMutex(buf->mutex);
     buf->size = 0;
     buf->head = 0;

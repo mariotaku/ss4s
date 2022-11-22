@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "ss4s.h"
 
@@ -7,6 +9,7 @@
 #include "driver.h"
 
 static struct {
+    char *AppName;
     struct {
         const char *ModuleName;
         const SS4S_AudioDriver *Driver;
@@ -18,6 +21,9 @@ static struct {
 } States;
 
 void SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
+    if (config->appName != NULL) {
+        States.AppName = strdup(config->appName);
+    }
     SS4S_Module module;
     if (SS4S_ModuleOpen(config->audioDriver, &module)) {
         assert(module.Name != NULL);
@@ -55,6 +61,9 @@ void SS4S_Quit() {
         SS4S_DriverQuit(&States.Video.Driver->Base);
         States.Video.Driver = NULL;
     }
+    if (States.AppName != NULL) {
+        free(States.AppName);
+    }
 }
 
 const SS4S_AudioDriver *SS4S_GetAudioDriver() {
@@ -71,4 +80,8 @@ const char *SS4S_GetAudioModuleName() {
 
 const char *SS4S_GetVideoModuleName() {
     return States.Video.ModuleName;
+}
+
+const char *SS4S_GetAppName() {
+    return States.AppName;
 }

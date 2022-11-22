@@ -15,7 +15,6 @@ endif ()
 include(CheckIncludeFile)
 
 check_include_file("dlfcn.h" HAS_DLFCN)
-message("HAS_DLFCN=${HAS_DLFCN}")
 
 add_library(ss4s src/library.c src/driver.c src/player.c src/audio.c src/video.c)
 target_include_directories(ss4s PUBLIC include PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})

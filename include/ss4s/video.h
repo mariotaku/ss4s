@@ -10,6 +10,24 @@ typedef enum SS4S_VideoCodec {
     SS4S_VIDEO_H265,
 } SS4S_VideoCodec;
 
+typedef enum SS4S_VideoOpenResult {
+    SS4S_VIDEO_OPEN_OK = 0,
+    SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC = 1,
+    SS4S_VIDEO_OPEN_ERROR = -1,
+} SS4S_VideoOpenResult;
+
+typedef enum SS4S_VideoFeedResult {
+    SS4S_VIDEO_FEED_OK = 0,
+    SS4S_VIDEO_FEED_NOT_READY = 1,
+    SS4S_VIDEO_FEED_REQUEST_KEYFRAME = 2,
+    SS4S_VIDEO_FEED_ERROR = -1,
+} SS4S_VideoFeedResult;
+
+typedef enum SS4S_VideoFeedFlags {
+    SS4S_VIDEO_FEED_DATA_NONE = 0,
+    SS4S_VIDEO_FEED_DATA_KEYFRAME = 1,
+} SS4S_VideoFeedFlags;
+
 typedef struct SS4S_VideoInfo {
     SS4S_VideoCodec codec;
     int width, height;
@@ -28,9 +46,10 @@ typedef struct SS4S_VideoHDRInfo {
 
 #ifndef SS4S_MODAPI_H
 
-bool SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info);
+SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info);
 
-bool SS4S_PlayerVideoFeed(SS4S_Player *player, const unsigned char *data, size_t size);
+SS4S_VideoFeedResult SS4S_PlayerVideoFeed(SS4S_Player *player, const unsigned char *data, size_t size,
+                                          SS4S_VideoFeedFlags flags);
 
 bool SS4S_PlayerVideoSetHDRInfo(SS4S_Player *player, const SS4S_VideoHDRInfo *info);
 

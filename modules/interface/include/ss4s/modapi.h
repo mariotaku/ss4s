@@ -21,7 +21,7 @@ typedef struct SS4S_AudioInstance SS4S_AudioInstance;
 typedef struct SS4S_AudioDriver {
     SS4S_DriverBase Base;
 
-    SS4S_AudioInstance *(*Open)(const SS4S_AudioInfo *info);
+    SS4S_AudioOpenResult (*Open)(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance);
 
     int (*Feed)(SS4S_AudioInstance *instance, const unsigned char *data, size_t size);
 
@@ -33,9 +33,12 @@ typedef struct SS4S_VideoInstance SS4S_VideoInstance;
 typedef struct SS4S_VideoDriver {
     SS4S_DriverBase Base;
 
-    SS4S_VideoInstance *(*Open)(const SS4S_VideoInfo *info);
+    SS4S_VideoOpenResult (*Open)(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance);
 
-    int (*Feed)(SS4S_VideoInstance *instance, const unsigned char *data, size_t size);
+    SS4S_VideoFeedResult (*Feed)(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
+                                 SS4S_VideoFeedFlags flags);
+
+    bool (*SizeChanged)(SS4S_VideoInstance *instance, int width, int height);
 
     void (*Close)(SS4S_VideoInstance *instance);
 } SS4S_VideoDriver;

@@ -1,4 +1,6 @@
-find_package(SDL2)
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(SDL2 sdl2)
 
 if (SDL2_FOUND)
     ss4s_add_module(sdl sdl.c ringbuf.c)
