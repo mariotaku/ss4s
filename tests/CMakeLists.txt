@@ -1,12 +1,12 @@
 set(TEST_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 
 function(ss4s_add_test NAME)
-    cmake_parse_arguments(TEST "" "" "SOURCES;ARGS" ${ARGN})
+    cmake_parse_arguments(TEST "" "" "SOURCES;ARGS;LIBRARIES" ${ARGN})
     set(SS4S_TEST_CASE "ss4s_test_${NAME}")
     add_executable(${SS4S_TEST_CASE} ${TEST_SOURCES})
     add_test(${NAME} ${SS4S_TEST_CASE} ${TEST_ARGS})
     target_include_directories(${SS4S_TEST_CASE} PRIVATE ${TEST_INCLUDES})
-    target_link_libraries(${SS4S_TEST_CASE} PRIVATE ss4s)
+    target_link_libraries(${SS4S_TEST_CASE} PRIVATE ss4s ${TEST_LIBRARIES})
     set_target_properties(${SS4S_TEST_CASE} PROPERTIES
             BUILD_WITH_INSTALL_RPATH TRUE
             INSTALL_RPATH_USE_LINK_PATH TRUE

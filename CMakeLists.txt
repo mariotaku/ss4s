@@ -37,6 +37,8 @@ set_target_properties(ss4s PROPERTIES SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4
 
 # Don't include tests by default if used as library
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    add_subdirectory(samples)
+
     enable_testing()
     add_subdirectory(tests)
 endif ()
