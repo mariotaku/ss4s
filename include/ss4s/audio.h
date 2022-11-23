@@ -22,13 +22,14 @@ typedef enum SS4S_AudioFeedResult {
 } SS4S_AudioFeedResult;
 
 typedef struct SS4S_AudioInfo {
-    const char *appName;
     SS4S_AudioCodec codec;
     int sampleRate;
     int numOfChannels;
     int samplesPerFrame;
     const unsigned char *codecData;
     const size_t codecDataLen;
+    const char *appName;
+    const char *streamName;
 } SS4S_AudioInfo;
 
 typedef struct SS4S_Player SS4S_Player;

@@ -45,8 +45,8 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
     }
 
     int error = 0;
-    pa_simple *dev = pa_simple_new(NULL, info->appName, PA_STREAM_PLAYBACK, NULL, "Streaming", &spec, pchannel_map,
-                                   &buffer_attr, &error);
+    pa_simple *dev = pa_simple_new(NULL, info->appName, PA_STREAM_PLAYBACK, NULL,
+                                   info->streamName, &spec, pchannel_map, &buffer_attr, &error);
 
     if (!dev) {
         return SS4S_AUDIO_OPEN_ERROR;
