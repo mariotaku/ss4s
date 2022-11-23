@@ -13,6 +13,12 @@ function(ss4s_add_module NAME SOURCES)
             LIBRARY_OUTPUT_DIRECTORY "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}")
     set(SS4S_MODULE_NAME ${SS4S_MODULE_NAME} PARENT_SCOPE)
     add_dependencies(ss4s ${SS4S_MODULE_NAME})
+    get_target_property(SS4S_MODULE_NAMES ss4s SS4S_MODULE_NAMES)
+    if (NOT SS4S_MODULE_NAMES)
+        set_target_properties(ss4s PROPERTIES SS4S_MODULE_NAMES "${SS4S_MODULE_NAME}")
+    else ()
+        set_target_properties(ss4s PROPERTIES SS4S_MODULE_NAMES "${SS4S_MODULE_NAMES};${SS4S_MODULE_NAME}")
+    endif ()
 endfunction()
 
 

@@ -1,5 +1,7 @@
-#include <stdlib.h>
 #include "ss4s/modapi.h"
+
+#include <stdlib.h>
+#include <stdint.h>
 
 #include <alsa/asoundlib.h>
 
