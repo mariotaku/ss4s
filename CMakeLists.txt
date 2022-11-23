@@ -20,6 +20,12 @@ add_library(ss4s src/library.c src/driver.c src/player.c src/audio.c src/video.c
 target_include_directories(ss4s PUBLIC include PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(ss4s PRIVATE ss4s-module-api)
 
+if (MSVC)
+    target_compile_options(ss4s PRIVATE /WX)
+else ()
+    target_compile_options(ss4s PRIVATE -Wall -Wextra -Werror)
+endif ()
+
 if (HAS_DLFCN)
     target_sources(ss4s PRIVATE src/module_libdl.c)
     target_link_libraries(ss4s PRIVATE dl)

@@ -7,21 +7,24 @@
 struct SS4S_AudioInstance {
     sdlaud_ringbuf *ringbuf;
     unsigned char *readbuf;
-    size_t readbuf_size;
+    int readbuf_size;
 };
 
 static void Callback(void *userdata, Uint8 *stream, int len);
 
 static void Init(int argc, char *argv[]) {
+    (void) argc;
+    (void) argv;
     SDL_InitSubSystem(SDL_INIT_AUDIO);
-
 }
 
 static void Quit() {
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
-static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance) {
+static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
+                                 SS4S_PlayerContext *context) {
+    (void) context;
     if (info->codec != SS4S_AUDIO_PCM_S16LE) {
         return SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
     }
@@ -87,7 +90,7 @@ static void Close(SS4S_AudioInstance *instance) {
     free(instance);
 }
 
-const static SS4S_AudioDriver SDLDriver = {
+static const SS4S_AudioDriver SDLDriver = {
         .Base = {
                 .Init = Init,
                 .Quit = Quit,

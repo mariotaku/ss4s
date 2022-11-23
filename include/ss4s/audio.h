@@ -14,6 +14,13 @@ typedef enum SS4S_AudioOpenResult {
     SS4S_AUDIO_OPEN_ERROR = -1,
 } SS4S_AudioOpenResult;
 
+typedef enum SS4S_AudioFeedResult {
+    SS4S_AUDIO_FEED_OK = 0,
+    SS4S_AUDIO_FEED_NOT_READY = 1,
+    SS4S_AUDIO_FEED_OVERFLOW = 2,
+    SS4S_AUDIO_FEED_ERROR = -1,
+} SS4S_AudioFeedResult;
+
 typedef struct SS4S_AudioInfo {
     const char *appName;
     SS4S_AudioCodec codec;
@@ -30,7 +37,7 @@ typedef struct SS4S_Player SS4S_Player;
 
 SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioInfo *info);
 
-bool SS4S_PlayerAudioFeed(SS4S_Player *player, const unsigned char *data, size_t size);
+SS4S_AudioFeedResult SS4S_PlayerAudioFeed(SS4S_Player *player, const unsigned char *data, size_t size);
 
 bool SS4S_PlayerAudioClose(SS4S_Player *player);
 

@@ -92,7 +92,9 @@ static void output_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     }
 }
 
-static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance) {
+static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
+                                 SS4S_PlayerContext *context) {
+    (void) context;
     if (info->codec != SS4S_VIDEO_H264) {
         return SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
     }
@@ -320,7 +322,7 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
     return true;
 }
 
-const static SS4S_VideoDriver MMALDriver = {
+static const SS4S_VideoDriver MMALDriver = {
         .Base = {
                 .Init = Init,
                 .Quit = Quit,

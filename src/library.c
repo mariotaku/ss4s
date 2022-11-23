@@ -13,10 +13,12 @@ static struct {
     struct {
         const char *ModuleName;
         const SS4S_AudioDriver *Driver;
+        const SS4S_PlayerDriver *PlayerDriver;
     } Audio;
     struct {
         const char *ModuleName;
         const SS4S_VideoDriver *Driver;
+        const SS4S_PlayerDriver *PlayerDriver;
     } Video;
 } States;
 
@@ -30,6 +32,7 @@ void SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
         States.Audio.Driver = module.AudioDriver;
         States.Audio.ModuleName = module.Name;
         if (States.Audio.Driver != NULL) {
+            States.Audio.PlayerDriver = module.PlayerDriver;
             SS4S_DriverInit(&States.Audio.Driver->Base, argc, argv);
         }
     }
@@ -38,6 +41,7 @@ void SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
         States.Video.Driver = module.VideoDriver;
         States.Video.ModuleName = module.Name;
         if (States.Video.Driver != NULL) {
+            States.Video.PlayerDriver = module.PlayerDriver;
             SS4S_DriverInit(&States.Video.Driver->Base, argc, argv);
         }
     }
@@ -72,6 +76,14 @@ const SS4S_AudioDriver *SS4S_GetAudioDriver() {
 
 const SS4S_VideoDriver *SS4S_GetVideoDriver() {
     return States.Video.Driver;
+}
+
+const SS4S_PlayerDriver *SS4S_GetAudioPlayerDriver() {
+    return States.Video.PlayerDriver;
+}
+
+const SS4S_PlayerDriver *SS4S_GetVideoPlayerDriver() {
+    return States.Video.PlayerDriver;
 }
 
 const char *SS4S_GetAudioModuleName() {

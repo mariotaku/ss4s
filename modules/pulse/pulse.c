@@ -7,7 +7,9 @@ struct SS4S_AudioInstance {
     pa_simple *dev;
 };
 
-static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance) {
+static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
+                                 SS4S_PlayerContext *context) {
+    (void) context;
     if (info->codec != SS4S_AUDIO_PCM_S16LE) {
         return SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
     }
@@ -55,10 +57,10 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
     return SS4S_AUDIO_OPEN_OK;
 }
 
-static int Feed(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
+static SS4S_AudioFeedResult Feed(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
     int error;
     pa_simple_write(instance->dev, data, size, &error);
-    return 0;
+    return SS4S_AUDIO_FEED_OK;
 }
 
 static void Close(SS4S_AudioInstance *instance) {
@@ -66,7 +68,7 @@ static void Close(SS4S_AudioInstance *instance) {
     free(instance);
 }
 
-const static SS4S_AudioDriver PulseDriver = {
+static const SS4S_AudioDriver PulseDriver = {
         .Open = Open,
         .Feed = Feed,
         .Close = Close,
