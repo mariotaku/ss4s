@@ -76,7 +76,12 @@ static GstFlowReturn videoNewSample(GstAppSink *appsink, gpointer user_data) {
     GstMapInfo info;
     gst_buffer_map(buf, &info, GST_MAP_READ);
 
-    if (callbacks->videoSample(info.data, info.size) != 0) {
+    int flags = VIDEO_FLAG_FRAME;
+    if (!gst_buffer_has_flags(buf, GST_BUFFER_FLAG_DELTA_UNIT)) {
+        flags |= VIDEO_FLAG_FRAME_KEYFRAME;
+    }
+
+    if (callbacks->videoSample(info.data, info.size, flags) != 0) {
         gst_buffer_unmap(buf, &info);
         gst_sample_unref(sample);
         return GST_FLOW_ERROR;
@@ -113,7 +118,7 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
     GstElement *audiosink, *videosink;
     pipeline = gst_parse_launch("curlhttpsrc location=http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4 ! qtdemux name=demux \
     demux.audio_0 ! queue ! aacparse ! avdec_aac ! audioconvert ! audio/x-raw,format=S16LE ! appsink name=audsink \
-    demux.video_0 ! queue ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=nal ! appsink name=vidsink",
+    demux.video_0 ! queue ! h264parse config-interval=5 ! video/x-h264,stream-format=byte-stream,alignment=au ! appsink name=vidsink",
                                 NULL);
 
     g_assert(pipeline);

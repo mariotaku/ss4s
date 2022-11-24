@@ -16,8 +16,18 @@ int videoPreroll(int width, int height, int framerate) {
     return SS4S_PlayerVideoOpen(player, &info);
 }
 
-int videoSample(const void *data, size_t size) {
-    return SS4S_PlayerVideoFeed(player, data, size, 0);
+int videoSample(const void *data, size_t size, int flags) {
+    SS4S_VideoFeedFlags vflags = 0;
+    if (flags & VIDEO_FLAG_FRAME_START) {
+        vflags |= SS4S_VIDEO_FEED_DATA_FRAME_START;
+    }
+    if (flags & VIDEO_FLAG_FRAME_END) {
+        vflags |= SS4S_VIDEO_FEED_DATA_FRAME_END;
+    }
+    if (flags & VIDEO_FLAG_FRAME_KEYFRAME) {
+        vflags |= SS4S_VIDEO_FEED_DATA_KEYFRAME;
+    }
+    return SS4S_PlayerVideoFeed(player, data, size, vflags);
 }
 
 void videoEos() {

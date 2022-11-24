@@ -25,7 +25,9 @@ typedef enum SS4S_VideoFeedResult {
 
 typedef enum SS4S_VideoFeedFlags {
     SS4S_VIDEO_FEED_DATA_NONE = 0,
-    SS4S_VIDEO_FEED_DATA_KEYFRAME = 1,
+    SS4S_VIDEO_FEED_DATA_FRAME_START = 1 << 0,
+    SS4S_VIDEO_FEED_DATA_FRAME_END = 1 << 1,
+    SS4S_VIDEO_FEED_DATA_KEYFRAME = 1 << 2,
 } SS4S_VideoFeedFlags;
 
 typedef struct SS4S_VideoInfo {

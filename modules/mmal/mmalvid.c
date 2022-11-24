@@ -49,6 +49,7 @@ struct SS4S_VideoInstance {
     VCOS_SEMAPHORE_T semaphore;
     MMAL_COMPONENT_T *decoder, *renderer;
     MMAL_POOL_T *pool_in, *pool_out;
+    int decoder_errors, renderer_errors;
 };
 
 static void Init() {
@@ -73,11 +74,23 @@ static void input_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     }
 }
 
-static void control_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
-    (void) port;
+static void decoder_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
+    SS4S_VideoInstance *instance = (SS4S_VideoInstance *) port->component->userdata;
     if (buf->cmd == MMAL_EVENT_ERROR) {
         MMAL_STATUS_T status = *(uint32_t *) buf->data;
         fprintf(stderr, "Video decode error MMAL_EVENT_ERROR:%d\n", status);
+        instance->decoder_errors += 1;
+    }
+
+    mmal_buffer_header_release(buf);
+}
+
+static void render_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
+    SS4S_VideoInstance *instance = (SS4S_VideoInstance *) port->component->userdata;
+    if (buf->cmd == MMAL_EVENT_ERROR) {
+        MMAL_STATUS_T status = *(uint32_t *) buf->data;
+        fprintf(stderr, "Video render error MMAL_EVENT_ERROR:%d\n", status);
+        instance->renderer_errors += 1;
     }
 
     mmal_buffer_header_release(buf);
@@ -152,7 +165,7 @@ static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int h
     instance->pool_out = mmal_port_pool_create(instance->decoder->output[0], instance->decoder->output[0]->buffer_num,
                                                instance->decoder->output[0]->buffer_size);
 
-    if (mmal_port_enable(instance->decoder->control, control_callback) != MMAL_SUCCESS) {
+    if (mmal_port_enable(instance->decoder->control, decoder_callback) != MMAL_SUCCESS) {
         fprintf(stderr, "Can't enable control port\n");
         return SS4S_VIDEO_OPEN_ERROR;
     }
@@ -210,7 +223,7 @@ static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int h
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
-    if (mmal_port_enable(instance->renderer->control, control_callback) != MMAL_SUCCESS) {
+    if (mmal_port_enable(instance->renderer->control, render_callback) != MMAL_SUCCESS) {
         fprintf(stderr, "Can't enable control port\n");
         return SS4S_VIDEO_OPEN_ERROR;
     }
@@ -276,6 +289,10 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
     if (!instance->started) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
+    if (instance->decoder_errors > 0 || instance->renderer_errors > 0) {
+        return SS4S_VIDEO_FEED_ERROR;
+    }
+
     MMAL_STATUS_T status;
     MMAL_BUFFER_HEADER_T *buf;
 
@@ -289,6 +306,12 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
         return SS4S_VIDEO_FEED_REQUEST_KEYFRAME;
     }
 
+    if (flags & SS4S_VIDEO_FEED_DATA_FRAME_START) {
+        buf->flags |= MMAL_BUFFER_HEADER_FLAG_FRAME_START;
+    }
+    if (flags & SS4S_VIDEO_FEED_DATA_FRAME_END) {
+        buf->flags |= MMAL_BUFFER_HEADER_FLAG_FRAME_END;
+    }
     if (flags & SS4S_VIDEO_FEED_DATA_KEYFRAME) {
         buf->flags |= MMAL_BUFFER_HEADER_FLAG_KEYFRAME;
     }
@@ -311,7 +334,10 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
         if ((status = mmal_port_send_buffer(instance->decoder->output[0], buf)) != MMAL_SUCCESS)
             mmal_buffer_header_release(buf);
     }
-    (void) status;
+
+    if (status != MMAL_SUCCESS) {
+        return SS4S_VIDEO_FEED_ERROR;
+    }
 
     return SS4S_VIDEO_FEED_OK;
 }
