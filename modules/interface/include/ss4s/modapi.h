@@ -42,6 +42,8 @@ typedef struct SS4S_VideoInstance SS4S_VideoInstance;
 typedef struct SS4S_VideoDriver {
     SS4S_DriverBase Base;
 
+    SS4S_VideoCapabilities (*GetCapabilities)();
+
     SS4S_VideoOpenResult (*Open)(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                  SS4S_PlayerContext *context);
 
@@ -49,6 +51,8 @@ typedef struct SS4S_VideoDriver {
                                  SS4S_VideoFeedFlags flags);
 
     bool (*SizeChanged)(SS4S_VideoInstance *instance, int width, int height);
+
+    bool (*SetDisplayArea)(SS4S_VideoInstance *instance, const SS4S_VideoRect *src, const SS4S_VideoRect *dst);
 
     void (*Close)(SS4S_VideoInstance *instance);
 } SS4S_VideoDriver;

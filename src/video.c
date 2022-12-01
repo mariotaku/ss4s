@@ -2,6 +2,14 @@
 #include "ss4s.h"
 #include "library.h"
 
+SS4S_VideoCapabilities SS4S_PlayerGetCapabilities() {
+    const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
+    if (driver == NULL) {
+        return 0;
+    }
+    return driver->GetCapabilities();
+}
+
 SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info) {
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     if (driver == NULL) {
@@ -33,6 +41,17 @@ bool SS4S_PlayerVideoSizeChanged(SS4S_Player *player, int width, int height) {
         return false;
     }
     return driver->SizeChanged(player->video, width, height);
+}
+
+bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *src, const SS4S_VideoRect *dst) {
+    if (player->video == NULL) {
+        return false;
+    }
+    const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
+    if (driver == NULL) {
+        return false;
+    }
+    return driver->SetDisplayArea(player->video, src, dst);
 }
 
 bool SS4S_PlayerVideoClose(SS4S_Player *player) {

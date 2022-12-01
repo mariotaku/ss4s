@@ -21,10 +21,10 @@ int main(int argc, char *argv[]) {
     assert(player != NULL);
     SS4S_PlayerInfo playerInfo;
     assert(SS4S_PlayerGetInfo(player, &playerInfo));
-    if (playerInfo.videoModule == NULL) {
+    if (playerInfo.video.module == NULL) {
         return 127;
     }
-    assert(strcmp(playerInfo.videoModule, driver) == 0);
+    assert(strcmp(playerInfo.video.module, driver) == 0);
 
     SS4S_VideoInfo videoInfo = {
             .codec = SS4S_VIDEO_H264,

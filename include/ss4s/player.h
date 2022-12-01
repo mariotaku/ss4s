@@ -1,5 +1,7 @@
 #pragma once
 
+#include "video.h"
+
 #ifndef SS4S_MODAPI_H
 
 #include <stdbool.h>
@@ -8,8 +10,15 @@
 typedef struct SS4S_Player SS4S_Player;
 
 typedef struct SS4S_PlayerInfo {
-    const char *audioModule;
-    const char *videoModule;
+    struct {
+        bool enabled;
+        const char *module;
+    } audio;
+    struct {
+        bool enabled;
+        const char *module;
+        SS4S_VideoCapabilities capabilities;
+    } video;
 } SS4S_PlayerInfo;
 
 SS4S_Player *SS4S_PlayerOpen();

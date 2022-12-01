@@ -105,6 +105,10 @@ static void output_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     }
 }
 
+static SS4S_VideoCapabilities GetCapabilities() {
+    return SS4S_VIDEO_CAPABILITY_DISPLAY_AREA;
+}
+
 static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                  SS4S_PlayerContext *context) {
     (void) context;
@@ -348,14 +352,43 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
     return true;
 }
 
+static bool SetDisplayArea(SS4S_VideoInstance *instance, const SS4S_VideoRect *src, const SS4S_VideoRect *dst) {
+    MMAL_DISPLAYREGION_T param;
+    param.hdr.id = MMAL_PARAMETER_DISPLAYREGION;
+    param.hdr.size = sizeof(MMAL_DISPLAYREGION_T);
+    param.set = MMAL_DISPLAY_SET_FULLSCREEN | MMAL_DISPLAY_SET_SRC_RECT | MMAL_DISPLAY_SET_DEST_RECT;
+    param.display_num = 0;
+    param.fullscreen = src == NULL && dst == NULL;
+    if (src != NULL) {
+        param.src_rect.width = src->width;
+        param.src_rect.height = src->height;
+        param.src_rect.x = src->x;
+        param.src_rect.y = src->y;
+    } else {
+        memset(&param.src_rect, 0, sizeof(MMAL_RECT_T));
+    }
+    if (dst != NULL) {
+        param.dest_rect.width = dst->width;
+        param.dest_rect.height = dst->height;
+        param.dest_rect.x = dst->x;
+        param.dest_rect.y = dst->y;
+    } else {
+        memset(&param.dest_rect, 0, sizeof(MMAL_RECT_T));
+    }
+
+    return mmal_port_parameter_set(instance->renderer->input[0], &param.hdr) == MMAL_SUCCESS;
+}
+
 static const SS4S_VideoDriver MMALDriver = {
         .Base = {
                 .Init = Init,
                 .Quit = Quit,
         },
+        .GetCapabilities = GetCapabilities,
         .Open = Open,
         .Feed = Feed,
         .SizeChanged = SizeChanged,
+        .SetDisplayArea = SetDisplayArea,
         .Close = Close,
 };
 

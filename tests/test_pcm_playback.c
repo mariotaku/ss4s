@@ -20,10 +20,10 @@ int main(int argc, char *argv[]) {
     assert(player != NULL);
     SS4S_PlayerInfo playerInfo;
     assert(SS4S_PlayerGetInfo(player, &playerInfo));
-    if (playerInfo.audioModule == NULL) {
+    if (playerInfo.audio.module == NULL) {
         return 127;
     }
-    assert(strcmp(playerInfo.audioModule, driver) == 0);
+    assert(strcmp(playerInfo.audio.module, driver) == 0);
 
     SS4S_AudioInfo audioInfo = {
             .numOfChannels = 2,

@@ -46,7 +46,18 @@ typedef struct SS4S_VideoHDRInfo {
     int maxPicAverageLightLevel;
 } SS4S_VideoHDRInfo;
 
+typedef struct SS4S_VideoRect {
+    int x, y;
+    int width, height;
+} SS4S_VideoRect;
+
+typedef enum SS4S_VideoCapabilities {
+    SS4S_VIDEO_CAPABILITY_DISPLAY_AREA = 0x1,
+} SS4S_VideoCapabilities;
+
 #ifndef SS4S_MODAPI_H
+
+SS4S_VideoCapabilities SS4S_PlayerGetCapabilities();
 
 SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info);
 
@@ -54,6 +65,8 @@ SS4S_VideoFeedResult SS4S_PlayerVideoFeed(SS4S_Player *player, const unsigned ch
                                           SS4S_VideoFeedFlags flags);
 
 bool SS4S_PlayerVideoSetHDRInfo(SS4S_Player *player, const SS4S_VideoHDRInfo *info);
+
+bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *src, const SS4S_VideoRect *dst);
 
 bool SS4S_PlayerVideoClose(SS4S_Player *player);
 

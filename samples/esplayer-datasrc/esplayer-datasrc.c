@@ -2,6 +2,7 @@
 
 #include <gst/gst.h>
 #include <gst/app/app.h>
+#include <stdio.h>
 
 static GstElement *pipeline;
 static GstBus *bus;
@@ -116,10 +117,14 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
     GstStateChangeReturn ret;
 
     GstElement *audiosink, *videosink;
-    pipeline = gst_parse_launch("curlhttpsrc location=http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4 ! qtdemux name=demux \
-    demux.audio_0 ! queue ! aacparse ! avdec_aac ! audioconvert ! audio/x-raw,format=S16LE ! appsink name=audsink \
-    demux.video_0 ! queue ! h264parse config-interval=5 ! video/x-h264,stream-format=byte-stream,alignment=au ! appsink name=vidsink",
-                                NULL);
+    char gst_args[8192];
+    const char *url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    snprintf(gst_args, 8192,
+             "curlhttpsrc location=%s ! qtdemux name=demux "
+             "demux.audio_0 ! queue ! aacparse ! avdec_aac ! audioconvert ! audio/x-raw,format=S16LE ! appsink name=audsink "
+             "demux.video_0 ! queue ! h264parse config-interval=5 ! video/x-h264,stream-format=byte-stream,alignment=au ! appsink name=vidsink",
+             url);
+    pipeline = gst_parse_launch(gst_args, NULL);
 
     g_assert(pipeline);
 

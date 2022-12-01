@@ -13,7 +13,13 @@ int videoPreroll(int width, int height, int framerate) {
             .width = width,
             .height = height,
     };
-    return SS4S_PlayerVideoOpen(player, &info);
+    SS4S_VideoOpenResult result = SS4S_PlayerVideoOpen(player, &info);
+    if (result == SS4S_VIDEO_OPEN_OK) {
+        SS4S_VideoRect src = {0, 0, width, 840 * height / 1080};
+        SS4S_VideoRect dst = {0, 0, 1920, 840};
+        SS4S_PlayerVideoSetDisplayArea(player, &src, &dst);
+    }
+    return result;
 }
 
 int videoSample(const void *data, size_t size, int flags) {
