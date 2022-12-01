@@ -106,7 +106,7 @@ static void output_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
 }
 
 static SS4S_VideoCapabilities GetCapabilities() {
-    return SS4S_VIDEO_CAPABILITY_DISPLAY_AREA;
+    return SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC | SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST;
 }
 
 static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,

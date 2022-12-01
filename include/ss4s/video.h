@@ -52,7 +52,9 @@ typedef struct SS4S_VideoRect {
 } SS4S_VideoRect;
 
 typedef enum SS4S_VideoCapabilities {
-    SS4S_VIDEO_CAPABILITY_DISPLAY_AREA = 0x1,
+    SS4S_VIDEO_CAP_TRANSFORM_MASK = 0x000F0000,
+    SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC = 0x10000,
+    SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST = 0x20000,
 } SS4S_VideoCapabilities;
 
 #ifndef SS4S_MODAPI_H
