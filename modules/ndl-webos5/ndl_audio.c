@@ -26,7 +26,7 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
         default:
             return SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
     }
-    if (NDL_webOS5_ReloadMedia(context) != 0) {
+    if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
         return SS4S_AUDIO_OPEN_ERROR;
     }
     *instance = (SS4S_AudioInstance *) context;
@@ -45,10 +45,10 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
 static void CloseAudio(SS4S_AudioInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.audio.type = 0;
-    NDL_webOS5_ReloadMedia(context);
+    SS4S_NDL_webOS5_ReloadMedia(context);
 }
 
-const SS4S_AudioDriver NDL_webOS5_AudioDriver = {
+const SS4S_AudioDriver SS4S_NDL_webOS5_AudioDriver = {
         .Open = OpenAudio,
         .Feed = FeedAudio,
         .Close = CloseAudio,

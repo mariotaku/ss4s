@@ -6,9 +6,7 @@ static SS4S_PlayerContext *CreatePlayerContext();
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
-static void UnloadMedia(const SS4S_PlayerContext *context);
-
-const SS4S_PlayerDriver SS4S_LGNC_PlayerDriver = {
+const SS4S_PlayerDriver SS4S_NDL_webOS4_PlayerDriver = {
         .Create = CreatePlayerContext,
         .Destroy = DestroyPlayerContext,
 };
@@ -18,10 +16,11 @@ static SS4S_PlayerContext *CreatePlayerContext() {
 }
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context) {
-    UnloadMedia(context);
+    if (context->videoOpened) {
+        NDL_DirectVideoClose();
+    }
+    if (context->audioOpened) {
+        NDL_DirectAudioClose();
+    }
     free(context);
-}
-
-static void UnloadMedia(const SS4S_PlayerContext *context) {
-
 }

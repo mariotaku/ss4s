@@ -25,6 +25,7 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     if (NDL_DirectAudioOpen(&context->audioInfo) != 0) {
         return SS4S_AUDIO_OPEN_ERROR;
     }
+    context->audioOpened = true;
     *instance = (SS4S_AudioInstance *) context;
     return SS4S_AUDIO_OPEN_OK;
 }
@@ -41,13 +42,14 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
 static void CloseAudio(SS4S_AudioInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->audioInfo, 0, sizeof(NDL_DIRECTAUDIO_DATA_INFO));
+    context->audioOpened = false;
     NDL_DirectAudioClose();
 }
 
-const SS4S_AudioDriver SS4S_LGNC_AudioDriver = {
+const SS4S_AudioDriver SS4S_NDL_webOS4_AudioDriver = {
         .Base = {
-                .Init = SS4S_LGNC_Driver_Init,
-                .Quit = SS4S_LGNC_Driver_Quit,
+                .Init = SS4S_NDL_webOS4_Driver_Init,
+                .Quit = SS4S_NDL_webOS4_Driver_Quit,
         },
         .Open = OpenAudio,
         .Feed = FeedAudio,

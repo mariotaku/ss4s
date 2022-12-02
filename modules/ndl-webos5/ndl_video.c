@@ -17,7 +17,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
     context->mediaInfo.video.width = info->width;
     context->mediaInfo.video.height = info->height;
 
-    if (NDL_webOS5_ReloadMedia(context) != 0) {
+    if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
         return SS4S_VIDEO_OPEN_ERROR;
     }
     *instance = (SS4S_VideoInstance *) context;
@@ -38,10 +38,10 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 static void CloseVideo(SS4S_VideoInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.video.type = 0;
-    NDL_webOS5_ReloadMedia(context);
+    SS4S_NDL_webOS5_ReloadMedia(context);
 }
 
-const SS4S_VideoDriver NDL_webOS5_VideoDriver = {
+const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {
         .Open = OpenVideo,
         .Feed = FeedVideo,
         .Close = CloseVideo,

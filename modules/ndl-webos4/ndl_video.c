@@ -9,6 +9,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
     }
     context->videoInfo.width = info->width;
     context->videoInfo.height = info->height;
+    context->videoOpened = true;
 
     if (NDL_DirectVideoOpen(&context->videoInfo) != 0) {
         return SS4S_VIDEO_OPEN_ERROR;
@@ -31,13 +32,14 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 static void CloseVideo(SS4S_VideoInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(NDL_DIRECTVIDEO_DATA_INFO));
+    context->videoOpened = false;
     NDL_DirectVideoClose();
 }
 
-const SS4S_VideoDriver SS4S_LGNC_VideoDriver = {
+const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver = {
         .Base = {
-                .Init = SS4S_LGNC_Driver_Init,
-                .Quit = SS4S_LGNC_Driver_Quit,
+                .Init = SS4S_NDL_webOS4_Driver_Init,
+                .Quit = SS4S_NDL_webOS4_Driver_Quit,
         },
         .Open = OpenVideo,
         .Feed = FeedVideo,

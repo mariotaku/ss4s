@@ -6,8 +6,6 @@ static SS4S_PlayerContext *CreatePlayerContext();
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
-static void UnloadMedia(const SS4S_PlayerContext *context);
-
 const SS4S_PlayerDriver SS4S_LGNC_PlayerDriver = {
         .Create = CreatePlayerContext,
         .Destroy = DestroyPlayerContext,
@@ -18,10 +16,11 @@ static SS4S_PlayerContext *CreatePlayerContext() {
 }
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context) {
-    UnloadMedia(context);
+    if (context->videoInfo.vdecFmt) {
+        LGNC_DIRECTVIDEO_Close();
+    }
+    if (context->audioInfo.codec) {
+        LGNC_DIRECTAUDIO_Close();
+    }
     free(context);
-}
-
-static void UnloadMedia(const SS4S_PlayerContext *context) {
-
 }

@@ -66,7 +66,7 @@ struct SS4S_Module {
     const SS4S_VideoDriver *VideoDriver;
 };
 
-#define SS4S_MODULE_ENTRY __attribute__((unused))
+#define SS4S_MODULE_ENTRY __attribute__((unused,visibility("default")))
 
 /**
  * Multiple calls to this function should have same effect.

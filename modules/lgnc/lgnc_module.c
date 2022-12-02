@@ -14,7 +14,7 @@ SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_LGNC(SS4S_Module *module) {
     return true;
 }
 
-void SS4S_LGNC_Driver_Init(int argc, char *argv[]) {
+void SS4S_LGNC_Driver_Init() {
     if (SS4S_LGNC_Initialized) {
         return;
     }

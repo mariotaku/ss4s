@@ -9,6 +9,7 @@ function(ss4s_add_module NAME)
     add_library(${SS4S_MODULE_NAME} SHARED ${MODULE_SOURCES})
     target_link_libraries(${SS4S_MODULE_NAME} PRIVATE ss4s-module-api)
     set_target_properties(${SS4S_MODULE_NAME} PROPERTIES
+            C_VISIBILITY_PRESET hidden
             LIBRARY_OUTPUT_NAME "ss4s-${NAME}"
             LIBRARY_OUTPUT_DIRECTORY "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}")
     set(SS4S_MODULE_NAME ${SS4S_MODULE_NAME} PARENT_SCOPE)
