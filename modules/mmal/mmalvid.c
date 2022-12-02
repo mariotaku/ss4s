@@ -49,7 +49,6 @@ struct SS4S_VideoInstance {
     VCOS_SEMAPHORE_T semaphore;
     MMAL_COMPONENT_T *decoder, *renderer;
     MMAL_POOL_T *pool_in, *pool_out;
-    int decoder_errors, renderer_errors;
 };
 
 static void Init() {
@@ -76,10 +75,10 @@ static void input_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
 
 static void decoder_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     SS4S_VideoInstance *instance = (SS4S_VideoInstance *) port->component->userdata;
+    (void) instance;
     if (buf->cmd == MMAL_EVENT_ERROR) {
         MMAL_STATUS_T status = *(uint32_t *) buf->data;
         fprintf(stderr, "Video decode error MMAL_EVENT_ERROR:%d\n", status);
-        instance->decoder_errors += 1;
     }
 
     mmal_buffer_header_release(buf);
@@ -87,10 +86,10 @@ static void decoder_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
 
 static void render_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     SS4S_VideoInstance *instance = (SS4S_VideoInstance *) port->component->userdata;
+    (void) instance;
     if (buf->cmd == MMAL_EVENT_ERROR) {
         MMAL_STATUS_T status = *(uint32_t *) buf->data;
         fprintf(stderr, "Video render error MMAL_EVENT_ERROR:%d\n", status);
-        instance->renderer_errors += 1;
     }
 
     mmal_buffer_header_release(buf);
@@ -293,9 +292,6 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
     if (!instance->started) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
-    if (instance->decoder_errors > 0 || instance->renderer_errors > 0) {
-        return SS4S_VIDEO_FEED_ERROR;
-    }
 
     MMAL_STATUS_T status;
     MMAL_BUFFER_HEADER_T *buf;
@@ -348,8 +344,7 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
 
 static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
     Stop(instance);
-    Start(instance, width, height);
-    return true;
+    return Start(instance, width, height) == SS4S_VIDEO_OPEN_OK;
 }
 
 static bool SetDisplayArea(SS4S_VideoInstance *instance, const SS4S_VideoRect *src, const SS4S_VideoRect *dst) {
