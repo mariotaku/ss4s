@@ -1,5 +1,9 @@
 #include "ndl_common.h"
 
+static SS4S_VideoCapabilities GetCapabilities() {
+    return SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+}
+
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                       SS4S_PlayerContext *context) {
     switch (info->codec) {
@@ -35,6 +39,15 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     return SS4S_VIDEO_FEED_OK;
 }
 
+static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *info) {
+    (void) instance;
+    return NDL_DirectVideoSetHDRInfo(info->displayPrimariesX[0], info->displayPrimariesY[0], info->displayPrimariesX[1],
+                                     info->displayPrimariesY[1], info->displayPrimariesX[2], info->displayPrimariesY[2],
+                                     info->whitePointX, info->whitePointY, info->maxDisplayMasteringLuminance,
+                                     info->minDisplayMasteringLuminance, info->maxContentLightLevel,
+                                     info->maxPicAverageLightLevel) == 0;
+}
+
 static void CloseVideo(SS4S_VideoInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.video.type = 0;
@@ -42,7 +55,9 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {
+        .GetCapabilities = GetCapabilities,
         .Open = OpenVideo,
         .Feed = FeedVideo,
+        .SetHDRInfo = SetHDRInfo,
         .Close = CloseVideo,
 };

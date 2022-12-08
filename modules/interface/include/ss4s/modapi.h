@@ -44,13 +44,30 @@ typedef struct SS4S_VideoDriver {
 
     SS4S_VideoCapabilities (*GetCapabilities)();
 
+    /**
+     * Required.
+     * @param info Size and code of the video stream
+     * @param instance Video instance field to assign
+     * @param context Player context
+     * @return
+     */
     SS4S_VideoOpenResult (*Open)(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                  SS4S_PlayerContext *context);
 
+    /**
+     * Required.
+     * @param instance Video instance
+     * @param data Video stream data
+     * @param size Size of the data
+     * @param flags
+     * @return
+     */
     SS4S_VideoFeedResult (*Feed)(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
                                  SS4S_VideoFeedFlags flags);
 
     bool (*SizeChanged)(SS4S_VideoInstance *instance, int width, int height);
+
+    bool (*SetHDRInfo)(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *info);
 
     bool (*SetDisplayArea)(SS4S_VideoInstance *instance, const SS4S_VideoRect *src, const SS4S_VideoRect *dst);
 

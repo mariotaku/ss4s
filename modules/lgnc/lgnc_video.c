@@ -2,6 +2,10 @@
 
 #include <string.h>
 
+static SS4S_VideoCapabilities GetCapabilities() {
+    return SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+}
+
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                       SS4S_PlayerContext *context) {
     if (info->codec != SS4S_VIDEO_H264) {
@@ -41,6 +45,7 @@ const SS4S_VideoDriver SS4S_LGNC_VideoDriver = {
                 .Init = SS4S_LGNC_Driver_Init,
                 .Quit = SS4S_LGNC_Driver_Quit,
         },
+        .GetCapabilities = GetCapabilities,
         .Open = OpenVideo,
         .Feed = FeedVideo,
         .Close = CloseVideo,

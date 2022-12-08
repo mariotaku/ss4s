@@ -55,11 +55,15 @@ typedef enum SS4S_VideoCapabilities {
     SS4S_VIDEO_CAP_TRANSFORM_MASK = 0x000F0000,
     SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC = 0x10000,
     SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST = 0x20000,
+    /**
+     * Video can be blended with UI
+     */
+    SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING = 0x80000,
 } SS4S_VideoCapabilities;
 
 #ifndef SS4S_MODAPI_H
 
-SS4S_VideoCapabilities SS4S_PlayerGetCapabilities();
+SS4S_VideoCapabilities SS4S_GetVideoCapabilities();
 
 SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info);
 

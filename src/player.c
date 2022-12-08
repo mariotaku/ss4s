@@ -51,7 +51,7 @@ bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info) {
     if (videoModule != NULL) {
         info->video.enabled = true;
         info->video.module = videoModule;
-        info->video.capabilities = SS4S_PlayerGetCapabilities();
+        info->video.capabilities = SS4S_GetVideoCapabilities();
     }
     return true;
 }
