@@ -38,6 +38,5 @@ add_subdirectory(pulse)
 add_subdirectory(sdl)
 add_subdirectory(mmal)
 
-add_subdirectory(ndl-webos4)
-add_subdirectory(ndl-webos5)
+add_subdirectory(ndl)
 add_subdirectory(lgnc)

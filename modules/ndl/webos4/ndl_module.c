@@ -1,7 +1,7 @@
 #include "ss4s/modapi.h"
 #include "ndl_common.h"
 
-#include <NDL_directmedia.h>
+#include "NDL_directmedia.h"
 #include <stdlib.h>
 
 bool SS4S_NDL_webOS4_Initialized = false;

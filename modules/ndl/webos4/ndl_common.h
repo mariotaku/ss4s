@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NDL_directmedia.h>
+#include "NDL_directmedia.h"
 
 #include "ss4s/modapi.h"
 
