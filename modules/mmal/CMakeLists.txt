@@ -3,6 +3,6 @@ find_package(BroadcomMMAL)
 
 if (BROADCOMMMAL_FOUND)
     ss4s_add_module(mmal FOR_VIDEO DISPLAY_NAME "MMAL" SOURCES mmalvid.c)
-    target_include_directories(${SS4S_MODULE_NAME} SYSTEM PRIVATE ${BROADCOM_INCLUDE_DIR})
-    target_link_libraries(${SS4S_MODULE_NAME} PRIVATE ${BROADCOM_MMAL_LIBRARIES})
+    target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${BROADCOM_INCLUDE_DIR})
+    target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${BROADCOM_MMAL_LIBRARIES})
 endif ()

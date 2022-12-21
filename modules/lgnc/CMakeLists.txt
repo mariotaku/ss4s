@@ -1,6 +1,6 @@
 if (TARGET lgncopenapi)
     ss4s_add_module(lgnc FOR_VIDEO FOR_AUDIO DISPLAY_NAME "NetCast Legacy"
             SOURCES lgnc_module.c lgnc_player.c lgnc_audio.c lgnc_video.c
-            CONFLICT ndl-webos4 ndl-webos5)
-    target_link_libraries(${SS4S_MODULE_NAME} PRIVATE lgncopenapi)
+            CONFLICT ndl)
+    target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE lgncopenapi)
 endif ()
