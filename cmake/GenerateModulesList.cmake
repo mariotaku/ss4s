@@ -1,0 +1,38 @@
+# Group all the modules
+foreach (SS4S_MODULE_TARGET ${SS4S_MODULE_TARGETS})
+    get_target_property(_GROUP ${SS4S_MODULE_TARGET} SS4S_MODULE_GROUP)
+    get_target_property(_NAME ${SS4S_MODULE_TARGET} SS4S_MODULE_NAME)
+    get_target_property(SS4S_MODULE_${_GROUP}_DISPLAY_NAME ${SS4S_MODULE_TARGET} SS4S_MODULE_DISPLAY_NAME)
+    get_target_property(SS4S_MODULE_${_GROUP}_FOR_AUDIO ${SS4S_MODULE_TARGET} SS4S_MODULE_FOR_AUDIO)
+    get_target_property(SS4S_MODULE_${_GROUP}_FOR_VIDEO ${SS4S_MODULE_TARGET} SS4S_MODULE_FOR_VIDEO)
+    get_target_property(SS4S_MODULE_${_GROUP}_CONFLICT ${SS4S_MODULE_TARGET} SS4S_MODULE_CONFLICT)
+
+    list(APPEND SS4S_MODULE_${_GROUP}_MODULES "${_NAME}")
+    list(APPEND SS4S_MODULE_GROUPS ${_GROUP})
+endforeach ()
+list(REMOVE_DUPLICATES SS4S_MODULE_GROUPS)
+
+# Write modules list to file
+set(SS4S_MODULES_INI_OUTPUT_FILE "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}/ss4s_modules.ini"
+        CACHE FILEPATH "Path of generated modules index file")
+
+file(WRITE "${SS4S_MODULES_INI_OUTPUT_FILE}" "; Generated File - DO NOT EDIT\n")
+foreach (_GROUP ${SS4S_MODULE_GROUPS})
+    file(APPEND "${SS4S_MODULES_INI_OUTPUT_FILE}" "[${_GROUP}]\n")
+    file(APPEND "${SS4S_MODULES_INI_OUTPUT_FILE}" "name = ${SS4S_MODULE_${_GROUP}_DISPLAY_NAME}\n")
+    file(APPEND "${SS4S_MODULES_INI_OUTPUT_FILE}" "modules = ${SS4S_MODULE_${_GROUP}_MODULES}\n")
+    if (SS4S_MODULE_${_GROUP}_FOR_AUDIO)
+        file(APPEND "${SS4S_MODULES_INI_OUTPUT_FILE}" "audio = true\n")
+    endif ()
+    if (SS4S_MODULE_${_GROUP}_FOR_VIDEO)
+        file(APPEND "${SS4S_MODULES_INI_OUTPUT_FILE}" "video = true\n")
+    endif ()
+    if (SS4S_MODULE_${_GROUP}_CONFLICT)
+        file(APPEND "${SS4S_MODULES_INI_OUTPUT_FILE}" "conflict = ${SS4S_MODULE_${_GROUP}_CONFLICT}\n")
+    endif ()
+    file(APPEND "${SS4S_MODULES_INI_OUTPUT_FILE}" "\n")
+endforeach ()
+
+if (CMAKE_INSTALL_LIBDIR)
+    install(FILES ${SS4S_MODULES_INI_OUTPUT_FILE} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
