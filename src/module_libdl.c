@@ -27,6 +27,20 @@ bool SS4S_ModuleOpen(const char *name, SS4S_Module *module) {
     return fn(module);
 }
 
+bool SS4S_ModuleAvailable(const char *name) {
+    if (name == NULL || name[0] == '\0') {
+        return false;
+    }
+    char tmp[128];
+    ModuleFileName(tmp, sizeof(tmp), name);
+    void *lib = dlopen(tmp, RTLD_LAZY);
+    if (lib == NULL) {
+        return false;
+    }
+    dlclose(lib);
+    return true;
+}
+
 static void ModuleFileName(char *out, size_t outLen, const char *name) {
     snprintf(out, outLen, "libss4s-%s.so", name);
 }

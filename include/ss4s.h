@@ -24,4 +24,6 @@ const char *SS4S_GetAudioModuleName();
 
 const char *SS4S_GetVideoModuleName();
 
+bool SS4S_IsDriverAvailable(const char *driverName);
+
 #endif // SS4S_MODAPI_H

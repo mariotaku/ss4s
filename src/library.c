@@ -90,3 +90,7 @@ const char *SS4S_GetAudioModuleName() {
 const char *SS4S_GetVideoModuleName() {
     return States.Video.ModuleName;
 }
+
+bool SS4S_IsDriverAvailable(const char *driverName) {
+    return SS4S_ModuleAvailable(driverName);
+}
