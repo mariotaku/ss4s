@@ -14,9 +14,9 @@ typedef struct SS4S_Config {
     const char *videoDriver;
 } SS4S_Config;
 
-void SS4S_Init(int argc, char *argv[], const SS4S_Config *config);
+int SS4S_Init(int argc, char *argv[], const SS4S_Config *config);
 
-void SS4S_PostInit(int argc, char *argv[]);
+int SS4S_PostInit(int argc, char *argv[]);
 
 void SS4S_Quit();
 

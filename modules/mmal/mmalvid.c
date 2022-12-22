@@ -51,9 +51,9 @@ struct SS4S_VideoInstance {
     MMAL_POOL_T *pool_in, *pool_out;
 };
 
-static void Init() {
+static int Init() {
     bcm_host_init();
-    mmal_vc_init();
+    return mmal_vc_init();
 }
 
 static void Quit() {

@@ -1,3 +1,4 @@
+#include <string.h>
 #include "ndl_common.h"
 
 static SS4S_VideoCapabilities GetCapabilities() {
@@ -6,6 +7,7 @@ static SS4S_VideoCapabilities GetCapabilities() {
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                       SS4S_PlayerContext *context) {
+    memset(&context->mediaInfo.video, 0, sizeof(context->mediaInfo.video));
     switch (info->codec) {
         case SS4S_VIDEO_H264: {
             context->mediaInfo.video.type = NDL_VIDEO_TYPE_H264;
@@ -20,6 +22,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
     }
     context->mediaInfo.video.width = info->width;
     context->mediaInfo.video.height = info->height;
+    context->mediaInfo.video.unknown1 = 0;
 
     if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
         return SS4S_VIDEO_OPEN_ERROR;
@@ -55,6 +58,10 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {
+        .Base = {
+                .PostInit = SS4S_NDL_webOS5_Driver_PostInit,
+                .Quit = SS4S_NDL_webOS5_Driver_Quit,
+        },
         .GetCapabilities = GetCapabilities,
         .Open = OpenVideo,
         .Feed = FeedVideo,

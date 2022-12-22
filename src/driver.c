@@ -2,18 +2,18 @@
 
 #include "driver.h"
 
-void SS4S_DriverInit(const SS4S_DriverBase *base, int argc, char *argv[]) {
+int SS4S_DriverInit(const SS4S_DriverBase *base, int argc, char *argv[]) {
     if (base->Init == NULL) {
-        return;
+        return 0;
     }
-    base->Init(argc, argv);
+    return base->Init(argc, argv);
 }
 
-void SS4S_DriverPostInit(const SS4S_DriverBase *base, int argc, char *argv[]) {
+int SS4S_DriverPostInit(const SS4S_DriverBase *base, int argc, char *argv[]) {
     if (base->PostInit == NULL) {
-        return;
+        return 0;
     }
-    base->PostInit(argc, argv);
+    return base->PostInit(argc, argv);
 }
 
 void SS4S_DriverQuit(const SS4S_DriverBase *base) {

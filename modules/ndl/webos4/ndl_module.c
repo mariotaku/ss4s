@@ -14,13 +14,17 @@ SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module) {
     return true;
 }
 
-void SS4S_NDL_webOS4_Driver_Init(int argc, char *argv[]) {
+int SS4S_NDL_webOS4_Driver_Init(int argc, char *argv[]) {
+    (void) argc;
+    (void) argv;
     if (SS4S_NDL_webOS4_Initialized) {
-        return;
+        return 0;
     }
-    if (NDL_DirectMediaInit(getenv("APPID"), NULL)) {
+    int ret;
+    if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) == 0) {
         SS4S_NDL_webOS4_Initialized = true;
     }
+    return ret;
 }
 
 void SS4S_NDL_webOS4_Driver_Quit() {

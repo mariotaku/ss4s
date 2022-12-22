@@ -16,7 +16,7 @@ extern const SS4S_PlayerDriver SS4S_NDL_webOS4_PlayerDriver;
 extern const SS4S_AudioDriver SS4S_NDL_webOS4_AudioDriver;
 extern const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver;
 
-void SS4S_NDL_webOS4_Driver_Init(int argc, char *argv[]);
+int SS4S_NDL_webOS4_Driver_Init(int argc, char *argv[]);
 
 void SS4S_NDL_webOS4_Driver_Quit();
 

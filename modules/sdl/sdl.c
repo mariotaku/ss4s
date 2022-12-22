@@ -12,10 +12,11 @@ struct SS4S_AudioInstance {
 
 static void Callback(void *userdata, Uint8 *stream, int len);
 
-static void Init(int argc, char *argv[]) {
+static int Init(int argc, char *argv[]) {
     (void) argc;
     (void) argv;
     SDL_InitSubSystem(SDL_INIT_AUDIO);
+    return 0;
 }
 
 static void Quit() {

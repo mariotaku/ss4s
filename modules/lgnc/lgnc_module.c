@@ -14,15 +14,17 @@ SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_LGNC(SS4S_Module *module) {
     return true;
 }
 
-void SS4S_LGNC_Driver_Init() {
+int SS4S_LGNC_Driver_Init() {
     if (SS4S_LGNC_Initialized) {
-        return;
+        return 0;
     }
     LGNC_CALLBACKS_T callbacks = {.msgHandler=NULL};
-    if (LGNC_PLUGIN_Initialize(&callbacks) == 0) {
+    int ret;
+    if ((ret = LGNC_PLUGIN_Initialize(&callbacks)) == 0) {
         LGNC_PLUGIN_SetAppId(getenv("APPID"));
         SS4S_LGNC_Initialized = true;
     }
+    return ret;
 }
 
 void SS4S_LGNC_Driver_Quit() {

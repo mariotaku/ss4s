@@ -22,35 +22,36 @@ static struct {
     } Video;
 } States;
 
-void SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
+int SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
     SS4S_Module module;
     if (SS4S_ModuleOpen(config->audioDriver, &module)) {
         assert(module.Name != NULL);
-        States.Audio.Driver = module.AudioDriver;
-        States.Audio.ModuleName = module.Name;
-        if (States.Audio.Driver != NULL) {
+        if (module.AudioDriver != NULL && SS4S_DriverInit(&module.AudioDriver->Base, argc, argv) == 0) {
+            States.Audio.Driver = module.AudioDriver;
             States.Audio.PlayerDriver = module.PlayerDriver;
-            SS4S_DriverInit(&States.Audio.Driver->Base, argc, argv);
+            States.Audio.ModuleName = module.Name;
         }
     }
     if (SS4S_ModuleOpen(config->videoDriver, &module)) {
         assert(module.Name != NULL);
-        States.Video.Driver = module.VideoDriver;
-        States.Video.ModuleName = module.Name;
-        if (States.Video.Driver != NULL) {
+        if (module.VideoDriver != NULL && SS4S_DriverInit(&module.VideoDriver->Base, argc, argv) == 0) {
+            States.Video.Driver = module.VideoDriver;
             States.Video.PlayerDriver = module.PlayerDriver;
-            SS4S_DriverInit(&States.Video.Driver->Base, argc, argv);
+            States.Video.ModuleName = module.Name;
         }
     }
+    return 0;
 }
 
-void SS4S_PostInit(int argc, char *argv[]) {
+int SS4S_PostInit(int argc, char *argv[]) {
+    int aret = 0, vret = 0;
     if (States.Audio.Driver != NULL) {
-        SS4S_DriverPostInit(&States.Audio.Driver->Base, argc, argv);
+        aret = SS4S_DriverPostInit(&States.Audio.Driver->Base, argc, argv);
     }
     if (States.Video.Driver != NULL) {
-        SS4S_DriverPostInit(&States.Video.Driver->Base, argc, argv);
+        vret = SS4S_DriverPostInit(&States.Video.Driver->Base, argc, argv);
     }
+    return vret != 0 ? vret : aret;
 }
 
 void SS4S_Quit() {

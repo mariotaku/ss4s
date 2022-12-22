@@ -16,7 +16,7 @@ extern const SS4S_PlayerDriver SS4S_LGNC_PlayerDriver;
 extern const SS4S_AudioDriver SS4S_LGNC_AudioDriver;
 extern const SS4S_VideoDriver SS4S_LGNC_VideoDriver;
 
-void SS4S_LGNC_Driver_Init();
+int SS4S_LGNC_Driver_Init();
 
 void SS4S_LGNC_Driver_Quit();
 

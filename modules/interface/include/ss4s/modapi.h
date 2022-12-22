@@ -9,9 +9,9 @@
 #include <stdbool.h>
 
 typedef struct SS4S_DriverBase {
-    void (*Init)(int argc, char *argv[]);
+    int (*Init)(int argc, char *argv[]);
 
-    void (*PostInit)(int argc, char *argv[]);
+    int (*PostInit)(int argc, char *argv[]);
 
     void (*Quit)();
 } SS4S_DriverBase;
