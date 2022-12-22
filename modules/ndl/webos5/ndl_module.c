@@ -28,7 +28,8 @@ int SS4S_NDL_webOS5_Driver_PostInit(int argc, char *argv[]) {
         SS4S_NDL_webOS5_Initialized = true;
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Driver init.");
     } else {
-        SS4S_NDL_webOS5_Log(SS4S_LogLevelError, "NDL", "Failed to init: ret=%d, error=%s", ret, NDL_DirectMediaGetError());
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelError, "NDL", "Failed to init: ret=%d, error=%s", ret,
+                            NDL_DirectMediaGetError());
     }
     return ret;
 }
@@ -39,4 +40,5 @@ void SS4S_NDL_webOS5_Driver_Quit() {
     }
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Driver quit.");
     NDL_DirectMediaQuit();
+    SS4S_NDL_webOS5_Initialized = false;
 }

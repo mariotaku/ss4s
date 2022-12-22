@@ -37,6 +37,8 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
     (void) instance;
     int rc = NDL_DirectAudioPlay(data, size, 0);
     if (rc != 0) {
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectAudioPlay returned %d: %s", rc,
+                            NDL_DirectMediaGetError());
         return SS4S_AUDIO_FEED_ERROR;
     }
     return SS4S_AUDIO_FEED_OK;
