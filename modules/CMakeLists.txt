@@ -5,9 +5,7 @@ set(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}
 
 function(ss4s_add_module NAME)
     cmake_parse_arguments(MODULE "FOR_AUDIO;FOR_VIDEO" "IN_GROUP;DISPLAY_NAME;WEIGHT;OS_VERSION" "SOURCES;CONFLICTS" ${ARGN})
-    set(SS4S_MODULE_TARGET "ss4s-module-${NAME}")
-    add_library(${SS4S_MODULE_TARGET} SHARED ${MODULE_SOURCES})
-    target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ss4s-module-api)
+
     if (NOT MODULE_IN_GROUP)
         set(MODULE_IN_GROUP "${NAME}")
     endif ()
@@ -16,6 +14,10 @@ function(ss4s_add_module NAME)
     elseif (MODULE_WEIGHT GREATER 100)
         set(MODULE_WEIGHT 100)
     endif ()
+
+    set(SS4S_MODULE_TARGET "ss4s-module-${NAME}")
+    add_library(${SS4S_MODULE_TARGET} SHARED ${MODULE_SOURCES})
+    target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ss4s-module-api)
     set_target_properties(${SS4S_MODULE_TARGET} PROPERTIES
             C_VISIBILITY_PRESET hidden
             LIBRARY_OUTPUT_NAME "ss4s-${NAME}"

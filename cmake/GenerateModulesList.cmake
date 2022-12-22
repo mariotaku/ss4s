@@ -1,7 +1,10 @@
 # Group all the modules
 foreach (SS4S_MODULE_TARGET ${SS4S_MODULE_TARGETS})
-    get_target_property(_GROUP ${SS4S_MODULE_TARGET} SS4S_MODULE_GROUP)
     get_target_property(_NAME ${SS4S_MODULE_TARGET} SS4S_MODULE_NAME)
+    get_target_property(_GROUP ${SS4S_MODULE_TARGET} SS4S_MODULE_GROUP)
+    if (NOT _GROUP)
+        set(_GROUP ${_NAME})
+    endif ()
     get_target_property(SS4S_MODULE_${_GROUP}_DISPLAY_NAME ${SS4S_MODULE_TARGET} SS4S_MODULE_DISPLAY_NAME)
     get_target_property(SS4S_MODULE_${_GROUP}_FOR_AUDIO ${SS4S_MODULE_TARGET} SS4S_MODULE_FOR_AUDIO)
     get_target_property(SS4S_MODULE_${_GROUP}_FOR_VIDEO ${SS4S_MODULE_TARGET} SS4S_MODULE_FOR_VIDEO)
