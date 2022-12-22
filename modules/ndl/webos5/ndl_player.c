@@ -11,9 +11,9 @@ static SS4S_PlayerContext *CreatePlayerContext();
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
-static void UnloadMedia(const SS4S_PlayerContext *context);
+static void UnloadMedia(SS4S_PlayerContext *context);
 
-static int LoadMedia(const SS4S_PlayerContext *context);
+static int LoadMedia(SS4S_PlayerContext *context);
 
 static void LoadCallback(int type, long long numValue, const char *strValue);
 
@@ -36,10 +36,11 @@ static void DestroyPlayerContext(SS4S_PlayerContext *context) {
     free(context);
 }
 
-static void UnloadMedia(const SS4S_PlayerContext *context) {
+static void UnloadMedia(SS4S_PlayerContext *context) {
     pthread_mutex_lock(&globalMutex);
     if (context->mediaLoaded) {
         NDL_DirectMediaUnload();
+        context->mediaLoaded = false;
     }
     if (SS4S_NDL_webOS5_Initialized) {
         NDL_DirectMediaQuit();
@@ -48,7 +49,7 @@ static void UnloadMedia(const SS4S_PlayerContext *context) {
     pthread_mutex_unlock(&globalMutex);
 }
 
-static int LoadMedia(const SS4S_PlayerContext *context) {
+static int LoadMedia(SS4S_PlayerContext *context) {
     pthread_mutex_lock(&globalMutex);
     int ret = 0;
     if (!SS4S_NDL_webOS5_Initialized) {
@@ -62,6 +63,7 @@ static int LoadMedia(const SS4S_PlayerContext *context) {
     if ((ret = NDL_DirectMediaLoad(&info, LoadCallback)) != 0) {
         goto cleanup;
     }
+    context->mediaLoaded = true;
     cleanup:
     pthread_mutex_unlock(&globalMutex);
     return ret;
