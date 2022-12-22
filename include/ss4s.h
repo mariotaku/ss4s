@@ -8,10 +8,13 @@
 #include "ss4s/player.h"
 #include "ss4s/audio.h"
 #include "ss4s/video.h"
+#include "ss4s/logging.h"
 
 typedef struct SS4S_Config {
     const char *audioDriver;
     const char *videoDriver;
+
+    SS4S_LoggingFunction *loggingFunction;
 } SS4S_Config;
 
 int SS4S_Init(int argc, char *argv[], const SS4S_Config *config);

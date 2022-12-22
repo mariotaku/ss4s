@@ -5,6 +5,7 @@
 #include "ss4s/modapi.h"
 
 extern bool SS4S_NDL_webOS5_Initialized;
+extern SS4S_LoggingFunction *SS4S_NDL_webOS5_Log;
 
 struct SS4S_PlayerContext {
     NDL_DIRECTMEDIA_DATA_INFO mediaInfo;

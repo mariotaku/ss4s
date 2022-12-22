@@ -6,7 +6,8 @@
 
 bool SS4S_NDL_webOS4_Initialized = false;
 
-SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module) {
+SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_LibraryContext *context) {
+    (void) context;
     module->Name = "ndl-webos4";
     module->PlayerDriver = &SS4S_NDL_webOS4_PlayerDriver;
     module->AudioDriver = &SS4S_NDL_webOS4_AudioDriver;

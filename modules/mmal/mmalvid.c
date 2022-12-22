@@ -387,7 +387,8 @@ static const SS4S_VideoDriver MMALDriver = {
         .Close = Close,
 };
 
-SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_MMAL(SS4S_Module *module) {
+SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_MMAL(SS4S_Module *module, const SS4S_LibraryContext *context) {
+    (void) context;
     module->Name = "mmal";
     module->VideoDriver = &MMALDriver;
     return true;

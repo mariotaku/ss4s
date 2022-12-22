@@ -6,7 +6,8 @@
 
 bool SS4S_LGNC_Initialized = false;
 
-SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_LGNC(SS4S_Module *module) {
+SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_LGNC(SS4S_Module *module, const SS4S_LibraryContext *context) {
+    (void) context;
     module->Name = "lgnc";
     module->PlayerDriver = &SS4S_LGNC_PlayerDriver;
     module->AudioDriver = &SS4S_LGNC_AudioDriver;

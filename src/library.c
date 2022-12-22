@@ -1,6 +1,7 @@
 #include <assert.h>
-#include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 #include "ss4s.h"
 
@@ -22,22 +23,33 @@ static struct {
     } Video;
 } States;
 
+static SS4S_LoggingFunction *SS4S_Log = NULL;
+static SS4S_LibraryContext SS4S_LibContext = {
+        .Log = NULL,
+};
+
+static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...);
+
 int SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
+    SS4S_Log = config->loggingFunction != NULL ? config->loggingFunction : StdIOLoggingFunction;
+    SS4S_LibContext.Log = SS4S_Log;
     SS4S_Module module;
-    if (SS4S_ModuleOpen(config->audioDriver, &module)) {
+    if (SS4S_ModuleOpen(config->audioDriver, &module, &SS4S_LibContext)) {
         assert(module.Name != NULL);
         if (module.AudioDriver != NULL && SS4S_DriverInit(&module.AudioDriver->Base, argc, argv) == 0) {
             States.Audio.Driver = module.AudioDriver;
             States.Audio.PlayerDriver = module.PlayerDriver;
             States.Audio.ModuleName = module.Name;
+            SS4S_Log(SS4S_LogLevelInfo, "Audio", "Selected driver: %s", module.Name);
         }
     }
-    if (SS4S_ModuleOpen(config->videoDriver, &module)) {
+    if (SS4S_ModuleOpen(config->videoDriver, &module, &SS4S_LibContext)) {
         assert(module.Name != NULL);
         if (module.VideoDriver != NULL && SS4S_DriverInit(&module.VideoDriver->Base, argc, argv) == 0) {
             States.Video.Driver = module.VideoDriver;
             States.Video.PlayerDriver = module.PlayerDriver;
             States.Video.ModuleName = module.Name;
+            SS4S_Log(SS4S_LogLevelInfo, "Video", "Selected driver: %s", module.Name);
         }
     }
     return 0;
@@ -94,4 +106,13 @@ const char *SS4S_GetVideoModuleName() {
 
 bool SS4S_IsDriverAvailable(const char *driverName) {
     return SS4S_ModuleAvailable(driverName);
+}
+
+static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
+    (void) level;
+    fprintf(stderr, "[SS4S.%s] ", tag);
+    va_list arg;
+    va_start(arg, fmt);
+    vfprintf(stderr, fmt, arg);
+    va_end(arg);
 }
