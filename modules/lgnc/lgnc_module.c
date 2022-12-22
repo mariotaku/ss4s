@@ -19,7 +19,7 @@ void SS4S_LGNC_Driver_Init() {
         return;
     }
     LGNC_CALLBACKS_T callbacks = {.msgHandler=NULL};
-    if (LGNC_PLUGIN_Initialize(&callbacks)) {
+    if (LGNC_PLUGIN_Initialize(&callbacks) == 0) {
         LGNC_PLUGIN_SetAppId(getenv("APPID"));
         SS4S_LGNC_Initialized = true;
     }
