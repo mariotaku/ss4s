@@ -33,6 +33,24 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     return SS4S_VIDEO_FEED_OK;
 }
 
+static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
+    SS4S_PlayerContext *context = (void *) instance;
+    int aspectRatio = width * 100 / height;
+    if (context->aspectRatio != aspectRatio) {
+        context->aspectRatio = aspectRatio;
+        context->videoInfo.width = width;
+        context->videoInfo.height = height;
+        if (context->videoOpened) {
+            NDL_DirectVideoClose();
+        }
+        if (NDL_DirectVideoOpen(&context->videoInfo) != 0) {
+            context->videoOpened = false;
+            return false;
+        }
+    }
+    return true;
+}
+
 static void CloseVideo(SS4S_VideoInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(NDL_DIRECTVIDEO_DATA_INFO));
@@ -48,5 +66,6 @@ const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver = {
         .GetCapabilities = GetCapabilities,
         .Open = OpenVideo,
         .Feed = FeedVideo,
+        .SizeChanged = SizeChanged,
         .Close = CloseVideo,
 };

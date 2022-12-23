@@ -1,6 +1,8 @@
 #include <string.h>
 #include "ndl_common.h"
 
+static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
+
 static SS4S_VideoCapabilities GetCapabilities() {
     return SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
 }
@@ -20,12 +22,10 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
         default:
             return SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
     }
-    context->mediaInfo.video.width = info->width;
-    context->mediaInfo.video.height = info->height;
     context->mediaInfo.video.unknown1 = 0;
-
-    if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
-        return SS4S_VIDEO_OPEN_ERROR;
+    SS4S_VideoOpenResult result = ReloadWithSize(context, info->width, info->height);
+    if (result != SS4S_VIDEO_OPEN_OK) {
+        return result;
     }
     *instance = (SS4S_VideoInstance *) context;
     return SS4S_VIDEO_OPEN_OK;
@@ -44,6 +44,16 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     return SS4S_VIDEO_FEED_OK;
 }
 
+static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
+    SS4S_PlayerContext *context = (void *) instance;
+    int aspectRatio = width * 100 / height;
+    if (context->aspectRatio != aspectRatio) {
+        context->aspectRatio = aspectRatio;
+        ReloadWithSize(context, width, height);
+    }
+    return true;
+}
+
 static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *info) {
     (void) instance;
     return NDL_DirectVideoSetHDRInfo(info->displayPrimariesX[0], info->displayPrimariesY[0], info->displayPrimariesX[1],
@@ -59,6 +69,16 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
     SS4S_NDL_webOS5_ReloadMedia(context);
 }
 
+static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height) {
+    context->mediaInfo.video.width = width;
+    context->mediaInfo.video.height = height;
+
+    if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
+        return SS4S_VIDEO_OPEN_ERROR;
+    }
+    return SS4S_VIDEO_OPEN_OK;
+}
+
 const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {
         .Base = {
                 .PostInit = SS4S_NDL_webOS5_Driver_PostInit,
@@ -67,6 +87,7 @@ const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {
         .GetCapabilities = GetCapabilities,
         .Open = OpenVideo,
         .Feed = FeedVideo,
+        .SizeChanged = SizeChanged,
         .SetHDRInfo = SetHDRInfo,
         .Close = CloseVideo,
 };

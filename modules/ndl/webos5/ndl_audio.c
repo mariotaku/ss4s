@@ -8,7 +8,7 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                     .type = NDL_AUDIO_TYPE_PCM,
                     .format = NDL_DIRECTMEDIA_AUDIO_PCM_FORMAT_S16LE,
                     .channelMode = NDL_DIRECTMEDIA_AUDIO_PCM_MODE_STEREO,
-                    .sampleRate = NDL_DIRECTAUDIO_SAMPLING_FREQ_OF(info->sampleRate),
+                    .sampleRate = NDL_DIRECTMEDIA_AUDIO_PCM_SAMPLE_RATE_OF(info->sampleRate),
             };
             context->mediaInfo.audio.pcm = pcmInfo;
             break;

@@ -10,6 +10,7 @@ struct SS4S_PlayerContext {
     bool audioOpened, videoOpened;
     NDL_DIRECTAUDIO_DATA_INFO audioInfo;
     NDL_DIRECTVIDEO_DATA_INFO videoInfo;
+    int aspectRatio;
 };
 
 extern const SS4S_PlayerDriver SS4S_NDL_webOS4_PlayerDriver;

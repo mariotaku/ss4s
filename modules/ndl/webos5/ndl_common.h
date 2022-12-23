@@ -10,6 +10,7 @@ extern SS4S_LoggingFunction *SS4S_NDL_webOS5_Log;
 struct SS4S_PlayerContext {
     NDL_DIRECTMEDIA_DATA_INFO mediaInfo;
     bool mediaLoaded;
+    int aspectRatio;
 };
 
 extern const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver;
