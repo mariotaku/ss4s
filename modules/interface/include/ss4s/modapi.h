@@ -30,6 +30,8 @@ typedef struct SS4S_AudioInstance SS4S_AudioInstance;
 typedef struct SS4S_AudioDriver {
     SS4S_DriverBase Base;
 
+    SS4S_AudioCapabilities (*GetCapabilities)();
+
     SS4S_AudioOpenResult (*Open)(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                  SS4S_PlayerContext *context);
 

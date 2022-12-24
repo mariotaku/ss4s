@@ -6,9 +6,11 @@
 typedef struct SS4S_Player SS4S_Player;
 
 typedef enum SS4S_VideoCodec {
+    SS4S_VIDEO_NONE,
     SS4S_VIDEO_H264,
     SS4S_VIDEO_H265,
     SS4S_VIDEO_VP9,
+    SS4S_VIDEO_VP8,
 } SS4S_VideoCodec;
 
 typedef enum SS4S_VideoOpenResult {
@@ -56,6 +58,8 @@ typedef enum SS4S_VideoCapabilities {
     SS4S_VIDEO_CAP_CODEC_MASK = 0x000000FF,
     SS4S_VIDEO_CAP_CODEC_H264 = 0x00000001,
     SS4S_VIDEO_CAP_CODEC_H265 = 0x00000002,
+    SS4S_VIDEO_CAP_CODEC_VP9 = 0x00000004,
+    SS4S_VIDEO_CAP_CODEC_VP8 = 0x00000008,
     SS4S_VIDEO_CAP_TRANSFORM_MASK = 0x000F0000,
     SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC = 0x00010000,
     SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST = 0x00020000,
@@ -83,3 +87,18 @@ bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *s
 bool SS4S_PlayerVideoClose(SS4S_Player *player);
 
 #endif // SS4S_MODAPI_H
+
+static inline const char *SS4S_VideoCodecName(SS4S_VideoCodec codec) {
+    switch (codec) {
+        case SS4S_VIDEO_H264:
+            return "H264";
+        case SS4S_VIDEO_H265:
+            return "H265";
+        case SS4S_VIDEO_VP9:
+            return "VP9";
+        case SS4S_VIDEO_VP8:
+            return "VP8";
+        default:
+            return "NONE";
+    }
+}

@@ -8,6 +8,8 @@ static SS4S_VideoCapabilities GetCapabilities() {
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                       SS4S_PlayerContext *context) {
+    SS4S_Dummy_Log(SS4S_LogLevelInfo, "Dummy", "%s(codec=%s, width=%d, height=%d)", __FUNCTION__,
+                   SS4S_VideoCodecName(info->codec), info->width, info->height);
     SS4S_VideoOpenResult result = ReloadWithSize(context, info->width, info->height);
     if (result != SS4S_VIDEO_OPEN_OK) {
         return result;
@@ -46,6 +48,7 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
 }
 
 static void CloseVideo(SS4S_VideoInstance *instance) {
+    SS4S_Dummy_Log(SS4S_LogLevelInfo, "Dummy", "%s()", __FUNCTION__);
     SS4S_PlayerContext *context = (void *) instance;
     SS4S_Dummy_ReloadMedia(context);
 }

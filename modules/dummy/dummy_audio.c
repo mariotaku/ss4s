@@ -2,6 +2,8 @@
 
 static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                       SS4S_PlayerContext *context) {
+    SS4S_Dummy_Log(SS4S_LogLevelInfo, "Dummy", "%s(codec=%s, numOfChannels=%d, sampleRate=%d)", __FUNCTION__,
+                   SS4S_AudioCodecName(info->codec), info->numOfChannels, info->sampleRate);
     if (SS4S_Dummy_ReloadMedia(context) != 0) {
         return SS4S_AUDIO_OPEN_ERROR;
     }
@@ -18,6 +20,7 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
 }
 
 static void CloseAudio(SS4S_AudioInstance *instance) {
+    SS4S_Dummy_Log(SS4S_LogLevelInfo, "Dummy", "%s()", __FUNCTION__);
     SS4S_PlayerContext *context = (void *) instance;
     SS4S_Dummy_ReloadMedia(context);
 }

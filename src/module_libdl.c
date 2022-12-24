@@ -21,6 +21,7 @@ bool SS4S_ModuleOpen(const char *name, SS4S_Module *module, const SS4S_LibraryCo
     EntryFunctionName(tmp, sizeof(tmp), name);
     SS4S_ModuleOpenFunction *fn = (SS4S_ModuleOpenFunction *) dlsym(lib, tmp);
     if (fn == NULL) {
+        context->Log(SS4S_LogLevelError, "Module", "Module `%s` is not valid!", name);
         return false;
     }
     memset(module, 0, sizeof(SS4S_Module));
