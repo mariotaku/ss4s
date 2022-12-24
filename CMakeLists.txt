@@ -6,6 +6,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 11)
 
 option(SS4S_SANITIZE_ADDRESS "Link Address Sanitizer" OFF)
+option(SS4S_MODULE_BUILD_DUMMY "Build Dummy module" OFF)
 option(SS4S_GENERATE_MODULES_LIST "Generate ss4s_modules.ini" ON)
 
 if (SS4S_SANITIZE_ADDRESS)

@@ -55,3 +55,7 @@ add_subdirectory(mmal)
 
 add_subdirectory(ndl)
 add_subdirectory(lgnc)
+
+if (SS4S_MODULE_BUILD_DUMMY)
+    add_subdirectory(dummy)
+endif ()
