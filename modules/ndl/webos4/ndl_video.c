@@ -3,7 +3,7 @@
 #include <string.h>
 
 static SS4S_VideoCapabilities GetCapabilities() {
-    return SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+    return SS4S_VIDEO_CAP_CODEC_H264 | SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
 }
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
@@ -35,6 +35,9 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 
 static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
     SS4S_PlayerContext *context = (void *) instance;
+    if (width <= 0 || height <= 0) {
+        return false;
+    }
     int aspectRatio = width * 100 / height;
     if (context->aspectRatio != aspectRatio) {
         context->aspectRatio = aspectRatio;

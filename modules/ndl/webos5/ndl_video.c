@@ -4,7 +4,7 @@
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
 static SS4S_VideoCapabilities GetCapabilities() {
-    return SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+    return SS4S_VIDEO_CAP_CODEC_H264 | SS4S_VIDEO_CAP_CODEC_H265 | SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
 }
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
@@ -17,6 +17,10 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
         }
         case SS4S_VIDEO_H265: {
             context->mediaInfo.video.type = NDL_VIDEO_TYPE_H265;
+            break;
+        }
+        case SS4S_VIDEO_VP9: {
+            context->mediaInfo.video.type = NDL_VIDEO_TYPE_VP9;
             break;
         }
         default:
@@ -33,8 +37,11 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
 
 static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
                                       SS4S_VideoFeedFlags flags) {
-    (void) instance;
     (void) flags;
+    SS4S_PlayerContext *context = (void *) instance;
+    if (!context->mediaLoaded) {
+        return SS4S_VIDEO_FEED_NOT_READY;
+    }
     int rc = NDL_DirectVideoPlay(data, size, 0);
     if (rc != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectVideoPlay returned %d: %s", rc,
@@ -46,6 +53,9 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 
 static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
     SS4S_PlayerContext *context = (void *) instance;
+    if (width <= 0 || height <= 0) {
+        return false;
+    }
     int aspectRatio = width * 100 / height;
     if (context->aspectRatio != aspectRatio) {
         context->aspectRatio = aspectRatio;
