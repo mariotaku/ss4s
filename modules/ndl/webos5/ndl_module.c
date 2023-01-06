@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <pthread.h>
 #include "ss4s/modapi.h"
 #include "ndl_common.h"
 
+pthread_mutex_t SS4S_NDL_webOS5_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS5_Initialized = false;
 SS4S_LoggingFunction *SS4S_NDL_webOS5_Log = NULL;
 

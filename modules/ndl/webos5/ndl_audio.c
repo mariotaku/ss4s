@@ -2,6 +2,8 @@
 
 static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                       SS4S_PlayerContext *context) {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
+    SS4S_AudioOpenResult result;
     switch (info->codec) {
         case SS4S_AUDIO_PCM_S16LE: {
             NDL_DIRECTMEDIA_AUDIO_PCM_INFO pcmInfo = {
@@ -24,17 +26,22 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
             break;
         }
         default:
-            return SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
+            result = SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
+            goto finish;
     }
     if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
-        return SS4S_AUDIO_OPEN_ERROR;
+        result = SS4S_AUDIO_OPEN_ERROR;
+        goto finish;
     }
     *instance = (SS4S_AudioInstance *) context;
-    return SS4S_AUDIO_OPEN_OK;
+    result = SS4S_AUDIO_OPEN_OK;
+    finish:
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
+    return result;
 }
 
 static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
-    SS4S_PlayerContext *context = (void *) instance;
+    const SS4S_PlayerContext *context = (void *) instance;
     if (!context->mediaLoaded) {
         return SS4S_AUDIO_FEED_NOT_READY;
     }
@@ -48,9 +55,11 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
 }
 
 static void CloseAudio(SS4S_AudioInstance *instance) {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.audio.type = 0;
     SS4S_NDL_webOS5_ReloadMedia(context);
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }
 
 const SS4S_AudioDriver SS4S_NDL_webOS5_AudioDriver = {

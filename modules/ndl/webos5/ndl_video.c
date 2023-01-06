@@ -9,7 +9,9 @@ static SS4S_VideoCapabilities GetCapabilities() {
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                       SS4S_PlayerContext *context) {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     memset(&context->mediaInfo.video, 0, sizeof(context->mediaInfo.video));
+    SS4S_VideoOpenResult result;
     switch (info->codec) {
         case SS4S_VIDEO_H264: {
             context->mediaInfo.video.type = NDL_VIDEO_TYPE_H264;
@@ -24,21 +26,26 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
             break;
         }
         default:
-            return SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
+            result = SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
+            goto finish;
     }
     context->mediaInfo.video.unknown1 = 0;
-    SS4S_VideoOpenResult result = ReloadWithSize(context, info->width, info->height);
+    result = ReloadWithSize(context, info->width, info->height);
     if (result != SS4S_VIDEO_OPEN_OK) {
-        return result;
+        goto finish;
     }
     *instance = (SS4S_VideoInstance *) context;
-    return SS4S_VIDEO_OPEN_OK;
+    result = SS4S_VIDEO_OPEN_OK;
+
+    finish:
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
+    return result;
 }
 
 static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
                                       SS4S_VideoFeedFlags flags) {
     (void) flags;
-    SS4S_PlayerContext *context = (void *) instance;
+    const SS4S_PlayerContext *context = (void *) instance;
     if (!context->mediaLoaded) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
@@ -52,8 +59,10 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 }
 
 static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     if (width <= 0 || height <= 0) {
+        pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
         return false;
     }
     int aspectRatio = width * 100 / height;
@@ -61,6 +70,7 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
         context->aspectRatio = aspectRatio;
         ReloadWithSize(context, width, height);
     }
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
     return true;
 }
 
@@ -74,9 +84,11 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
 }
 
 static void CloseVideo(SS4S_VideoInstance *instance) {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.video.type = 0;
     SS4S_NDL_webOS5_ReloadMedia(context);
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }
 
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height) {

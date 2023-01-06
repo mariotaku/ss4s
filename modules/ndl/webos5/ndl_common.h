@@ -1,11 +1,13 @@
 #pragma once
 
+#include <pthread.h>
 #include "NDL_directmedia_v2.h"
 
 #include "ss4s/modapi.h"
 
 extern bool SS4S_NDL_webOS5_Initialized;
 extern SS4S_LoggingFunction *SS4S_NDL_webOS5_Log;
+extern pthread_mutex_t SS4S_NDL_webOS5_Lock;
 
 struct SS4S_PlayerContext {
     NDL_DIRECTMEDIA_DATA_INFO mediaInfo;

@@ -4,8 +4,6 @@
 #include <assert.h>
 #include <pthread.h>
 
-static pthread_mutex_t globalMutex = PTHREAD_MUTEX_INITIALIZER;
-
 static SS4S_PlayerContext *CreatePlayerContext();
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
@@ -36,7 +34,6 @@ static void DestroyPlayerContext(SS4S_PlayerContext *context) {
 }
 
 static void UnloadMedia(SS4S_PlayerContext *context) {
-    pthread_mutex_lock(&globalMutex);
     if (context->mediaLoaded) {
         NDL_DirectMediaUnload();
         context->mediaLoaded = false;
@@ -45,11 +42,9 @@ static void UnloadMedia(SS4S_PlayerContext *context) {
 //        NDL_DirectMediaQuit();
 //        SS4S_NDL_webOS5_Initialized = false;
 //    }
-    pthread_mutex_unlock(&globalMutex);
 }
 
 static int LoadMedia(SS4S_PlayerContext *context) {
-    pthread_mutex_lock(&globalMutex);
     int ret = 0;
 //    if (!SS4S_NDL_webOS5_Initialized) {
 //        if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) != 0) {
@@ -65,11 +60,9 @@ static int LoadMedia(SS4S_PlayerContext *context) {
     if ((ret = NDL_DirectMediaLoad(&info, LoadCallback)) != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectMediaLoad returned %d: %s", ret,
                             NDL_DirectMediaGetError());
-        goto cleanup;
+        return ret;
     }
     context->mediaLoaded = true;
-    cleanup:
-    pthread_mutex_unlock(&globalMutex);
     return ret;
 }
 
