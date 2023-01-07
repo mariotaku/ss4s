@@ -29,6 +29,7 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 }
 
 static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
+    SS4S_Dummy_Log(SS4S_LogLevelInfo, "Dummy", "%s(width=%d, height=%d)", __FUNCTION__, width, height);
     SS4S_PlayerContext *context = (void *) instance;
     if (width <= 0 || height <= 0) {
         return false;
