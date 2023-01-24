@@ -34,7 +34,7 @@ bool SS4S_ModuleAvailable(const char *name) {
     }
     char tmp[128];
     ModuleFileName(tmp, sizeof(tmp), name);
-    void *lib = dlopen(tmp, RTLD_LAZY);
+    void *lib = dlopen(tmp, RTLD_NOW);
     if (lib == NULL) {
         return false;
     }
