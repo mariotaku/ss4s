@@ -7,9 +7,23 @@
 #include "ss4s.h"
 
 int main(int argc, char *argv[]) {
-    char *driver = "sdl";
+    char driver[16] = {'\0'};
     if (argc > 1) {
-        driver = argv[1];
+        strncpy(driver, argv[1], 15);
+    } else {
+        const char *prefix = "ss4s_test_pcm_playback_";
+        const char *basename = strstr(argv[0], prefix);
+        if (basename != NULL) {
+            const char *suffix = basename + strlen(prefix);
+            const char *extname = strrchr(suffix, '.');
+            size_t name_len = 0;
+            if (extname != NULL) {
+                name_len = extname - basename;
+            } else {
+                name_len = strlen(suffix);
+            }
+            strncpy(driver, suffix, name_len > 15 ? 15 : name_len);
+        }
     }
     printf("Request audio driver: %s\n", driver);
 
@@ -30,6 +44,8 @@ int main(int argc, char *argv[]) {
             .sampleRate = 48000,
             .codec = SS4S_AUDIO_PCM_S16LE,
             .samplesPerFrame = 240,
+            .appName = "SS4S_Test",
+            .streamName = "Music"
     };
     assert(SS4S_PlayerAudioOpen(player, &audioInfo) == SS4S_AUDIO_OPEN_OK);
 
@@ -41,7 +57,7 @@ int main(int argc, char *argv[]) {
     size_t unitSize = sizeof(int16_t) * 2;
     size_t numOfSamples = 0;
     while ((samplesRead = fread(buf, unitSize, 240, sampleFile)) > 0) {
-        assert(SS4S_PlayerAudioFeed(player, (unsigned char *) buf, samplesRead * unitSize));
+        assert(SS4S_PlayerAudioFeed(player, (unsigned char *) buf, samplesRead * unitSize) == SS4S_AUDIO_FEED_OK);
         numOfSamples += samplesRead;
         usleep(samplesRead * 1000000 / audioInfo.sampleRate);
     }

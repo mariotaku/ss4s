@@ -2,6 +2,10 @@
 
 #include <pulse/simple.h>
 #include <stdlib.h>
+#include <pulse/error.h>
+#include <assert.h>
+
+static const SS4S_LibraryContext *LibContext;
 
 struct SS4S_AudioInstance {
     pa_simple *dev;
@@ -44,10 +48,14 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
             pchannel_map->map[1] = PA_CHANNEL_POSITION_FRONT_RIGHT;
     }
 
+    assert(info->appName != NULL);
+    assert(info->streamName != NULL);
     int error = 0;
     pa_simple *dev = pa_simple_new(NULL, info->appName, PA_STREAM_PLAYBACK, NULL,
                                    info->streamName, &spec, pchannel_map, &buffer_attr, &error);
-
+    if (error != 0) {
+        LibContext->Log(SS4S_LogLevelError, "Pulse", "Can't open audio device: %s", pa_strerror(error));
+    }
     if (!dev) {
         return SS4S_AUDIO_OPEN_ERROR;
     }
@@ -78,5 +86,6 @@ SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_PULSE(SS4S_Module *module, const SS4S_Lib
     (void) context;
     module->Name = "pulse";
     module->AudioDriver = &PulseDriver;
+    LibContext = context;
     return true;
 }
