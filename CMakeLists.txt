@@ -30,13 +30,11 @@ else ()
     target_compile_options(ss4s PRIVATE -Wall -Wextra -Werror)
 endif ()
 
-if (HAS_DLFCN)
+if(WIN32)
+    target_sources(ss4s PRIVATE src/module_win32.c)
+else(HAS_DLFCN)
     target_sources(ss4s PRIVATE src/module_libdl.c)
     target_link_libraries(ss4s PRIVATE dl)
-endif ()
-
-if(WINRT)
-target_sources(ss4s PRIVATE src/module_libdl_win32.c)
 endif()
 
 
