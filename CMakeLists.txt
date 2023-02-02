@@ -35,6 +35,11 @@ if (HAS_DLFCN)
     target_link_libraries(ss4s PRIVATE dl)
 endif ()
 
+if(WINRT)
+target_sources(ss4s PRIVATE src/module_libdl_win32.c)
+endif()
+
+
 add_subdirectory(modules)
 
 set_target_properties(ss4s PROPERTIES SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY})
