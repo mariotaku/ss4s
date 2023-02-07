@@ -35,6 +35,7 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     }
     *instance = (SS4S_AudioInstance *) context;
     result = SS4S_AUDIO_OPEN_OK;
+
     finish:
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
     return result;

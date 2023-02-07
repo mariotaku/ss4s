@@ -8,24 +8,35 @@ static SS4S_VideoCapabilities GetCapabilities() {
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                       SS4S_PlayerContext *context) {
+    pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
+    SS4S_VideoOpenResult result;
     if (info->codec != SS4S_VIDEO_H264) {
-        return SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
+        result = SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
+        goto finish;
     }
     context->videoInfo.width = info->width;
     context->videoInfo.height = info->height;
     context->videoOpened = true;
 
     if (NDL_DirectVideoOpen(&context->videoInfo) != 0) {
-        return SS4S_VIDEO_OPEN_ERROR;
+        result = SS4S_VIDEO_OPEN_ERROR;
+        goto finish;
     }
     *instance = (SS4S_VideoInstance *) context;
-    return SS4S_VIDEO_OPEN_OK;
+    result = SS4S_VIDEO_OPEN_OK;
+
+    finish:
+    pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
+    return result;
 }
 
 static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
                                       SS4S_VideoFeedFlags flags) {
-    (void) instance;
     (void) flags;
+    SS4S_PlayerContext *context = (SS4S_PlayerContext *) instance;
+    if (!context->videoOpened) {
+        return SS4S_VIDEO_FEED_NOT_READY;
+    }
     int rc = NDL_DirectVideoPlay(data, size, 0);
     if (rc != 0) {
         return SS4S_VIDEO_FEED_ERROR;
@@ -34,8 +45,10 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 }
 
 static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
+    pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     if (width <= 0 || height <= 0) {
+        pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
         return false;
     }
     int aspectRatio = width * 100 / height;
@@ -48,17 +61,21 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
         }
         if (NDL_DirectVideoOpen(&context->videoInfo) != 0) {
             context->videoOpened = false;
+            pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
             return false;
         }
     }
+    pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
     return true;
 }
 
 static void CloseVideo(SS4S_VideoInstance *instance) {
+    pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(NDL_DIRECTVIDEO_DATA_INFO));
     context->videoOpened = false;
     NDL_DirectVideoClose();
+    pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver = {

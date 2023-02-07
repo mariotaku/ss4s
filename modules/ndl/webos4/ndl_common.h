@@ -1,10 +1,13 @@
 #pragma once
 
-#include "NDL_directmedia.h"
+#include <pthread.h>
+#include <NDL_directmedia.h>
 
 #include "ss4s/modapi.h"
 
 extern bool SS4S_NDL_webOS4_Initialized;
+extern SS4S_LoggingFunction *SS4S_NDL_webOS4_Log;
+extern pthread_mutex_t SS4S_NDL_webOS4_Lock;
 
 struct SS4S_PlayerContext {
     bool audioOpened, videoOpened;
