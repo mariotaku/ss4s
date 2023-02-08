@@ -82,7 +82,7 @@ static const SS4S_AudioDriver PulseDriver = {
         .Close = Close,
 };
 
-SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_PULSE(SS4S_Module *module, const SS4S_LibraryContext *context) {
+SS4S_EXPORTED bool SS4S_ModuleOpen_PULSE(SS4S_Module *module, const SS4S_LibraryContext *context) {
     (void) context;
     module->Name = "pulse";
     module->AudioDriver = &PulseDriver;

@@ -5,6 +5,7 @@
 
 #include "ss4s/audio.h"
 #include "ss4s/video.h"
+#include "ss4s/module.h"
 #include "ss4s/logging.h"
 
 #include <stdbool.h>
@@ -90,11 +91,13 @@ typedef struct SS4S_LibraryContext {
     SS4S_LoggingFunction *Log;
 } SS4S_LibraryContext;
 
-#define SS4S_MODULE_ENTRY __attribute__((unused,visibility("default")))
+#define SS4S_EXPORTED __attribute__((unused,visibility("default")))
 
 /**
  * Multiple calls to this function should have same effect.
  */
 typedef bool (SS4S_ModuleOpenFunction)(SS4S_Module *module, const SS4S_LibraryContext *context);
+
+typedef bool (SS4S_ModuleCheckFunction)(SS4S_ModuleCheckFlag flags);
 
 #endif // SS4S_MODAPI_H

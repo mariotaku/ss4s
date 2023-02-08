@@ -104,10 +104,6 @@ const char *SS4S_GetVideoModuleName() {
     return States.Video.ModuleName;
 }
 
-bool SS4S_IsDriverAvailable(const char *driverName) {
-    return SS4S_ModuleAvailable(driverName);
-}
-
 static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
     (void) level;
     fprintf(stderr, "[SS4S.%s] ", tag);

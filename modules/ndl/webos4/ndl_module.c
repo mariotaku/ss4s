@@ -3,12 +3,13 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <dlfcn.h>
 
 pthread_mutex_t SS4S_NDL_webOS4_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS4_Initialized = false;
 SS4S_LoggingFunction *SS4S_NDL_webOS4_Log = NULL;
 
-SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_LibraryContext *context) {
+SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_LibraryContext *context) {
     (void) context;
     SS4S_NDL_webOS4_Log = context->Log;
     assert(SS4S_NDL_webOS4_Log != NULL);
@@ -16,6 +17,26 @@ SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4
     module->PlayerDriver = &SS4S_NDL_webOS4_PlayerDriver;
     module->AudioDriver = &SS4S_NDL_webOS4_AudioDriver;
     module->VideoDriver = &SS4S_NDL_webOS4_VideoDriver;
+    return true;
+}
+
+SS4S_EXPORTED bool SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
+    if (flags & SS4S_MODULE_CHECK_AUDIO) {
+        /*
+         * A simple check for unsupported hardware. A partial solution is to use ALSA/PulseAudio, so we fail the check
+         * if we have the problematic library, and let SS4S choose other modules
+         * Related issues:
+         * https://github.com/mariotaku/moonlight-tv/issues/110
+         * https://github.com/mariotaku/moonlight-tv/issues/184
+         * https://github.com/mariotaku/ihsplay/issues/13
+         */
+        void *lib = dlopen("libkadaptor.so.1", RTLD_LAZY);
+        if (lib != NULL) {
+            bool has_flow = dlsym(NULL, "_Z8new_flowv") != NULL;
+            dlclose(lib);
+            return has_flow;
+        }
+    }
     return true;
 }
 

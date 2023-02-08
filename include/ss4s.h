@@ -8,6 +8,7 @@
 #include "ss4s/player.h"
 #include "ss4s/audio.h"
 #include "ss4s/video.h"
+#include "ss4s/module.h"
 #include "ss4s/logging.h"
 
 typedef struct SS4S_Config {
@@ -26,7 +27,5 @@ void SS4S_Quit();
 const char *SS4S_GetAudioModuleName();
 
 const char *SS4S_GetVideoModuleName();
-
-bool SS4S_IsDriverAvailable(const char *driverName);
 
 #endif // SS4S_MODAPI_H

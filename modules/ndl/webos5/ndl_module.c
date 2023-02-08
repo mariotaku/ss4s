@@ -8,7 +8,7 @@ pthread_mutex_t SS4S_NDL_webOS5_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS5_Initialized = false;
 SS4S_LoggingFunction *SS4S_NDL_webOS5_Log = NULL;
 
-SS4S_MODULE_ENTRY bool SS4S_ModuleOpen_NDL_WEBOS5(SS4S_Module *module, const SS4S_LibraryContext *context) {
+SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS5(SS4S_Module *module, const SS4S_LibraryContext *context) {
     (void) context;
     SS4S_NDL_webOS5_Log = context->Log;
     assert(SS4S_NDL_webOS5_Log != NULL);
