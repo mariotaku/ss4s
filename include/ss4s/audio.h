@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 typedef enum SS4S_AudioCodec {
+    SS4S_AUDIO_NONE = 0,
     SS4S_AUDIO_PCM_S16LE = 0x1001,
     SS4S_AUDIO_OPUS = 0x2000,
     SS4S_AUDIO_AAC = 0x4000,
