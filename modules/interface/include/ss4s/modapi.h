@@ -3,6 +3,10 @@
 #ifndef SS4S_MODAPI_H
 #define SS4S_MODAPI_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "ss4s/audio.h"
 #include "ss4s/video.h"
 #include "ss4s/module.h"
@@ -99,5 +103,9 @@ typedef struct SS4S_LibraryContext {
 typedef bool (SS4S_ModuleOpenFunction)(SS4S_Module *module, const SS4S_LibraryContext *context);
 
 typedef bool (SS4S_ModuleCheckFunction)(SS4S_ModuleCheckFlag flags);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SS4S_MODAPI_H

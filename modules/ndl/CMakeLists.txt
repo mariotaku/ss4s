@@ -1,4 +1,6 @@
-if (TARGET NDL_directmedia)
-    add_subdirectory(webos5)
-    add_subdirectory(webos4)
+if (NOT TARGET NDL_directmedia)
+    return()
 endif ()
+
+add_subdirectory(webos5)
+add_subdirectory(webos4)

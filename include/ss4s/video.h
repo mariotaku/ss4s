@@ -1,4 +1,7 @@
 #pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -102,3 +105,7 @@ static inline const char *SS4S_VideoCodecName(SS4S_VideoCodec codec) {
             return "NONE";
     }
 }
+
+#ifdef __cplusplus
+}
+#endif

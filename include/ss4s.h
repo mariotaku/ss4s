@@ -2,6 +2,10 @@
 
 #ifndef SS4S_MODAPI_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -27,5 +31,9 @@ void SS4S_Quit();
 const char *SS4S_GetAudioModuleName();
 
 const char *SS4S_GetVideoModuleName();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SS4S_MODAPI_H
