@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO *info);
+
 static SS4S_VideoCapabilities GetCapabilities() {
     return SS4S_VIDEO_CAP_CODEC_H264 | SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
 }
@@ -22,6 +24,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
         result = SS4S_VIDEO_OPEN_ERROR;
         goto finish;
     }
+    FitVideo(&context->videoInfo);
     *instance = (SS4S_VideoInstance *) context;
     result = SS4S_VIDEO_OPEN_OK;
 
@@ -59,11 +62,13 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
         if (context->videoOpened) {
             NDL_DirectVideoClose();
         }
+        SS4S_NDL_webOS4_Log(SS4S_LogLevelInfo, "NDL", "Reopen video with size %d * %d", width, height);
         if (NDL_DirectVideoOpen(&context->videoInfo) != 0) {
             context->videoOpened = false;
             pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
             return false;
         }
+        FitVideo(&context->videoInfo);
     }
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
     return true;
@@ -76,6 +81,18 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
     context->videoOpened = false;
     NDL_DirectVideoClose();
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
+}
+
+static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO *info) {
+    int scaledHeight = 1920 * info->height / info->width;
+    if (scaledHeight == 1080) {
+        NDL_DirectVideoSetArea(0, 0, 1920, 1080);
+    } else if (scaledHeight < 1080) {
+        NDL_DirectVideoSetArea(0, (1080 - scaledHeight) / 2, 1920, scaledHeight);
+    } else {
+        int scaledWidth = 1920 * 1080 / scaledHeight;
+        NDL_DirectVideoSetArea((1920 - scaledWidth) / 2, 0, scaledWidth, 1080);
+    }
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver = {
