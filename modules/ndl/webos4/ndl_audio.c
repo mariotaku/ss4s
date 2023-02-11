@@ -39,7 +39,6 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
 }
 
 static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
-    (void) instance;
     SS4S_PlayerContext *context = (SS4S_PlayerContext *) instance;
     if (!context->audioOpened) {
         return SS4S_AUDIO_FEED_NOT_READY;

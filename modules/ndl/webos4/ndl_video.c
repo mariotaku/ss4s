@@ -18,12 +18,13 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
     }
     context->videoInfo.width = info->width;
     context->videoInfo.height = info->height;
-    context->videoOpened = true;
+    context->aspectRatio = info->width * 100 / info->height;
 
     if (NDL_DirectVideoOpen(&context->videoInfo) != 0) {
         result = SS4S_VIDEO_OPEN_ERROR;
         goto finish;
     }
+    context->videoOpened = true;
     FitVideo(&context->videoInfo);
     *instance = (SS4S_VideoInstance *) context;
     result = SS4S_VIDEO_OPEN_OK;

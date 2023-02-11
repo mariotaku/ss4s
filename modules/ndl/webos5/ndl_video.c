@@ -67,7 +67,6 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
     }
     int aspectRatio = width * 100 / height;
     if (context->aspectRatio != aspectRatio) {
-        context->aspectRatio = aspectRatio;
         ReloadWithSize(context, width, height);
     }
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
@@ -94,6 +93,7 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height) {
     context->mediaInfo.video.width = width;
     context->mediaInfo.video.height = height;
+    context->aspectRatio = width * 100 / height;
 
     if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
         return SS4S_VIDEO_OPEN_ERROR;
