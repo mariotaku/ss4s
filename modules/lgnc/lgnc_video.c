@@ -7,6 +7,8 @@ static void FitVideo(const LGNC_VDEC_DATA_INFO_T *info);
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+    capabilities->maxBitrate = 40000;
+    capabilities->suggestedBitrate = 30000;
     return true;
 }
 

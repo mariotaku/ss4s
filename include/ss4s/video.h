@@ -67,6 +67,8 @@ typedef struct SS4S_VideoCapabilities {
          */
         SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING = 0x08,
     } transform;
+    unsigned int maxBitrate;
+    unsigned int suggestedBitrate;
 } SS4S_VideoCapabilities;
 
 #ifndef SS4S_MODAPI_H

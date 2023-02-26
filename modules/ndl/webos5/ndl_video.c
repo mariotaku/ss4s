@@ -4,8 +4,10 @@
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
-    capabilities->codecs = SS4S_VIDEO_CAP_CODEC_H264 | SS4S_VIDEO_CAP_CODEC_H265;
+    capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+    capabilities->maxBitrate = 65000;
+    capabilities->suggestedBitrate = 35000;
     return true;
 }
 

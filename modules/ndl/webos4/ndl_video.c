@@ -7,6 +7,8 @@ static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO *info);
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+    capabilities->maxBitrate = 65000;
+    capabilities->suggestedBitrate = 35000;
     return true;
 }
 
