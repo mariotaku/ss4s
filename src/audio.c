@@ -2,19 +2,19 @@
 #include "ss4s.h"
 #include "library.h"
 
-SS4S_AudioCapabilities SS4S_GetAudioCapabilities() {
+bool SS4S_GetAudioCapabilities(SS4S_AudioCapabilities *capabilities) {
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     if (driver == NULL || driver->GetCapabilities == NULL) {
-        return 0;
+        return false;
     }
-    return driver->GetCapabilities();
+    return driver->GetCapabilities(capabilities);
 
 }
 
 SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioInfo *info) {
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     if (driver == NULL) {
-        return false;
+        return SS4S_AUDIO_OPEN_ERROR;
     }
     SS4S_AudioOpenResult result = driver->Open(info, &player->audio, player->context.audio);
     if (result == SS4S_AUDIO_OPEN_OK) {
@@ -25,7 +25,7 @@ SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioI
 
 SS4S_AudioFeedResult SS4S_PlayerAudioFeed(SS4S_Player *player, const unsigned char *data, size_t size) {
     if (player->audio == NULL) {
-        return false;
+        return SS4S_AUDIO_FEED_NOT_READY;
     }
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     assert(driver != NULL);

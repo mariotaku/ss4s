@@ -24,7 +24,7 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
     };
     pa_buffer_attr buffer_attr = {
             .maxlength = -1,
-            .tlength = sizeof(short) * info->numOfChannels,
+            .tlength = sizeof(uint16_t) * info->numOfChannels,
             .prebuf = -1,
             .minreq = -1,
             .fragsize = -1,

@@ -16,6 +16,7 @@ typedef struct SS4S_PlayerInfo {
     struct {
         bool enabled;
         const char *module;
+        SS4S_VideoCapabilities capabilities;
     } audio;
     struct {
         bool enabled;

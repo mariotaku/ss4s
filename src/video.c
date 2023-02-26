@@ -2,18 +2,18 @@
 #include "ss4s.h"
 #include "library.h"
 
-SS4S_VideoCapabilities SS4S_GetVideoCapabilities() {
+bool SS4S_GetVideoCapabilities(SS4S_VideoCapabilities *capabilities) {
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     if (driver == NULL || driver->GetCapabilities == NULL) {
-        return 0;
+        return false;
     }
-    return driver->GetCapabilities();
+    return driver->GetCapabilities(capabilities);
 }
 
 SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info) {
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     if (driver == NULL) {
-        return false;
+        return SS4S_VIDEO_OPEN_ERROR;
     }
     assert(driver->Open != NULL);
     SS4S_VideoOpenResult result = driver->Open(info, &player->video, player->context.video);
@@ -26,7 +26,7 @@ SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoI
 SS4S_VideoFeedResult SS4S_PlayerVideoFeed(SS4S_Player *player, const unsigned char *data, size_t size,
                                           SS4S_VideoFeedFlags flags) {
     if (player->video == NULL) {
-        return false;
+        return SS4S_VIDEO_FEED_NOT_READY;
     }
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     assert(driver != NULL);

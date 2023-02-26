@@ -3,8 +3,10 @@
 
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
-static SS4S_VideoCapabilities GetCapabilities() {
-    return SS4S_VIDEO_CAP_CODEC_H264 | SS4S_VIDEO_CAP_CODEC_H265 | SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
+    capabilities->codecs = SS4S_VIDEO_CAP_CODEC_H264 | SS4S_VIDEO_CAP_CODEC_H265;
+    capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+    return true;
 }
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,

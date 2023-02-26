@@ -49,7 +49,7 @@ typedef struct SS4S_Player SS4S_Player;
 
 #ifndef SS4S_MODAPI_H
 
-SS4S_AudioCapabilities SS4S_GetAudioCapabilities();
+bool SS4S_GetAudioCapabilities(SS4S_AudioCapabilities *capabilities);
 
 SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioInfo *info);
 

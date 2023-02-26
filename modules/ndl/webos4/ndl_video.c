@@ -4,8 +4,10 @@
 
 static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO *info);
 
-static SS4S_VideoCapabilities GetCapabilities() {
-    return SS4S_VIDEO_CAP_CODEC_H264 | SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
+    capabilities->codecs = SS4S_VIDEO_H264;
+    capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
+    return true;
 }
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,

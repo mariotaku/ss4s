@@ -9,11 +9,11 @@ extern "C" {
 typedef struct SS4S_Player SS4S_Player;
 
 typedef enum SS4S_VideoCodec {
-    SS4S_VIDEO_NONE,
-    SS4S_VIDEO_H264,
-    SS4S_VIDEO_H265,
-    SS4S_VIDEO_VP9,
-    SS4S_VIDEO_VP8,
+    SS4S_VIDEO_NONE = 0,
+    SS4S_VIDEO_H264 = 0x01,
+    SS4S_VIDEO_H265 = 0x02,
+    SS4S_VIDEO_VP9 = 0x04,
+    SS4S_VIDEO_VP8 = 0x08,
 } SS4S_VideoCodec;
 
 typedef enum SS4S_VideoOpenResult {
@@ -57,24 +57,21 @@ typedef struct SS4S_VideoRect {
     int width, height;
 } SS4S_VideoRect;
 
-typedef enum SS4S_VideoCapabilities {
-    SS4S_VIDEO_CAP_CODEC_MASK = 0x000000FF,
-    SS4S_VIDEO_CAP_CODEC_H264 = 0x00000001,
-    SS4S_VIDEO_CAP_CODEC_H265 = 0x00000002,
-    SS4S_VIDEO_CAP_CODEC_VP9 = 0x00000004,
-    SS4S_VIDEO_CAP_CODEC_VP8 = 0x00000008,
-    SS4S_VIDEO_CAP_TRANSFORM_MASK = 0x000F0000,
-    SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC = 0x00010000,
-    SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST = 0x00020000,
-    /**
-     * Video can be blended with UI
-     */
-    SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING = 0x00080000,
+typedef struct SS4S_VideoCapabilities {
+    SS4S_VideoCodec codecs;
+    enum {
+        SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC = 0x01,
+        SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST = 0x02,
+        /**
+         * Video can be blended with UI
+         */
+        SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING = 0x08,
+    } transform;
 } SS4S_VideoCapabilities;
 
 #ifndef SS4S_MODAPI_H
 
-SS4S_VideoCapabilities SS4S_GetVideoCapabilities();
+bool SS4S_GetVideoCapabilities(SS4S_VideoCapabilities *capabilities);
 
 SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info);
 

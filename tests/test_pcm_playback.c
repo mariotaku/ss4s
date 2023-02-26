@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #include "ss4s.h"
 
@@ -57,9 +58,16 @@ int main(int argc, char *argv[]) {
     size_t unitSize = sizeof(int16_t) * 2;
     size_t numOfSamples = 0;
     while ((samplesRead = fread(buf, unitSize, 240, sampleFile)) > 0) {
+        struct timespec start, end;
+        clock_gettime(CLOCK_MONOTONIC, &start);
         assert(SS4S_PlayerAudioFeed(player, (unsigned char *) buf, samplesRead * unitSize) == SS4S_AUDIO_FEED_OK);
         numOfSamples += samplesRead;
-        usleep(samplesRead * 1000000 / audioInfo.sampleRate);
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        int64_t delay = ((int64_t) samplesRead * 1000000 / audioInfo.sampleRate) -
+                        ((end.tv_sec * 1000000 + end.tv_nsec / 1000) - (start.tv_sec * 1000000 + start.tv_nsec / 1000));
+        if (delay > 0) {
+            usleep(delay);
+        }
     }
     fclose(sampleFile);
     printf("Sound duration: %.03f seconds\n", numOfSamples / (double) audioInfo.sampleRate);
