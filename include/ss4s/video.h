@@ -69,6 +69,7 @@ typedef struct SS4S_VideoCapabilities {
     } transform;
     unsigned int maxBitrate;
     unsigned int suggestedBitrate;
+    bool hdr;
 } SS4S_VideoCapabilities;
 
 #ifndef SS4S_MODAPI_H
