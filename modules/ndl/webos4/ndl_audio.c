@@ -2,6 +2,12 @@
 
 #include <string.h>
 
+static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
+    capabilities->codecs = SS4S_AUDIO_PCM_S16LE;
+    capabilities->maxChannels = 2;
+    return true;
+}
+
 static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                       SS4S_PlayerContext *context) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
@@ -64,6 +70,7 @@ const SS4S_AudioDriver SS4S_NDL_webOS4_AudioDriver = {
                 .Init = SS4S_NDL_webOS4_Driver_Init,
                 .Quit = SS4S_NDL_webOS4_Driver_Quit,
         },
+        .GetCapabilities = GetCapabilities,
         .Open = OpenAudio,
         .Feed = FeedAudio,
         .Close = CloseAudio,

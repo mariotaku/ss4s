@@ -38,11 +38,9 @@ typedef struct SS4S_AudioInfo {
     const char *streamName;
 } SS4S_AudioInfo;
 
-typedef enum SS4S_AudioCapabilities {
-    SS4S_AUDIO_CAP_CODEC_MASK = 0x000000FF,
-    SS4S_AUDIO_CAP_CODEC_PCM = 0x00000001,
-    SS4S_AUDIO_CAP_CODEC_OPUS = 0x00000002,
-    SS4S_AUDIO_CAP_CODEC_AAC = 0x00000004,
+typedef struct SS4S_AudioCapabilities {
+    SS4S_AudioCodec codecs;
+    unsigned int maxChannels;
 } SS4S_AudioCapabilities;
 
 typedef struct SS4S_Player SS4S_Player;
