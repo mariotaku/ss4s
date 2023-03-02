@@ -7,6 +7,8 @@
 
 #define CHECK_RETURN(f) if ((f) < 0) return SS4S_AUDIO_OPEN_ERROR
 
+static void alsa_logger_noop(const char *file, int line, const char *function, int err, const char *fmt, ...);
+
 struct SS4S_AudioInstance {
     snd_pcm_t *handle;
     size_t unitSize;
@@ -60,7 +62,7 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
 }
 
 static SS4S_AudioFeedResult Feed(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
-    int rc;
+    snd_pcm_sframes_t rc;
     if ((rc = snd_pcm_writei(instance->handle, data, size / instance->unitSize)) == -EPIPE) {
         rc = snd_pcm_prepare(instance->handle);
     }
@@ -88,4 +90,22 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_ALSA(SS4S_Module *module, const SS4S_LibraryC
     module->Name = "alsa";
     module->AudioDriver = &ALSADriver;
     return true;
+}
+
+SS4S_EXPORTED bool SS4S_ModuleCheck_ALSA(SS4S_ModuleCheckFlag flags) {
+    if (flags & SS4S_MODULE_CHECK_VIDEO) {
+        return false;
+    }
+    snd_lib_error_set_handler(alsa_logger_noop);
+    snd_pcm_t *handle = NULL;
+    if (snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0 || handle == NULL) {
+        return false;
+    }
+    snd_pcm_close(handle);
+    snd_lib_error_set_handler(NULL);
+    return true;
+}
+
+static void alsa_logger_noop(const char *file, int line, const char *function, int err, const char *fmt, ...) {
+    // No-op
 }
