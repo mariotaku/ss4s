@@ -27,6 +27,10 @@ int main(int argc, char *argv[]) {
         }
     }
     printf("Request audio driver: %s\n", driver);
+    if (!SS4S_ModuleAvailable(driver, SS4S_MODULE_CHECK_AUDIO)) {
+        printf("Skipping unsupported audio driver: %s\n", driver);
+        return 127;
+    }
 
     SS4S_Config config = {.audioDriver = driver};
     SS4S_Init(argc, argv, &config);
