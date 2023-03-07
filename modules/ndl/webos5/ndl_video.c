@@ -80,6 +80,9 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
 
 static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *info) {
     (void) instance;
+    if (info == NULL) {
+        return true;
+    }
     return NDL_DirectVideoSetHDRInfo(info->displayPrimariesX[0], info->displayPrimariesY[0], info->displayPrimariesX[1],
                                      info->displayPrimariesY[1], info->displayPrimariesX[2], info->displayPrimariesY[2],
                                      info->whitePointX, info->whitePointY, info->maxDisplayMasteringLuminance,
