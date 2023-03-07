@@ -69,6 +69,8 @@ typedef struct SS4S_VideoCapabilities {
     } transform;
     unsigned int maxBitrate;
     unsigned int suggestedBitrate;
+    unsigned int maxFps;
+    unsigned int maxWidth, maxHeight;
     bool hdr;
 } SS4S_VideoCapabilities;
 

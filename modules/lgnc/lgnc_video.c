@@ -9,6 +9,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
     capabilities->maxBitrate = 40000;
     capabilities->suggestedBitrate = 30000;
+    capabilities->maxFps = 60;
     return true;
 }
 
