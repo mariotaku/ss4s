@@ -6,11 +6,18 @@
 
 #include "pbnjson.h"
 
+typedef enum PlayerState {
+    SMP_STATE_UNLOADED,
+    SMP_STATE_LOADED,
+    SMP_STATE_PLAYING,
+    SMP_STATE_EOS,
+} PlayerState;
+
 struct SS4S_VideoInstance {
     StarfishMediaAPIs_C *api;
     StarfishResource *res;
     char *appId;
-
+    PlayerState state;
     SS4S_LoggingFunction *log;
 };
 
@@ -29,6 +36,7 @@ StarfishVideo *StarfishVideoCreate(SS4S_LoggingFunction *log) {
     ctx->log = log;
     ctx->appId = strdup(appId);
     ctx->res = StarfishResourceCreate();
+    ctx->state = SMP_STATE_UNLOADED;
     return ctx;
 }
 
@@ -48,6 +56,9 @@ bool StarfishVideoCapabilities(SS4S_VideoCapabilities *capabilities) {
 }
 
 SS4S_VideoOpenResult StarfishVideoLoad(StarfishVideo *ctx, const SS4S_VideoInfo *info) {
+    if (ctx->state != SMP_STATE_UNLOADED) {
+        return SS4S_VIDEO_OPEN_ERROR;
+    }
     SS4S_VideoOpenResult result = SS4S_VIDEO_OPEN_ERROR;
     if (ctx->api == NULL) {
         ctx->api = StarfishMediaAPIs_create(NULL);
@@ -59,6 +70,7 @@ SS4S_VideoOpenResult StarfishVideoLoad(StarfishVideo *ctx, const SS4S_VideoInfo 
     if (StarfishMediaAPIs_load(ctx->api, payload_str, LoadCallback, ctx)) {
         result = SS4S_VIDEO_OPEN_OK;
         ctx->log(SS4S_LogLevelInfo, "SMP", "Media loaded");
+        ctx->state = SMP_STATE_LOADED;
         StarfishResourcePostLoad(ctx->res, info);
     }
     j_release(&payload);
@@ -67,14 +79,23 @@ SS4S_VideoOpenResult StarfishVideoLoad(StarfishVideo *ctx, const SS4S_VideoInfo 
 }
 
 bool StarfishVideoUnload(StarfishVideo *ctx) {
-    StarfishMediaAPIs_pushEOS(ctx->api);
-    StarfishMediaAPIs_unload(ctx->api);
+    if (ctx->state == SMP_STATE_UNLOADED) {
+        return false;
+    }
+    if (ctx->state == SMP_STATE_PLAYING) {
+        StarfishMediaAPIs_pushEOS(ctx->api);
+    }
+//    StarfishMediaAPIs_unload(ctx->api);
     return true;
 }
 
 SS4S_VideoFeedResult StarfishVideoFeed(StarfishVideo *ctx, const unsigned char *data, size_t size,
                                        SS4S_VideoFeedFlags flags) {
-
+    if (ctx->state == SMP_STATE_EOS) {
+        return SS4S_VIDEO_FEED_OK;
+    } else if (ctx->state == SMP_STATE_UNLOADED) {
+        return SS4S_VIDEO_FEED_NOT_READY;
+    }
     char payload[256], result[256];
     snprintf(payload, sizeof(payload), "{\"bufferAddr\":\"%p\",\"bufferSize\":%u,\"pts\":%llu,\"esData\":%d}",
              data, size, 0LL, 1);
@@ -85,6 +106,7 @@ SS4S_VideoFeedResult StarfishVideoFeed(StarfishVideo *ctx, const unsigned char *
         }
         return SS4S_VIDEO_FEED_ERROR;
     }
+    ctx->state = SMP_STATE_PLAYING;
     return SS4S_VIDEO_FEED_OK;
 }
 
