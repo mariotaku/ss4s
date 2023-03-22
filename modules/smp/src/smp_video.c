@@ -201,8 +201,8 @@ static jvalue_ref MakePayload(StarfishVideo *ctx, const SS4S_VideoInfo *info) {
             J_END_OBJ_DECL
     ));
     jobject_set(option, J_CSTR_TO_BUF("adaptiveStreaming"), jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("maxWidth"), jnumber_create_i32(1920)),
-            jkeyval(J_CSTR_TO_JVAL("maxHeight"), jnumber_create_i32(1080)),
+            jkeyval(J_CSTR_TO_JVAL("maxWidth"), jnumber_create_i32(info->width)),
+            jkeyval(J_CSTR_TO_JVAL("maxHeight"), jnumber_create_i32(info->height)),
             jkeyval(J_CSTR_TO_JVAL("maxFrameRate"), jnumber_create_i32(60)),
             J_END_OBJ_DECL
     ));
