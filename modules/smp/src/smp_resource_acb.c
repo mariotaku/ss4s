@@ -68,10 +68,6 @@ bool StarfishResourceStartPlaying(StarfishResource *resource) {
     return true;
 }
 
-bool StarfishResourceSizeChanged(StarfishResource *resource, int width, int height) {
-    return true;
-}
-
 bool StarfishResourcePostUnload(StarfishResource *resource) {
     if (resource->acbId == 0) {
         return false;

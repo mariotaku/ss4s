@@ -21,6 +21,4 @@ bool StarfishResourcePostLoad(StarfishResource *resource, const SS4S_VideoInfo *
 
 bool StarfishResourceStartPlaying(StarfishResource *resource);
 
-bool StarfishResourceSizeChanged(StarfishResource *resource, int width, int height);
-
 bool StarfishResourcePostUnload(StarfishResource *resource);

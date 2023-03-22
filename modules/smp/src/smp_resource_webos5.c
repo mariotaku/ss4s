@@ -44,25 +44,13 @@ bool StarfishResourcePostLoad(StarfishResource *resource, const SS4S_VideoInfo *
     }
     SDL_DisplayMode dm;
     SDL_GetCurrentDisplayMode(0, &dm);
-    SDL_Rect src = {0, 0, dm.w, dm.h};
+    SDL_Rect src = {0, 0, info->width, info->height};
     SDL_Rect dst = {0, 0, dm.w, dm.h};
     SDL_webOSSetExportedWindow(resource->windowId, &src, &dst);
-    return StarfishResourceSizeChanged(resource, info->width, info->height);
-}
-
-bool StarfishResourceStartPlaying(StarfishResource *resource) {
     return true;
 }
 
-bool StarfishResourceSizeChanged(StarfishResource *resource, int width, int height) {
-    if (resource->windowId == NULL) {
-        return false;
-    }
-//    SDL_DisplayMode dm;
-//    SDL_GetCurrentDisplayMode(0, &dm);
-//    SDL_Rect src = {0, 0, dm.w, dm.h};
-//    SDL_Rect dst = {0, 0, dm.w, dm.h};
-//    SDL_webOSSetExportedWindow(resource->windowId, &src, &dst);
+bool StarfishResourceStartPlaying(StarfishResource *resource) {
     return true;
 }
 

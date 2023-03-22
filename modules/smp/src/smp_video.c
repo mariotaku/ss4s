@@ -16,7 +16,9 @@ struct SS4S_VideoInstance {
     StarfishMediaAPIs_C *api;
     StarfishResource *res;
     char *appId;
+    SS4S_VideoInfo info;
     PlayerState state;
+    int aspectRatio;
     SS4S_LoggingFunction *log;
 };
 
@@ -78,6 +80,7 @@ SS4S_VideoOpenResult StarfishVideoLoad(StarfishVideo *ctx, const SS4S_VideoInfo 
         ctx->log(SS4S_LogLevelError, "SMP", "Media load failed");
     }
     j_release(&payload);
+    ctx->info = *info;
 
     return result;
 }
@@ -88,7 +91,7 @@ bool StarfishVideoUnload(StarfishVideo *ctx) {
     }
     if (ctx->state == SMP_STATE_PLAYING) {
         StarfishMediaAPIs_pushEOS(ctx->api);
-//    StarfishMediaAPIs_unload(ctx->api);
+        StarfishMediaAPIs_unload(ctx->api);
     }
     StarfishResourcePostUnload(ctx->res);
     ctx->state = SMP_STATE_UNLOADED;
@@ -118,7 +121,18 @@ SS4S_VideoFeedResult StarfishVideoFeed(StarfishVideo *ctx, const unsigned char *
 }
 
 bool StarfishVideoSizeChanged(StarfishVideo *ctx, int width, int height) {
-    return StarfishResourceSizeChanged(ctx->res, width, height);
+    int aspectRatio = width * 100 / height;
+    if (ctx->aspectRatio != aspectRatio) {
+        SS4S_VideoInfo newInfo = ctx->info;
+        newInfo.width = width;
+        newInfo.height = width;
+        StarfishVideoUnload(ctx);
+        if (!StarfishVideoLoad(ctx, &newInfo)) {
+            return false;
+        }
+        ctx->aspectRatio = aspectRatio;
+    }
+    return true;
 }
 
 bool StarfishVideoSetHDRInfo(StarfishVideo *ctx, const SS4S_VideoHDRInfo *info) {
