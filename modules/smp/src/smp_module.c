@@ -42,9 +42,8 @@ static SS4S_VideoOpenResult VideoOpen(const SS4S_VideoInfo *info, SS4S_VideoInst
 }
 
 static void VideoClose(SS4S_VideoInstance *instance) {
-    StarfishVideo *player = ((SS4S_PlayerContext *) instance)->videoPlayer;
-    assert(player != NULL);
-    StarfishVideoUnload(player);
+    assert(instance != NULL);
+    StarfishVideoUnload(instance);
 }
 
 

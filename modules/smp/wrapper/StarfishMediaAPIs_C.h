@@ -52,7 +52,9 @@ typedef void(StarfishMediaAPIs_callbackWithData)(int type, int64_t numValue, con
 
 StarfishMediaAPIs_C *StarfishMediaAPIs_create(const char *uid);
 
-bool StarfishMediaAPIs_feed(StarfishMediaAPIs_C *api, const char *payload,char*result, size_t resultLen);
+bool StarfishMediaAPIs_feed(StarfishMediaAPIs_C *api, const char *payload, char *result, size_t resultLen);
+
+const char *StarfishMediaAPIs_getMediaID(StarfishMediaAPIs_C *api);
 
 bool StarfishMediaAPIs_load(StarfishMediaAPIs_C *api, const char *payload, StarfishMediaAPIs_callbackWithData *callback,
                             void *data);

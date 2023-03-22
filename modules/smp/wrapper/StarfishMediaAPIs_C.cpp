@@ -13,6 +13,9 @@ StarfishMediaAPIs_C *StarfishMediaAPIs_create(const char *uid) {
             .inner = StarfishMediaAPIs(uid)
     };
 }
+const char *StarfishMediaAPIs_getMediaID(StarfishMediaAPIs_C *api) {
+    return api->inner.getMediaID();
+}
 
 bool StarfishMediaAPIs_feed(StarfishMediaAPIs_C *api, const char *payload, char *result, size_t resultLen) {
     auto ret = api->inner.Feed(payload);

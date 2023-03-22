@@ -28,6 +28,7 @@ if (MSVC)
     target_compile_options(ss4s PRIVATE /WX)
 else ()
     target_compile_options(ss4s PRIVATE -Wall -Wextra -Werror)
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
 endif ()
 
 if (HAS_DLFCN)

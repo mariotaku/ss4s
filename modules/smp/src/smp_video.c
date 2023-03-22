@@ -10,7 +10,6 @@ typedef enum PlayerState {
     SMP_STATE_UNLOADED,
     SMP_STATE_LOADED,
     SMP_STATE_PLAYING,
-    SMP_STATE_EOS,
 } PlayerState;
 
 struct SS4S_VideoInstance {
@@ -33,9 +32,10 @@ StarfishVideo *StarfishVideoCreate(SS4S_LoggingFunction *log) {
         return NULL;
     }
     StarfishVideo *ctx = calloc(1, sizeof(StarfishVideo));
+    log(SS4S_LogLevelInfo, "SMP", "StarfishVideo = %p", ctx);
     ctx->log = log;
     ctx->appId = strdup(appId);
-    ctx->res = StarfishResourceCreate();
+    ctx->res = StarfishResourceCreate(ctx->appId);
     ctx->state = SMP_STATE_UNLOADED;
     return ctx;
 }
@@ -61,7 +61,9 @@ SS4S_VideoOpenResult StarfishVideoLoad(StarfishVideo *ctx, const SS4S_VideoInfo 
     }
     SS4S_VideoOpenResult result = SS4S_VIDEO_OPEN_ERROR;
     if (ctx->api == NULL) {
-        ctx->api = StarfishMediaAPIs_create(NULL);
+        if ((ctx->api = StarfishMediaAPIs_create(NULL)) == NULL) {
+            return result;
+        }
     }
     StarfishMediaAPIs_notifyForeground(ctx->api);
     jvalue_ref payload = MakePayload(ctx, info);
@@ -72,6 +74,8 @@ SS4S_VideoOpenResult StarfishVideoLoad(StarfishVideo *ctx, const SS4S_VideoInfo 
         ctx->log(SS4S_LogLevelInfo, "SMP", "Media loaded");
         ctx->state = SMP_STATE_LOADED;
         StarfishResourcePostLoad(ctx->res, info);
+    } else {
+        ctx->log(SS4S_LogLevelError, "SMP", "Media load failed");
     }
     j_release(&payload);
 
@@ -84,16 +88,16 @@ bool StarfishVideoUnload(StarfishVideo *ctx) {
     }
     if (ctx->state == SMP_STATE_PLAYING) {
         StarfishMediaAPIs_pushEOS(ctx->api);
-    }
 //    StarfishMediaAPIs_unload(ctx->api);
+    }
+    StarfishResourcePostUnload(ctx->res);
+    ctx->state = SMP_STATE_UNLOADED;
     return true;
 }
 
 SS4S_VideoFeedResult StarfishVideoFeed(StarfishVideo *ctx, const unsigned char *data, size_t size,
                                        SS4S_VideoFeedFlags flags) {
-    if (ctx->state == SMP_STATE_EOS) {
-        return SS4S_VIDEO_FEED_OK;
-    } else if (ctx->state == SMP_STATE_UNLOADED) {
+    if (ctx->state == SMP_STATE_UNLOADED) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
     char payload[256], result[256];
@@ -106,12 +110,15 @@ SS4S_VideoFeedResult StarfishVideoFeed(StarfishVideo *ctx, const unsigned char *
         }
         return SS4S_VIDEO_FEED_ERROR;
     }
-    ctx->state = SMP_STATE_PLAYING;
+    if (ctx->state == SMP_STATE_LOADED) {
+        ctx->state = SMP_STATE_PLAYING;
+        StarfishResourceStartPlaying(ctx->res);
+    }
     return SS4S_VIDEO_FEED_OK;
 }
 
 bool StarfishVideoSizeChanged(StarfishVideo *ctx, int width, int height) {
-    return true;
+    return StarfishResourceSizeChanged(ctx->res, width, height);
 }
 
 bool StarfishVideoSetHDRInfo(StarfishVideo *ctx, const SS4S_VideoHDRInfo *info) {
@@ -180,8 +187,8 @@ static jvalue_ref MakePayload(StarfishVideo *ctx, const SS4S_VideoInfo *info) {
             J_END_OBJ_DECL
     ));
     jobject_set(option, J_CSTR_TO_BUF("adaptiveStreaming"), jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("maxWidth"), jnumber_create_i32(info->width)),
-            jkeyval(J_CSTR_TO_JVAL("maxHeight"), jnumber_create_i32(info->height)),
+            jkeyval(J_CSTR_TO_JVAL("maxWidth"), jnumber_create_i32(1920)),
+            jkeyval(J_CSTR_TO_JVAL("maxHeight"), jnumber_create_i32(1080)),
             jkeyval(J_CSTR_TO_JVAL("maxFrameRate"), jnumber_create_i32(60)),
             J_END_OBJ_DECL
     ));
@@ -219,11 +226,13 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
             ctx->log(SS4S_LogLevelWarn, "SMP", "LoadCallback STARFISH_EVENT_STR_BUFFERFULL\n");
             break;
         case STARFISH_EVENT_STR_STATE_UPDATE_LOADCOMPLETED:
+            StarfishResourceLoadCompleted(ctx->res, StarfishMediaAPIs_getMediaID(ctx->api));
             StarfishMediaAPIs_play(ctx->api);
             break;
         case STARFISH_EVENT_STR_STATE_UPDATE_PLAYING:
             break;
         case STARFISH_EVENT_STR_VIDEO_INFO:
+            StarfishResourceSetMediaVideoData(ctx->res, strValue);
             break;
         case STARFISH_EVENT_INT_SVP_VDEC_READY:
             break;

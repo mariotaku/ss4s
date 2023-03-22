@@ -6,7 +6,8 @@ struct StarfishResource {
     const char *windowId;
 };
 
-StarfishResource *StarfishResourceCreate() {
+StarfishResource *StarfishResourceCreate(const char *appId) {
+    (void) appId;
     StarfishResource *res = calloc(1, sizeof(StarfishResource));
     res->windowId = SDL_webOSCreateExportedWindow(0);
     return res;
@@ -29,14 +30,42 @@ bool StarfishResourceUpdateLoadPayload(StarfishResource *resource, jvalue_ref pa
     return jobject_set(option, J_CSTR_TO_BUF("windowId"), j_cstr_to_jval(resource->windowId));
 }
 
+bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *data) {
+    return true;
+}
+
+bool StarfishResourceLoadCompleted(StarfishResource *resource, const char *mediaId) {
+    return true;
+}
+
 bool StarfishResourcePostLoad(StarfishResource *resource, const SS4S_VideoInfo *info) {
     if (resource->windowId == NULL) {
         return false;
     }
     SDL_DisplayMode dm;
     SDL_GetCurrentDisplayMode(0, &dm);
-    SDL_Rect src = {0, 0, info->width, info->height};
+    SDL_Rect src = {0, 0, dm.w, dm.h};
     SDL_Rect dst = {0, 0, dm.w, dm.h};
     SDL_webOSSetExportedWindow(resource->windowId, &src, &dst);
+    return StarfishResourceSizeChanged(resource, info->width, info->height);
+}
+
+bool StarfishResourceStartPlaying(StarfishResource *resource) {
+    return true;
+}
+
+bool StarfishResourceSizeChanged(StarfishResource *resource, int width, int height) {
+    if (resource->windowId == NULL) {
+        return false;
+    }
+//    SDL_DisplayMode dm;
+//    SDL_GetCurrentDisplayMode(0, &dm);
+//    SDL_Rect src = {0, 0, dm.w, dm.h};
+//    SDL_Rect dst = {0, 0, dm.w, dm.h};
+//    SDL_webOSSetExportedWindow(resource->windowId, &src, &dst);
+    return true;
+}
+
+bool StarfishResourcePostUnload(StarfishResource *resource) {
     return true;
 }
