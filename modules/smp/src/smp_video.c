@@ -168,8 +168,8 @@ static jvalue_ref MakePayload(StarfishVideo *ctx, const SS4S_VideoInfo *info) {
                     )),
                     jkeyval(J_CSTR_TO_JVAL("esInfo"), jobject_create_var(
                             jkeyval(J_CSTR_TO_JVAL("ptsToDecode"), jnumber_create_i32(0)),
-                            jkeyval(J_CSTR_TO_JVAL("seperatedPTS"), jboolean_true()),
-                            jkeyval(J_CSTR_TO_JVAL("pauseAtDecodeTime"), jboolean_true()),
+                            jkeyval(J_CSTR_TO_JVAL("seperatedPTS"), jboolean_create(true)),
+                            jkeyval(J_CSTR_TO_JVAL("pauseAtDecodeTime"), jboolean_create(true)),
                             J_END_OBJ_DECL
                     )),
                     jkeyval(J_CSTR_TO_JVAL("format"), J_CSTR_TO_JVAL("RAW")),
