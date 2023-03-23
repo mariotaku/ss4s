@@ -206,8 +206,8 @@ static jvalue_ref MakePayload(StarfishVideo *ctx, const SS4S_VideoInfo *info) {
             jkeyval(J_CSTR_TO_JVAL("maxFrameRate"), jnumber_create_i32(60)),
             J_END_OBJ_DECL
     ));
-    jobject_set(option, J_CSTR_TO_BUF("needAudio"), jboolean_false());
-    jobject_set(option, J_CSTR_TO_BUF("lowDelayMode"), jboolean_true());
+    jobject_set(option, J_CSTR_TO_BUF("needAudio"), jboolean_create(false));
+    jobject_set(option, J_CSTR_TO_BUF("lowDelayMode"), jboolean_create(true));
 
     jvalue_ref arg = jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("mediaTransportType"), J_CSTR_TO_JVAL("BUFFERSTREAM")),
