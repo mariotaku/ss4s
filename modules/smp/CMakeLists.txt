@@ -9,7 +9,7 @@ pkg_check_modules(SDL2 REQUIRED sdl2)
 
 add_subdirectory(wrapper)
 
-ss4s_add_module(smp-webos FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 99 CONFLICTS "ndl" SOURCES
+ss4s_add_module(smp-webos FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 40 CONFLICTS "ndl" SOURCES
         src/smp_module.c
         src/smp_video.c
         src/pbnjson_compat.c
@@ -23,7 +23,7 @@ target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE USE_SDL_WEBOS _GNU_SOUR
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
 
 
-ss4s_add_module(smp-webos4 FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 99 CONFLICTS "ndl" SOURCES
+ss4s_add_module(smp-webos4 FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 40 CONFLICTS "ndl" SOURCES
         src/smp_module.c
         src/smp_video.c
         src/pbnjson_compat.c
@@ -36,7 +36,7 @@ target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE USE_SDL_WEBOS _GNU_SOUR
         SS4S_MODULE_ENTRY=SS4S_ModuleOpen_SMP_WEBOS4)
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
 
-ss4s_add_module(smp-webos3 FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 99 CONFLICTS "ndl" SOURCES
+ss4s_add_module(smp-webos3 FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 40 CONFLICTS "ndl" SOURCES
         src/smp_module.c
         src/smp_video.c
         src/pbnjson_compat.c
