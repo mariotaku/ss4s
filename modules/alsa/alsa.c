@@ -24,8 +24,7 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_sw_params_t *sw_params;
     snd_pcm_uframes_t period_size = info->samplesPerFrame;
-    size_t unitSize = sizeof(uint16_t) * info->numOfChannels;
-    snd_pcm_uframes_t buffer_size = unitSize * period_size;
+    snd_pcm_uframes_t buffer_size = period_size;
     unsigned int sampleRate = info->sampleRate;
 
     CHECK_RETURN(snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK));
@@ -35,7 +34,7 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
     CHECK_RETURN(snd_pcm_hw_params_any(handle, hw_params));
     CHECK_RETURN(snd_pcm_hw_params_set_access(handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED));
     CHECK_RETURN(snd_pcm_hw_params_set_format(handle, hw_params, SND_PCM_FORMAT_S16_LE));
-    CHECK_RETURN(snd_pcm_hw_params_set_rate_near(handle, hw_params, &sampleRate, NULL));
+    CHECK_RETURN(snd_pcm_hw_params_set_rate(handle, hw_params, sampleRate, 0));
     CHECK_RETURN(snd_pcm_hw_params_set_channels(handle, hw_params, info->numOfChannels));
     CHECK_RETURN(snd_pcm_hw_params_set_period_size_near(handle, hw_params, &period_size, NULL));
     CHECK_RETURN(snd_pcm_hw_params_set_buffer_size_near(handle, hw_params, &buffer_size));
@@ -54,7 +53,7 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
 
     SS4S_AudioInstance *newInstance = calloc(1, sizeof(SS4S_AudioInstance));
     newInstance->handle = handle;
-    newInstance->unitSize = unitSize;
+    newInstance->unitSize = sizeof(uint16_t) * info->numOfChannels;
     *instance = newInstance;
 
     return SS4S_AUDIO_OPEN_OK;
