@@ -1,7 +1,6 @@
 #include "ss4s/modapi.h"
 
 #include <stdlib.h>
-#include <stdint.h>
 
 #include <alsa/asoundlib.h>
 
@@ -66,8 +65,8 @@ static SS4S_AudioFeedResult Feed(SS4S_AudioInstance *instance, const unsigned ch
     if ((rc = snd_pcm_writei(instance->handle, data, size / instance->unitSize)) == -EPIPE) {
         rc = snd_pcm_prepare(instance->handle);
     }
-    if (rc >= 0) {
-        return SS4S_AUDIO_FEED_OK;
+    if (rc < 0) {
+        return SS4S_AUDIO_FEED_ERROR;
     }
     return SS4S_AUDIO_FEED_OK;
 }
@@ -108,4 +107,9 @@ SS4S_EXPORTED bool SS4S_ModuleCheck_ALSA(SS4S_ModuleCheckFlag flags) {
 
 static void alsa_logger_noop(const char *file, int line, const char *function, int err, const char *fmt, ...) {
     // No-op
+    (void) file;
+    (void) line;
+    (void) function;
+    (void) err;
+    (void) fmt;
 }
