@@ -23,11 +23,10 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
             .channels = info->numOfChannels,
     };
     pa_buffer_attr buffer_attr = {
-            .maxlength = -1,
-            .tlength = sizeof(uint16_t) * info->numOfChannels,
-            .prebuf = -1,
-            .minreq = -1,
-            .fragsize = -1,
+            .maxlength = info->samplesPerFrame * 2 * sizeof(uint16_t),
+            .tlength = (uint32_t) -1,
+            .prebuf = (uint32_t) -1,
+            .minreq = (uint32_t) -1,
     };
     pa_channel_map channel_map;
     pa_channel_map *pchannel_map = pa_channel_map_init(&channel_map);

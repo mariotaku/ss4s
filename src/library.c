@@ -117,4 +117,5 @@ static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const cha
     va_start(arg, fmt);
     vfprintf(stderr, fmt, arg);
     va_end(arg);
+    printf("\n");
 }
