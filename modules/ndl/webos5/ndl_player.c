@@ -54,7 +54,7 @@ static int LoadMedia(SS4S_PlayerContext *context) {
 //    }
     assert(SS4S_NDL_webOS5_Initialized);
     assert(!context->mediaLoaded);
-    NDL_DIRECTMEDIA_DATA_INFO info = context->mediaInfo;
+    NDL_DIRECTMEDIA_DATA_INFO_T info = context->mediaInfo;
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "NDL_DirectMediaLoad(video=%u (%d*%d), atype=%u)", info.video.type,
                         info.video.width, info.video.height, info.audio.type);
     if ((ret = NDL_DirectMediaLoad(&info, LoadCallback)) != 0) {

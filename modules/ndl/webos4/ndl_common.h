@@ -11,8 +11,8 @@ extern pthread_mutex_t SS4S_NDL_webOS4_Lock;
 
 struct SS4S_PlayerContext {
     bool audioOpened, videoOpened;
-    NDL_DIRECTAUDIO_DATA_INFO audioInfo;
-    NDL_DIRECTVIDEO_DATA_INFO videoInfo;
+    NDL_DIRECTAUDIO_DATA_INFO_T audioInfo;
+    NDL_DIRECTVIDEO_DATA_INFO_T videoInfo;
     int aspectRatio;
 };
 

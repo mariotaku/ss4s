@@ -14,15 +14,15 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     SS4S_AudioOpenResult result;
     switch (info->codec) {
         case SS4S_AUDIO_PCM_S16LE: {
-            NDL_DIRECTAUDIO_DATA_INFO pcmInfo = {
-                    .numChannel = info->numOfChannels,
-                    .bitPerSample = 16,
-                    .nodelay = 1,
-                    .upperThreshold = 48,
-                    .lowerThreshold = 16,
+            NDL_DIRECTAUDIO_DATA_INFO_T pcmInfo = {
+                    .number_of_channel = info->numOfChannels,
+                    .bit_per_sample = 16,
+                    .no_delay_mode = 1,
+                    .no_delay_upper_time = 48,
+                    .no_delay_lower_time = 16,
                     .channel = NDL_DIRECTAUDIO_CH_MAIN,
-                    .srcType = NDL_DIRECTAUDIO_SRC_TYPE_PCM,
-                    .samplingFreq = NDL_DIRECTAUDIO_SAMPLING_FREQ_OF(info->sampleRate),
+                    .source = NDL_DIRECTAUDIO_SRC_TYPE_PCM,
+                    .frequency = NDL_DIRECTAUDIO_SAMPLING_FREQ_OF(info->sampleRate),
             };
             context->audioInfo = pcmInfo;
             break;
@@ -49,7 +49,7 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
     if (!context->audioOpened) {
         return SS4S_AUDIO_FEED_NOT_READY;
     }
-    int rc = NDL_DirectAudioPlay(data, size, 0);
+    int rc = NDL_DirectAudioPlay((void *) data, size);
     if (rc != 0) {
         return SS4S_AUDIO_FEED_ERROR;
     }
@@ -59,7 +59,7 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
 static void CloseAudio(SS4S_AudioInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     SS4S_PlayerContext *context = (void *) instance;
-    memset(&context->audioInfo, 0, sizeof(NDL_DIRECTAUDIO_DATA_INFO));
+    memset(&context->audioInfo, 0, sizeof(NDL_DIRECTAUDIO_DATA_INFO_T));
     context->audioOpened = false;
     NDL_DirectAudioClose();
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);

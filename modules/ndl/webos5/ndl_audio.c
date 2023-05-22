@@ -12,7 +12,7 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     SS4S_AudioOpenResult result;
     switch (info->codec) {
         case SS4S_AUDIO_PCM_S16LE: {
-            NDL_DIRECTMEDIA_AUDIO_PCM_INFO pcmInfo = {
+            NDL_DIRECTAUDIO_PCM_INFO_T pcmInfo = {
                     .type = NDL_AUDIO_TYPE_PCM,
                     .format = NDL_DIRECTMEDIA_AUDIO_PCM_FORMAT_S16LE,
                     .channelMode = NDL_DIRECTMEDIA_AUDIO_PCM_MODE_STEREO,
@@ -22,7 +22,7 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
             break;
         }
         case SS4S_AUDIO_OPUS: {
-            NDL_DIRECTMEDIA_AUDIO_OPUS_INFO opusInfo = {
+            NDL_DIRECTMEDIA_AUDIO_OPUS_INFO_T opusInfo = {
                     .type = NDL_AUDIO_TYPE_OPUS,
                     .channels = info->numOfChannels,
                     .sampleRate = info->sampleRate / 1000.0,
@@ -52,7 +52,7 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
     if (!context->mediaLoaded) {
         return SS4S_AUDIO_FEED_NOT_READY;
     }
-    int rc = NDL_DirectAudioPlay(data, size, 0);
+    int rc = NDL_DirectAudioPlay((void *) data, size, 0);
     if (rc != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectAudioPlay returned %d: %s", rc,
                             NDL_DirectMediaGetError());
