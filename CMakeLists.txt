@@ -25,13 +25,11 @@ add_library(ss4s src/library.c src/driver.c src/player.c src/audio.c src/video.c
 target_include_directories(ss4s PUBLIC include PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(ss4s PRIVATE ss4s-module-api)
 
-if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR OR SS4S_COMPILE_CHECK_STRICT)
-    if (MSVC)
-        target_compile_options(ss4s PRIVATE /WX)
-    else ()
-        target_compile_options(ss4s PRIVATE -Wall -Wextra -Werror)
-        string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-    endif ()
+if (MSVC)
+    target_compile_options(ss4s PRIVATE /WX)
+else ()
+    target_compile_options(ss4s PRIVATE -Wall -Wextra -Werror)
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
 endif ()
 
 if (HAS_DLFCN)
