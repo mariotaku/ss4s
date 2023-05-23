@@ -51,6 +51,7 @@ function(ss4s_add_module NAME)
         target_compile_options(${SS4S_MODULE_TARGET} PRIVATE -Wall -Wextra -Werror -Wno-unused-function -Wno-unused-parameter)
     endif ()
     install(TARGETS ${SS4S_MODULE_TARGET} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    message(STATUS "Enable SS4S module `${NAME}`")
 endfunction()
 
 
