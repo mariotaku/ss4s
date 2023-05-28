@@ -20,7 +20,7 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_Li
     return true;
 }
 
-SS4S_EXPORTED bool SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
+SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
     if (flags & SS4S_MODULE_CHECK_AUDIO) {
         /*
          * A simple check for unsupported hardware. A partial solution is to use ALSA/PulseAudio, so we fail the check
@@ -34,10 +34,13 @@ SS4S_EXPORTED bool SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
         if (lib != NULL) {
             bool has_flow = dlsym(NULL, "_Z8new_flowv") != NULL;
             dlclose(lib);
-            return has_flow;
+            if (has_flow) {
+                // If we have new_flow function, report audio model is not compatible
+                return flags & ~SS4S_MODULE_CHECK_AUDIO;
+            }
         }
     }
-    return true;
+    return flags;
 }
 
 int SS4S_NDL_webOS4_Driver_Init(int argc, char *argv[]) {

@@ -102,7 +102,7 @@ typedef struct SS4S_LibraryContext {
  */
 typedef bool (SS4S_ModuleOpenFunction)(SS4S_Module *module, const SS4S_LibraryContext *context);
 
-typedef bool (SS4S_ModuleCheckFunction)(SS4S_ModuleCheckFlag flags);
+typedef SS4S_ModuleCheckFlag (SS4S_ModuleCheckFunction)(SS4S_ModuleCheckFlag flags);
 
 #ifdef __cplusplus
 }

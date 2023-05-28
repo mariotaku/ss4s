@@ -29,17 +29,21 @@ bool SS4S_ModuleOpen(const char *name, SS4S_Module *module, const SS4S_LibraryCo
 }
 
 bool SS4S_ModuleAvailable(const char *name, SS4S_ModuleCheckFlag flags) {
-    if (name == NULL || name[0] == '\0') {
-        return false;
+    return SS4S_ModuleCheck(name, flags) == flags;
+}
+
+SS4S_ModuleCheckFlag SS4S_ModuleCheck(const char *id, SS4S_ModuleCheckFlag flags) {
+    if (id == NULL || id[0] == '\0') {
+        return 0;
     }
     char tmp[128];
-    ModuleFileName(tmp, sizeof(tmp), name);
+    ModuleFileName(tmp, sizeof(tmp), id);
     void *lib = dlopen(tmp, RTLD_NOW);
     if (lib == NULL) {
-        return false;
+        return 0;
     }
-    ModuleFunctionName(tmp, sizeof(tmp), "Check", name);
-    bool result = true;
+    ModuleFunctionName(tmp, sizeof(tmp), "Check", id);
+    SS4S_ModuleCheckFlag result = flags;
     SS4S_ModuleCheckFunction *fn = (SS4S_ModuleCheckFunction *) dlsym(lib, tmp);
     if (fn != NULL) {
         result = fn(flags);
