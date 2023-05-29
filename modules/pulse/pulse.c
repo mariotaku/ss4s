@@ -22,7 +22,7 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
             .rate = info->sampleRate,
             .channels = info->numOfChannels,
     };
-    size_t frame_size = info->samplesPerFrame * 2 * sizeof(uint16_t);
+    size_t frame_size = info->samplesPerFrame * info->numOfChannels * sizeof(uint16_t);
     pa_buffer_attr buffer_attr = {
             .maxlength = frame_size * 8 /*40ms*/,
             .tlength = -1,
