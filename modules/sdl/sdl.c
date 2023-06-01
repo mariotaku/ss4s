@@ -78,6 +78,7 @@ static void Callback(void *userdata, Uint8 *stream, int len) {
 
 
 static void Close(SS4S_AudioInstance *instance) {
+    SDL_CloseAudio();
     if (instance->ringbuf != NULL) {
         sdlaud_ringbuf_delete(instance->ringbuf);
         instance->ringbuf = NULL;
@@ -87,7 +88,6 @@ static void Close(SS4S_AudioInstance *instance) {
         instance->readbuf_size = 0;
         instance->readbuf = NULL;
     }
-    SDL_CloseAudio();
     free(instance);
 }
 
