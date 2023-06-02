@@ -51,6 +51,8 @@ struct SS4S_VideoInstance {
     MMAL_POOL_T *pool_in, *pool_out;
 };
 
+static const SS4S_LibraryContext *LibContext;
+
 static int Init() {
     bcm_host_init();
     return mmal_vc_init();
@@ -78,7 +80,7 @@ static void decoder_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     (void) instance;
     if (buf->cmd == MMAL_EVENT_ERROR) {
         MMAL_STATUS_T status = *(uint32_t *) buf->data;
-        fprintf(stderr, "Video decode error MMAL_EVENT_ERROR:%d\n", status);
+        LibContext->Log(SS4S_LogLevelWarn, "MMAL", "Video decode error MMAL_EVENT_ERROR:%d", status);
     }
 
     mmal_buffer_header_release(buf);
@@ -89,7 +91,7 @@ static void render_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     (void) instance;
     if (buf->cmd == MMAL_EVENT_ERROR) {
         MMAL_STATUS_T status = *(uint32_t *) buf->data;
-        fprintf(stderr, "Video render error MMAL_EVENT_ERROR:%d\n", status);
+        LibContext->Log(SS4S_LogLevelWarn, "MMAL", "Video render error MMAL_EVENT_ERROR:%d", status);
     }
 
     mmal_buffer_header_release(buf);
@@ -99,7 +101,7 @@ static void output_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     SS4S_VideoInstance *instance = (SS4S_VideoInstance *) port->component->userdata;
     assert(instance != NULL);
     if (mmal_port_send_buffer(instance->renderer->input[0], buf) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't display decoded frame\n");
+        LibContext->Log(SS4S_LogLevelWarn, "MMAL", "Can't display decoded frame");
         mmal_buffer_header_release(buf);
     }
 }
@@ -129,11 +131,11 @@ static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, SS4S_VideoInstance 
 static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int height) {
     vcos_semaphore_create(&instance->semaphore, "video_decoder", 1);
     if (mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_DECODER, &instance->decoder) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't create decoder\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't create decoder");
         return SS4S_VIDEO_OPEN_ERROR;
     }
     instance->decoder->userdata = (struct MMAL_COMPONENT_USERDATA_T *) instance;
-    printf("create decoder %d x %d\n", width, height);
+    LibContext->Log(SS4S_LogLevelInfo, "MMAL", "create decoder %d x %d", width, height);
 
     MMAL_ES_FORMAT_T *format_in = instance->decoder->input[0]->format;
     format_in->type = MMAL_ES_TYPE_VIDEO;
@@ -149,7 +151,7 @@ static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int h
     format_in->flags = MMAL_ES_FORMAT_FLAG_FRAMED;
 
     if (mmal_port_format_commit(instance->decoder->input[0]) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't commit input format to decoder\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't commit input format to decoder");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
@@ -161,7 +163,7 @@ static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int h
     MMAL_ES_FORMAT_T *format_out = instance->decoder->output[0]->format;
     format_out->encoding = MMAL_ENCODING_OPAQUE;
     if (mmal_port_format_commit(instance->decoder->output[0]) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't commit output format to decoder\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't commit output format to decoder");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
@@ -171,12 +173,12 @@ static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int h
                                                instance->decoder->output[0]->buffer_size);
 
     if (mmal_port_enable(instance->decoder->control, decoder_callback) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't enable control port\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't enable control port");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
     if (mmal_component_create(MMAL_COMPONENT_DEFAULT_VIDEO_RENDERER, &instance->renderer) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't create renderer\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't create renderer");
         return SS4S_VIDEO_OPEN_ERROR;
     }
     instance->renderer->userdata = (struct MMAL_COMPONENT_USERDATA_T *) instance;
@@ -190,7 +192,7 @@ static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int h
     format_in->es->video.crop.width = width;
     format_in->es->video.crop.height = height;
     if (mmal_port_format_commit(instance->renderer->input[0]) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't set output format\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't set output format");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
@@ -224,41 +226,41 @@ static SS4S_VideoOpenResult Start(SS4S_VideoInstance *instance, int width, int h
 //    }
 
     if (mmal_port_parameter_set(instance->renderer->input[0], &param.hdr) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't set parameters\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't set parameters");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
     if (mmal_port_enable(instance->renderer->control, render_callback) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't enable control port\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't enable control port");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
     if (mmal_component_enable(instance->renderer) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't enable renderer\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't enable renderer");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
     if (mmal_port_enable(instance->renderer->input[0], input_callback) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't enable renderer input port\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't enable renderer input port");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
     if (mmal_port_enable(instance->decoder->input[0], input_callback) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't enable decoder input port\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't enable decoder input port");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
     if (mmal_port_enable(instance->decoder->output[0], output_callback) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't enable decoder output port\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't enable decoder output port");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
     if (mmal_component_enable(instance->decoder) != MMAL_SUCCESS) {
-        fprintf(stderr, "Can't enable decoder\n");
+        LibContext->Log(SS4S_LogLevelError, "MMAL", "Can't enable decoder");
         return SS4S_VIDEO_OPEN_ERROR;
     }
 
-    printf("mmal decoder initialized\n");
+    LibContext->Log(SS4S_LogLevelInfo, "MMAL", "mmal decoder initialized");
     instance->started = true;
     return 0;
 }
@@ -304,7 +306,7 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
         buf->offset = 0;
         buf->pts = buf->dts = MMAL_TIME_UNKNOWN;
     } else {
-        fprintf(stderr, "Video buffer full\n");
+        LibContext->Log(SS4S_LogLevelWarn, "MMAL", "Video buffer full");
         return SS4S_VIDEO_FEED_REQUEST_KEYFRAME;
     }
 
@@ -319,7 +321,7 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
     }
 
     if (size + buf->length > buf->alloc_size) {
-        fprintf(stderr, "Video decoder buffer too small\n");
+        LibContext->Log(SS4S_LogLevelWarn, "MMAL", "Video decoder buffer too small");
         mmal_buffer_header_release(buf);
         return SS4S_VIDEO_FEED_REQUEST_KEYFRAME;
     }
@@ -390,8 +392,8 @@ static const SS4S_VideoDriver MMALDriver = {
 };
 
 SS4S_EXPORTED bool SS4S_ModuleOpen_MMAL(SS4S_Module *module, const SS4S_LibraryContext *context) {
-    (void) context;
     module->Name = "mmal";
     module->VideoDriver = &MMALDriver;
+    LibContext = context;
     return true;
 }

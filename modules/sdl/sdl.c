@@ -10,6 +10,8 @@ struct SS4S_AudioInstance {
     int readbuf_size;
 };
 
+static const SS4S_LibraryContext *LibContext;
+
 static void Callback(void *userdata, Uint8 *stream, int len);
 
 static int Init(int argc, char *argv[]) {
@@ -57,7 +59,7 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
 static int Feed(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
     size_t write_size = sdlaud_ringbuf_write(instance->ringbuf, data, size);
     if (!write_size) {
-        fprintf(stderr, "ring buffer overflow, clean the whole buffer\b");
+        LibContext->Log(SS4S_LogLevelWarn, "SDLAudio", "ring buffer overflow, clean the whole buffer");
         sdlaud_ringbuf_clear(instance->ringbuf);
     }
     return 0;
@@ -102,8 +104,8 @@ static const SS4S_AudioDriver SDLDriver = {
 };
 
 SS4S_EXPORTED bool SS4S_ModuleOpen_SDL(SS4S_Module *module, const SS4S_LibraryContext *context) {
-    (void) context;
     module->Name = "sdl";
     module->AudioDriver = &SDLDriver;
+    LibContext = context;
     return true;
 }
