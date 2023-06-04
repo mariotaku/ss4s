@@ -8,6 +8,7 @@ static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
 
 static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                       SS4S_PlayerContext *context) {
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "OpenAudio called");
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_AudioOpenResult result;
     switch (info->codec) {
@@ -62,6 +63,7 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
 }
 
 static void CloseAudio(SS4S_AudioInstance *instance) {
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "CloseAudio called");
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.audio.type = 0;

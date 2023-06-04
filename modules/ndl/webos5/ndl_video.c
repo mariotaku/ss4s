@@ -14,6 +14,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
                                       SS4S_PlayerContext *context) {
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "OpenVideo called");
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     memset(&context->mediaInfo.video, 0, sizeof(context->mediaInfo.video));
     SS4S_VideoOpenResult result;
@@ -91,6 +92,7 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
 }
 
 static void CloseVideo(SS4S_VideoInstance *instance) {
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "CloseVideo called");
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.video.type = 0;
@@ -99,6 +101,7 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
 }
 
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height) {
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "ReloadWithSize(%d, %d) called", width, height);
     context->mediaInfo.video.width = width;
     context->mediaInfo.video.height = height;
     context->aspectRatio = width * 100 / height;
