@@ -8,29 +8,37 @@ static SS4S_PlayerContext *CreatePlayerContext();
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
+const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver = {
+        .Create = CreatePlayerContext,
+        .Destroy = DestroyPlayerContext,
+};
+
 static void UnloadMedia(SS4S_PlayerContext *context);
 
 static int LoadMedia(SS4S_PlayerContext *context);
 
 static void LoadCallback(int type, long long numValue, const char *strValue);
 
-const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver = {
-        .Create = CreatePlayerContext,
-        .Destroy = DestroyPlayerContext,
-};
+static SS4S_PlayerContext *ActivatePlayerContext = NULL;
 
 int SS4S_NDL_webOS5_ReloadMedia(SS4S_PlayerContext *context) {
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Reloading media");
     UnloadMedia(context);
     return LoadMedia(context);
 }
 
 static SS4S_PlayerContext *CreatePlayerContext() {
-    return calloc(1, sizeof(SS4S_PlayerContext));
+    assert(ActivatePlayerContext == NULL);
+    SS4S_PlayerContext *created = calloc(1, sizeof(SS4S_PlayerContext));
+    ActivatePlayerContext = created;
+    return created;
 }
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context) {
     UnloadMedia(context);
     free(context);
+    assert(context == ActivatePlayerContext);
+    ActivatePlayerContext = NULL;
 }
 
 static void UnloadMedia(SS4S_PlayerContext *context) {
@@ -55,6 +63,10 @@ static int LoadMedia(SS4S_PlayerContext *context) {
     assert(SS4S_NDL_webOS5_Initialized);
     assert(!context->mediaLoaded);
     NDL_DIRECTMEDIA_DATA_INFO_T info = context->mediaInfo;
+    if (info.video.type == 0 && info.audio.type == 0) {
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "LoadMedia called without any types specified");
+        return -1;
+    }
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "NDL_DirectMediaLoad(video=%u (%d*%d), atype=%u)", info.video.type,
                         info.video.width, info.video.height, info.audio.type);
     if ((ret = NDL_DirectMediaLoad(&info, LoadCallback)) != 0) {
@@ -69,4 +81,5 @@ static int LoadMedia(SS4S_PlayerContext *context) {
 static void LoadCallback(int type, long long numValue, const char *strValue) {
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "MediaLoadCallback type=%d, numValue=%llx, strValue=%p\n",
                         type, numValue, strValue);
+//    SS4S_PlayerContext *context = ActivatePlayerContext;
 }
