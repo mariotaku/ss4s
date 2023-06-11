@@ -29,6 +29,13 @@ SS4S_Player *SS4S_PlayerOpen();
 
 void SS4S_PlayerClose(SS4S_Player *player);
 
+/**
+ * If audio module and video module is the same, ask it to start playing only when both are opened.
+ * @param player Player instance
+ * @param value Preferred option
+ */
+void SS4S_PlayerSetWaitAudioVideoReady(SS4S_Player *player, bool value);
+
 bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info);
 
 #ifdef __cplusplus

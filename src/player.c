@@ -15,8 +15,8 @@ SS4S_Player *SS4S_PlayerOpen() {
         if (videoPlayerDriver != NULL) {
             player->context.video = videoPlayerDriver->Create();
         }
-    } else if (audioPlayerDriver != NULL) {
-        player->context.audio = player->context.video = audioPlayerDriver->Create();
+    } else if (videoPlayerDriver != NULL) {
+        player->context.video = player->context.audio = videoPlayerDriver->Create();
     }
     return player;
 }
@@ -31,12 +31,21 @@ void SS4S_PlayerClose(SS4S_Player *player) {
             const SS4S_PlayerDriver *audioPlayerDriver = SS4S_GetAudioPlayerDriver();
             audioPlayerDriver->Destroy(player->context.audio);
         }
-    } else if (player->context.audio != NULL) {
-        const SS4S_PlayerDriver *audioPlayerDriver = SS4S_GetAudioPlayerDriver();
-        audioPlayerDriver->Destroy(player->context.audio);
+    } else if (player->context.video != NULL) {
+        const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
+        videoPlayerDriver->Destroy(player->context.video);
     }
 
     free(player);
+}
+
+void SS4S_PlayerSetWaitAudioVideoReady(SS4S_Player *player, bool value) {
+    if (player->context.video != NULL && player->context.video == player->context.audio) {
+        const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
+        if (videoPlayerDriver->SetWaitAudioVideoReady != NULL) {
+            videoPlayerDriver->SetWaitAudioVideoReady(player->context.video, value);
+        }
+    }
 }
 
 bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info) {

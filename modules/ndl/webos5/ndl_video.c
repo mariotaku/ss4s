@@ -45,6 +45,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
 
     finish:
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "OpenVideo returned %d", result);
     return result;
 }
 

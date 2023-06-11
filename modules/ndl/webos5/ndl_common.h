@@ -12,6 +12,7 @@ extern pthread_mutex_t SS4S_NDL_webOS5_Lock;
 struct SS4S_PlayerContext {
     NDL_DIRECTMEDIA_DATA_INFO_T mediaInfo;
     bool mediaLoaded;
+    bool waitAudioVideoReady;
     int aspectRatio;
 };
 

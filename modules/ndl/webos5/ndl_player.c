@@ -8,9 +8,12 @@ static SS4S_PlayerContext *CreatePlayerContext();
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
+static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool option);
+
 const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver = {
         .Create = CreatePlayerContext,
         .Destroy = DestroyPlayerContext,
+        .SetWaitAudioVideoReady = PlayerSetWaitAudioVideoReady,
 };
 
 static void UnloadMedia(SS4S_PlayerContext *context);
@@ -41,6 +44,10 @@ static void DestroyPlayerContext(SS4S_PlayerContext *context) {
     ActivatePlayerContext = NULL;
 }
 
+static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool option) {
+    context->waitAudioVideoReady = option;
+}
+
 static void UnloadMedia(SS4S_PlayerContext *context) {
     if (context->mediaLoaded) {
         NDL_DirectMediaUnload();
@@ -64,8 +71,11 @@ static int LoadMedia(SS4S_PlayerContext *context) {
     assert(!context->mediaLoaded);
     NDL_DIRECTMEDIA_DATA_INFO_T info = context->mediaInfo;
     if (info.video.type == 0 && info.audio.type == 0) {
-        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "LoadMedia called without any types specified");
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "LoadMedia but audio and video has no type");
         return -1;
+    } else if (context->waitAudioVideoReady && (info.video.type == 0 || info.audio.type == 0)) {
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Defer LoadMedia because audio or video has no type");
+        return 0;
     }
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "NDL_DirectMediaLoad(video=%u (%d*%d), atype=%u)", info.video.type,
                         info.video.width, info.video.height, info.audio.type);

@@ -28,6 +28,8 @@ typedef struct SS4S_PlayerDriver {
     SS4S_PlayerContext *(*Create)();
 
     void (*Destroy)(SS4S_PlayerContext *context);
+
+    void (*SetWaitAudioVideoReady)(SS4S_PlayerContext *context, bool option);
 } SS4S_PlayerDriver;
 
 typedef struct SS4S_AudioInstance SS4S_AudioInstance;
