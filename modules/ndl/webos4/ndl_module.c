@@ -32,7 +32,7 @@ SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckF
          */
         void *lib = dlopen("libkadaptor.so.1", RTLD_LAZY);
         if (lib != NULL) {
-            bool has_flow = dlsym(NULL, "_Z8new_flowv") != NULL;
+            bool has_flow = dlsym(lib, "_Z8new_flowv") != NULL;
             dlclose(lib);
             if (has_flow) {
                 // If we have new_flow function, report audio model is not compatible
