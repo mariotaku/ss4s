@@ -1,3 +1,6 @@
+if (NOT TARGET esplayer-datasrc)
+    return()
+endif ()
 add_executable(sample-bigbuckbunny sample.c)
 target_link_libraries(sample-bigbuckbunny PRIVATE ss4s esplayer-datasrc)
 

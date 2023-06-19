@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
             const char *extname = strrchr(suffix, '.');
             size_t name_len = 0;
             if (extname != NULL) {
-                name_len = extname - basename;
+                name_len = extname - suffix;
             } else {
                 name_len = strlen(suffix);
             }

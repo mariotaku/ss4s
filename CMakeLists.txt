@@ -21,7 +21,7 @@ include(CheckIncludeFile)
 
 check_include_file("dlfcn.h" HAS_DLFCN)
 
-add_library(ss4s src/library.c src/driver.c src/player.c src/audio.c src/video.c)
+add_library(ss4s src/library.c src/driver.c src/player.c src/audio.c src/video.c src/module.c)
 target_include_directories(ss4s PUBLIC include PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(ss4s PRIVATE ss4s-module-api)
 
@@ -32,12 +32,14 @@ else ()
     string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
 endif ()
 
-if(WIN32)
+if (WIN32)
     target_sources(ss4s PRIVATE src/module_win32.c)
-else(HAS_DLFCN)
+else (HAS_DLFCN)
     target_sources(ss4s PRIVATE src/module_libdl.c)
     target_link_libraries(ss4s PRIVATE dl)
-endif()
+endif ()
+target_compile_definitions(ss4s PRIVATE SS4S_LIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
+        SS4S_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 
 add_subdirectory(modules)

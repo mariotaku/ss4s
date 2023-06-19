@@ -1,12 +1,8 @@
 #include "module.h"
+#include "module_impl.h"
 
 #include <dlfcn.h>
-#include <stdio.h>
 #include <string.h>
-
-static void ModuleFileName(char *out, size_t outLen, const char *name);
-
-static void ModuleFunctionName(char *out, size_t outLen, const char *fnName, const char *module);
 
 bool SS4S_ModuleOpen(const char *name, SS4S_Module *module, const SS4S_LibraryContext *context) {
     if (name == NULL || name[0] == '\0') {
@@ -28,10 +24,6 @@ bool SS4S_ModuleOpen(const char *name, SS4S_Module *module, const SS4S_LibraryCo
     return fn(module, context);
 }
 
-bool SS4S_ModuleAvailable(const char *name, SS4S_ModuleCheckFlag flags) {
-    return SS4S_ModuleCheck(name, flags) == flags;
-}
-
 SS4S_ModuleCheckFlag SS4S_ModuleCheck(const char *id, SS4S_ModuleCheckFlag flags) {
     if (id == NULL || id[0] == '\0') {
         return 0;
@@ -50,25 +42,4 @@ SS4S_ModuleCheckFlag SS4S_ModuleCheck(const char *id, SS4S_ModuleCheckFlag flags
     }
     dlclose(lib);
     return result;
-}
-
-static void ModuleFileName(char *out, size_t outLen, const char *name) {
-    snprintf(out, outLen, "libss4s-%s.so", name);
-}
-
-static void ModuleFunctionName(char *out, size_t outLen, const char *fnName, const char *module) {
-    int strLen = snprintf(out, outLen, "SS4S_Module%s_%s", fnName, module);
-    /* Start transformation at strlen("SS4S_Module") + strlen(fnName) + strlen("_") */
-    for (int i = 12 + (int) strlen(fnName); i < strLen; i++) {
-        char ch = out[i];
-        if (ch == '\0') {
-            break;
-        } else if ((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z')) {
-            continue;
-        } else if (ch >= 'a' && ch <= 'z') {
-            out[i] = ch - 'a' + 'A';
-        } else {
-            out[i] = '_';
-        }
-    }
 }
