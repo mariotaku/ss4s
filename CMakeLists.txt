@@ -32,10 +32,13 @@ else ()
     string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
 endif ()
 
-if (HAS_DLFCN)
+if(WIN32)
+    target_sources(ss4s PRIVATE src/module_win32.c)
+else(HAS_DLFCN)
     target_sources(ss4s PRIVATE src/module_libdl.c)
     target_link_libraries(ss4s PRIVATE dl)
-endif ()
+endif()
+
 
 add_subdirectory(modules)
 
