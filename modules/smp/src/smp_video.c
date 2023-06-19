@@ -4,7 +4,7 @@
 #include "smp_video.h"
 #include "smp_resource.h"
 
-#include "pbnjson.h"
+#include <pbnjson.h>
 
 typedef enum PlayerState {
     SMP_STATE_UNLOADED,

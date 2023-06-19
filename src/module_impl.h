@@ -5,7 +5,7 @@
 #include <string.h>
 
 static void ModuleFileName(char *out, size_t outLen, const char *name) {
-    snprintf(out, outLen, SS4S_LIBRARY_PREFIX"ss4s-module-%s"SS4S_LIBRARY_SUFFIX, name);
+    snprintf(out, outLen, SS4S_LIBRARY_PREFIX"ss4s-%s"SS4S_LIBRARY_SUFFIX, name);
 }
 
 static void ModuleFunctionName(char *out, size_t outLen, const char *fnName, const char *module) {
