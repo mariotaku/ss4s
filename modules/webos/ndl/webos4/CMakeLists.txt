@@ -4,5 +4,6 @@ ss4s_add_module(ndl-webos4 FOR_AUDIO FOR_VIDEO IN_GROUP ndl DISPLAY_NAME "webOS 
 if (NOT SS4S_MODULE_TARGET)
     return()
 endif ()
-target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE NDL_directmedia pthread dl)
+target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${NDL_DIRECTMEDIA_INCLUDE_DIRS})
+target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${NDL_DIRECTMEDIA_LIBRARIES} pthread dl)
 target_compile_options(${SS4S_MODULE_TARGET} PRIVATE -Wno-error=attributes)

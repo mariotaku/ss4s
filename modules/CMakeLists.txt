@@ -59,10 +59,7 @@ add_subdirectory(alsa)
 add_subdirectory(pulse)
 add_subdirectory(sdl)
 add_subdirectory(mmal)
-
-add_subdirectory(ndl)
-add_subdirectory(smp)
-add_subdirectory(lgnc)
+add_subdirectory(webos)
 
 if (SS4S_MODULE_BUILD_DUMMY)
     add_subdirectory(dummy)
