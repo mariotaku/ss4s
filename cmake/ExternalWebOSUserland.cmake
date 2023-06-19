@@ -49,3 +49,6 @@ endmacro()
 add_webos_userland_library(PREFIX LGNCOPENAPI SONAME liblgncopenapi.so INCLUDES lgncopenapi)
 add_webos_userland_library(PREFIX NDL_DIRECTMEDIA SONAME libNDL_directmedia.so INCLUDES libndl-media)
 add_webos_userland_library(PREFIX LIBPLAYERAPIS SONAME libplayerAPIs.so INCLUDES starfish-media-pipeline)
+add_webos_userland_library(PREFIX HELPERS SONAME libhelpers.so INCLUDES webos-helpers)
+add_webos_userland_library(PREFIX LIBACBAPI SONAME libAcbAPI.so INCLUDES appswitching-control-block)
+
