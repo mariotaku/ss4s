@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
-static void ModuleFileName(char *out, size_t outLen, const char *name) {
-    snprintf(out, outLen, SS4S_LIBRARY_PREFIX"ss4s-%s"SS4S_LIBRARY_SUFFIX, name);
+__attribute((unused)) static void ModuleFileName(char *out, size_t outLen, const char *name) {
+    snprintf(out, outLen, "ss4s-%s%s", name, SS4S_LIBRARY_SUFFIX);
 }
 
-static void ModuleFunctionName(char *out, size_t outLen, const char *fnName, const char *module) {
+__attribute((unused)) static void ModuleFunctionName(char *out, size_t outLen, const char *fnName, const char *module) {
     int strLen = snprintf(out, outLen, "SS4S_Module%s_%s", fnName, module);
     /* Start transformation at strlen("SS4S_Module") + strlen(fnName) + strlen("_") */
     for (int i = 12 + (int) strlen(fnName); i < strLen; i++) {

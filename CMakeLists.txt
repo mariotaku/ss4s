@@ -38,9 +38,6 @@ else (HAS_DLFCN)
     target_sources(ss4s PRIVATE src/module_libdl.c)
     target_link_libraries(ss4s PRIVATE dl)
 endif ()
-target_compile_definitions(ss4s PRIVATE SS4S_LIBRARY_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
-        SS4S_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
-
 
 add_subdirectory(modules)
 

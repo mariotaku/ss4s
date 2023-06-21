@@ -3,6 +3,8 @@ add_subdirectory(interface)
 set(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY} PARENT_SCOPE)
 
+target_compile_definitions(ss4s PRIVATE SS4S_LIBRARY_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
 function(ss4s_add_module NAME)
     unset(SS4S_MODULE_TARGET PARENT_SCOPE)
     string(REGEX REPLACE "[^0-9a-z]" "_" ENV_NAME "${NAME}")
@@ -26,6 +28,7 @@ function(ss4s_add_module NAME)
     target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ss4s-module-api)
     set_target_properties(${SS4S_MODULE_TARGET} PROPERTIES
             C_VISIBILITY_PRESET hidden
+            PREFIX ""
             LIBRARY_OUTPUT_NAME "ss4s-${NAME}"
             LIBRARY_OUTPUT_DIRECTORY "${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY}"
             SS4S_MODULE_NAME "${NAME}"
@@ -63,4 +66,8 @@ add_subdirectory(webos)
 
 if (SS4S_MODULE_BUILD_DUMMY)
     add_subdirectory(dummy)
+endif ()
+
+if (SS4S_GENERATE_MODULES_LIST)
+    add_subdirectory(list-ini)
 endif ()
