@@ -9,6 +9,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->maxBitrate = 65000;
     capabilities->suggestedBitrate = 35000;
     capabilities->hdr = true;
+    capabilities->fullColorRange = true;
     return true;
 }
 

@@ -39,6 +39,7 @@ typedef enum SS4S_VideoFeedFlags {
 typedef struct SS4S_VideoInfo {
     SS4S_VideoCodec codec;
     int width, height;
+    int frameRateNumerator, frameRateDenominator;
 } SS4S_VideoInfo;
 
 typedef struct SS4S_VideoHDRInfo {
@@ -71,7 +72,7 @@ typedef struct SS4S_VideoCapabilities {
     unsigned int suggestedBitrate;
     unsigned int maxFps;
     unsigned int maxWidth, maxHeight;
-    bool hdr;
+    bool fullColorRange, hdr;
 } SS4S_VideoCapabilities;
 
 #ifndef SS4S_MODAPI_H

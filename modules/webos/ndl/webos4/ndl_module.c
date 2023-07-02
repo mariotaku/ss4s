@@ -10,7 +10,6 @@ bool SS4S_NDL_webOS4_Initialized = false;
 SS4S_LoggingFunction *SS4S_NDL_webOS4_Log = NULL;
 
 SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_LibraryContext *context) {
-    (void) context;
     SS4S_NDL_webOS4_Log = context->Log;
     assert(SS4S_NDL_webOS4_Log != NULL);
     module->Name = "ndl-webos4";

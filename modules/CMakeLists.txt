@@ -63,6 +63,7 @@ add_subdirectory(pulse)
 add_subdirectory(sdl)
 add_subdirectory(mmal)
 add_subdirectory(webos)
+add_subdirectory(steamlink)
 
 if (SS4S_MODULE_BUILD_DUMMY)
     add_subdirectory(dummy)
