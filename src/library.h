@@ -9,6 +9,7 @@ struct SS4S_Player {
     } context;
     SS4S_AudioInstance *audio;
     SS4S_VideoInstance *video;
+    void *userdata;
 };
 
 const SS4S_AudioDriver *SS4S_GetAudioDriver();

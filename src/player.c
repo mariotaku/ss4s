@@ -3,9 +3,11 @@
 
 #include <malloc.h>
 #include <string.h>
+#include <assert.h>
 
 SS4S_Player *SS4S_PlayerOpen() {
     SS4S_Player *player = calloc(1, sizeof(SS4S_Player));
+    assert(player != NULL);
     const SS4S_PlayerDriver *audioPlayerDriver = SS4S_GetAudioPlayerDriver();
     const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
     if (audioPlayerDriver != videoPlayerDriver) {
@@ -22,6 +24,7 @@ SS4S_Player *SS4S_PlayerOpen() {
 }
 
 void SS4S_PlayerClose(SS4S_Player *player) {
+    assert(player != NULL);
     if (player->context.audio != player->context.video) {
         if (player->context.audio != NULL) {
             const SS4S_PlayerDriver *audioPlayerDriver = SS4S_GetAudioPlayerDriver();
@@ -40,6 +43,7 @@ void SS4S_PlayerClose(SS4S_Player *player) {
 }
 
 void SS4S_PlayerSetWaitAudioVideoReady(SS4S_Player *player, bool value) {
+    assert(player != NULL);
     if (player->context.video != NULL && player->context.video == player->context.audio) {
         const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
         if (videoPlayerDriver->SetWaitAudioVideoReady != NULL) {
@@ -49,7 +53,8 @@ void SS4S_PlayerSetWaitAudioVideoReady(SS4S_Player *player, bool value) {
 }
 
 bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info) {
-    (void) player;
+    assert(player != NULL);
+    assert(info != NULL);
     memset(info, 0, sizeof(SS4S_PlayerInfo));
     const char *audioModule = SS4S_GetAudioModuleName();
     if (audioModule != NULL) {
@@ -64,4 +69,14 @@ bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info) {
         SS4S_GetVideoCapabilities(&info->video.capabilities);
     }
     return true;
+}
+
+void SS4S_PlayerSetUserdata(SS4S_Player *player, void *userdata) {
+    assert(player != NULL);
+    player->userdata = userdata;
+}
+
+void *SS4S_PlayerGetUserdata(SS4S_Player *player) {
+    assert(player != NULL);
+    return player->userdata;
 }

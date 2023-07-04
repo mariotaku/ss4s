@@ -6,6 +6,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264;
     capabilities->maxBitrate = 30000;
     capabilities->suggestedBitrate = 25000;
+    capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_EXCLUSIVE;
     return true;
 }
 
@@ -37,6 +38,14 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInst
     if (info->frameRateNumerator > 0 && info->frameRateDenominator > 0) {
         SLVideo_SetStreamTargetFramerate(videoStream, info->frameRateNumerator, info->frameRateDenominator);
     }
+
+    // Hack to force showing the video
+    int width = 1920, height = 1080;
+    SLVideo_GetDisplayResolution(videoContext, &width, &height);
+    CSLVideoOverlay *overlay = SLVideo_CreateOverlay(videoContext, width, height);
+    SLVideo_ShowOverlay(overlay);
+    SLVideo_HideOverlay(overlay);
+    SLVideo_FreeOverlay(overlay);
 
     *instance = (SS4S_VideoInstance *) context;
     result = SS4S_VIDEO_OPEN_OK;

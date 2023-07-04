@@ -67,6 +67,10 @@ typedef struct SS4S_VideoCapabilities {
          * Video can be blended with UI
          */
         SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING = 0x08,
+        /**
+         * Video can't be rendered if UI is present
+         */
+        SS4S_VIDEO_CAP_TRANSFORM_UI_EXCLUSIVE = 0x10,
     } transform;
     unsigned int maxBitrate;
     unsigned int suggestedBitrate;
