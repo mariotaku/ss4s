@@ -112,8 +112,9 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     return true;
 }
 
-static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
-                                 SS4S_PlayerContext *context) {
+static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
+                                 SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
+    (void) extraInfo;
     (void) context;
     if (info->codec != SS4S_VIDEO_H264) {
         return SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
@@ -335,8 +336,9 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
 
     //Send available output buffers to decoder
     while ((buf = mmal_queue_get(instance->pool_out->queue))) {
-        if ((status = mmal_port_send_buffer(instance->decoder->output[0], buf)) != MMAL_SUCCESS)
+        if ((status = mmal_port_send_buffer(instance->decoder->output[0], buf)) != MMAL_SUCCESS) {
             mmal_buffer_header_release(buf);
+        }
     }
 
     if (status != MMAL_SUCCESS) {

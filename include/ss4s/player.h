@@ -41,6 +41,8 @@ bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info);
 
 void SS4S_PlayerSetUserdata(SS4S_Player *player, void *userdata);
 
+void SS4S_PlayerSetViewportSize(SS4S_Player *player, int width, int height);
+
 void *SS4S_PlayerGetUserdata(SS4S_Player *player);
 
 #ifdef __cplusplus

@@ -79,6 +79,10 @@ typedef struct SS4S_VideoCapabilities {
     bool fullColorRange, hdr;
 } SS4S_VideoCapabilities;
 
+typedef struct SS4S_VideoExtraInfo {
+    int viewportWidth, viewportHeight;
+} SS4S_VideoExtraInfo;
+
 #ifndef SS4S_MODAPI_H
 
 bool SS4S_GetVideoCapabilities(SS4S_VideoCapabilities *capabilities);

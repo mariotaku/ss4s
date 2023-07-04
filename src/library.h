@@ -10,6 +10,7 @@ struct SS4S_Player {
     SS4S_AudioInstance *audio;
     SS4S_VideoInstance *video;
     void *userdata;
+    int viewportWidth, viewportHeight;
 };
 
 const SS4S_AudioDriver *SS4S_GetAudioDriver();

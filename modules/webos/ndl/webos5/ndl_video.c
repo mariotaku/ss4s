@@ -13,8 +13,9 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     return true;
 }
 
-static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
-                                      SS4S_PlayerContext *context) {
+static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
+                                      SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
+    (void ) extraInfo;
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "OpenVideo called");
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     memset(&context->mediaInfo.video, 0, sizeof(context->mediaInfo.video));

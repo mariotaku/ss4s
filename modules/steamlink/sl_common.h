@@ -17,6 +17,7 @@ struct SS4S_PlayerContext {
     size_t audioFrameSize;
     CSLVideoStream *videoStream;
     CSLVideoContext *videoContext;
+    int viewportWidth, viewportHeight;
 };
 
 extern const SS4S_PlayerDriver SS4S_STEAMLINK_PlayerDriver;

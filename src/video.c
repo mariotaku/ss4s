@@ -16,7 +16,11 @@ SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoI
         return SS4S_VIDEO_OPEN_ERROR;
     }
     assert(driver->Open != NULL);
-    SS4S_VideoOpenResult result = driver->Open(info, &player->video, player->context.video);
+    SS4S_VideoExtraInfo extraInfo = {
+            .viewportWidth = player->viewportWidth,
+            .viewportHeight = player->viewportHeight,
+    };
+    SS4S_VideoOpenResult result = driver->Open(info, &extraInfo, &player->video, player->context.video);
     if (result == SS4S_VIDEO_OPEN_OK) {
         assert(player->video != NULL);
     }

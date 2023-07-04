@@ -61,8 +61,8 @@ typedef struct SS4S_VideoDriver {
      * @param context Player context
      * @return
      */
-    SS4S_VideoOpenResult (*Open)(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
-                                 SS4S_PlayerContext *context);
+    SS4S_VideoOpenResult (*Open)(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
+                                 SS4S_VideoInstance **instance, SS4S_PlayerContext *context);
 
     /**
      * Required.

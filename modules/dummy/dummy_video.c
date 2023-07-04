@@ -5,12 +5,12 @@ static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int widt
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING | SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC |
-            SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST;
+                              SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST;
     return true;
 }
 
-static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
-                                      SS4S_PlayerContext *context) {
+static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
+                                      SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
     SS4S_Dummy_Log(SS4S_LogLevelInfo, "Dummy", "%s(codec=%s, width=%d, height=%d)", __FUNCTION__,
                    SS4S_VideoCodecName(info->codec), info->width, info->height);
     SS4S_VideoOpenResult result = ReloadWithSize(context, info->width, info->height);

@@ -24,8 +24,9 @@ static void DestroyPlayer(SS4S_PlayerContext *context) {
     free(context);
 }
 
-static SS4S_VideoOpenResult VideoOpen(const SS4S_VideoInfo *info, SS4S_VideoInstance **instance,
-                                      SS4S_PlayerContext *context) {
+static SS4S_VideoOpenResult VideoOpen(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
+                                      SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
+    (void) extraInfo;
     if (context->videoPlayer == NULL) {
         context->videoPlayer = StarfishVideoCreate(context->log);
         if (context->videoPlayer == NULL) {

@@ -76,6 +76,12 @@ void SS4S_PlayerSetUserdata(SS4S_Player *player, void *userdata) {
     player->userdata = userdata;
 }
 
+void SS4S_PlayerSetViewportSize(SS4S_Player *player, int width, int height) {
+    assert(player != NULL);
+    player->viewportWidth = width;
+    player->viewportHeight = height;
+}
+
 void *SS4S_PlayerGetUserdata(SS4S_Player *player) {
     assert(player != NULL);
     return player->userdata;
