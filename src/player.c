@@ -68,6 +68,8 @@ bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info) {
         info->video.module = videoModule;
         SS4S_GetVideoCapabilities(&info->video.capabilities);
     }
+    info->viewportWidth = player->viewportWidth;
+    info->viewportHeight = player->viewportHeight;
     return true;
 }
 

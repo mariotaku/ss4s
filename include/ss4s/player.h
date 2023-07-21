@@ -24,6 +24,7 @@ typedef struct SS4S_PlayerInfo {
         const char *module;
         SS4S_VideoCapabilities capabilities;
     } video;
+    int viewportWidth, viewportHeight;
 } SS4S_PlayerInfo;
 
 SS4S_Player *SS4S_PlayerOpen();
