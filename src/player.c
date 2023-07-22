@@ -1,7 +1,7 @@
 #include "ss4s.h"
 #include "library.h"
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 

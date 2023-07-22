@@ -27,7 +27,7 @@ target_link_libraries(ss4s PRIVATE ss4s-module-api)
 
 if (MSVC)
     target_compile_options(ss4s PRIVATE /WX)
-else ()
+elseif (NOT APPLE)
     target_compile_options(ss4s PRIVATE -Wall -Wextra -Werror)
     string(APPEND CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
 endif ()
