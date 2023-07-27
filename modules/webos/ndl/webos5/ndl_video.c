@@ -9,7 +9,8 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->maxBitrate = 65000;
     capabilities->suggestedBitrate = 35000;
     capabilities->hdr = true;
-    capabilities->fullColorRange = true;
+    // If fullColorRange is set to true, the video will be displayed with over saturated colors.
+    capabilities->fullColorRange = false;
     return true;
 }
 
