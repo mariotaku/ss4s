@@ -95,7 +95,7 @@ const SS4S_VideoDriver *SS4S_GetVideoDriver() {
 }
 
 const SS4S_PlayerDriver *SS4S_GetAudioPlayerDriver() {
-    return States.Video.PlayerDriver;
+    return States.Audio.PlayerDriver;
 }
 
 const SS4S_PlayerDriver *SS4S_GetVideoPlayerDriver() {
