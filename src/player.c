@@ -31,8 +31,8 @@ void SS4S_PlayerClose(SS4S_Player *player) {
             audioPlayerDriver->Destroy(player->context.audio);
         }
         if (player->context.video != NULL) {
-            const SS4S_PlayerDriver *audioPlayerDriver = SS4S_GetAudioPlayerDriver();
-            audioPlayerDriver->Destroy(player->context.audio);
+            const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
+            videoPlayerDriver->Destroy(player->context.video);
         }
     } else if (player->context.video != NULL) {
         const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
