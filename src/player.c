@@ -60,7 +60,7 @@ bool SS4S_PlayerGetInfo(SS4S_Player *player, SS4S_PlayerInfo *info) {
     if (audioModule != NULL) {
         info->audio.enabled = true;
         info->audio.module = audioModule;
-        SS4S_GetVideoCapabilities(&info->audio.capabilities);
+        SS4S_GetAudioCapabilities(&info->audio.capabilities);
     }
     const char *videoModule = SS4S_GetVideoModuleName();
     if (videoModule != NULL) {
