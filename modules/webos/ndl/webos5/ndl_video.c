@@ -16,7 +16,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
 
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
                                       SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
-    (void ) extraInfo;
+    (void) extraInfo;
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "OpenVideo called");
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     memset(&context->mediaInfo.video, 0, sizeof(context->mediaInfo.video));
@@ -84,7 +84,16 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
 }
 
 static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *info) {
-    (void) instance;
+    SS4S_PlayerContext *context = (void *) instance;
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
+    bool hasHdrInfo = info != NULL, needsReload = context->hasHdrInfo && !hasHdrInfo;
+    context->hasHdrInfo = hasHdrInfo;
+    if (needsReload) {
+        int reloadResult = SS4S_NDL_webOS5_ReloadMedia(context);
+        pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
+        return reloadResult == 0;
+    }
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
     if (info == NULL) {
         return true;
     }

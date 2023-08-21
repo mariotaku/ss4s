@@ -14,6 +14,7 @@ struct SS4S_PlayerContext {
     bool mediaLoaded;
     bool waitAudioVideoReady;
     int aspectRatio;
+    bool hasHdrInfo;
 };
 
 extern const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver;

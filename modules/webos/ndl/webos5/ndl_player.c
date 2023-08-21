@@ -50,8 +50,8 @@ static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool optio
 
 static void UnloadMedia(SS4S_PlayerContext *context) {
     if (context->mediaLoaded) {
-        NDL_DirectMediaUnload();
         context->mediaLoaded = false;
+        NDL_DirectMediaUnload();
     }
 //    if (SS4S_NDL_webOS5_Initialized) {
 //        NDL_DirectMediaQuit();
