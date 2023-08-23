@@ -69,6 +69,8 @@ bool StarfishMediaAPIs_play(StarfishMediaAPIs_C *api);
 
 bool StarfishMediaAPIs_pushEOS(StarfishMediaAPIs_C *api);
 
+bool StarfishMediaAPIs_setHdrInfo(StarfishMediaAPIs_C *api, const char *message);
+
 bool StarfishMediaAPIs_unload(StarfishMediaAPIs_C *api);
 
 void StarfishMediaAPIs_destroy(StarfishMediaAPIs_C *api);

@@ -41,6 +41,10 @@ bool StarfishMediaAPIs_pause(StarfishMediaAPIs_C *api) {
     return api->inner.Pause();
 }
 
+bool StarfishMediaAPIs_setHdrInfo(StarfishMediaAPIs_C *api, const char *message) {
+    return api->inner.setHdrInfo(message);
+}
+
 bool StarfishMediaAPIs_play(StarfishMediaAPIs_C *api) {
     return api->inner.Play();
 }

@@ -3,13 +3,15 @@
 #include <SDL.h>
 
 struct StarfishResource {
+    SS4S_LoggingFunction *log;
     const char *windowId;
     int maxRefreshRate;
 };
 
-StarfishResource *StarfishResourceCreate(const char *appId) {
+StarfishResource *StarfishResourceCreate(const char *appId, SS4S_LoggingFunction *log) {
     (void) appId;
     StarfishResource *res = calloc(1, sizeof(StarfishResource));
+    res->log = log;
     res->windowId = SDL_webOSCreateExportedWindow(0);
     if (!SDL_webOSGetRefreshRate(&res->maxRefreshRate)) {
         res->maxRefreshRate = 60;
@@ -25,6 +27,7 @@ void StarfishResourceDestroy(StarfishResource *res) {
 }
 
 bool StarfishResourceUpdateLoadPayload(StarfishResource *resource, jvalue_ref payload, const SS4S_VideoInfo *info) {
+    (void) info;
     if (resource->windowId == NULL) {
         return false;
     }
@@ -36,11 +39,16 @@ bool StarfishResourceUpdateLoadPayload(StarfishResource *resource, jvalue_ref pa
     return jobject_set(option, J_CSTR_TO_BUF("windowId"), j_cstr_to_jval(resource->windowId));
 }
 
-bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *data) {
+bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *data, bool hdr) {
+    (void) resource;
+    (void) data;
+    (void) hdr;
     return true;
 }
 
 bool StarfishResourceLoadCompleted(StarfishResource *resource, const char *mediaId) {
+    (void) resource;
+    (void) mediaId;
     return true;
 }
 
@@ -57,9 +65,11 @@ bool StarfishResourcePostLoad(StarfishResource *resource, const SS4S_VideoInfo *
 }
 
 bool StarfishResourceStartPlaying(StarfishResource *resource) {
+    (void) resource;
     return true;
 }
 
 bool StarfishResourcePostUnload(StarfishResource *resource) {
+    (void) resource;
     return true;
 }
