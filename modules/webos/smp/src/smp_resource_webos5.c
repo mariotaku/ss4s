@@ -13,6 +13,11 @@ StarfishResource *StarfishResourceCreate(const char *appId, SS4S_LoggingFunction
     StarfishResource *res = calloc(1, sizeof(StarfishResource));
     res->log = log;
     res->windowId = SDL_webOSCreateExportedWindow(0);
+    if (res->windowId == NULL || res->windowId[0] == '\0') {
+        log(SS4S_LogLevelError, "SMP", "Didn't get a valid windowId: %s", res->windowId);
+        free(res);
+        return NULL;
+    }
     if (!SDL_webOSGetRefreshRate(&res->maxRefreshRate)) {
         res->maxRefreshRate = 60;
     }

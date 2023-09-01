@@ -40,11 +40,17 @@ StarfishVideo *StarfishVideoCreate(SS4S_LoggingFunction *log) {
         return NULL;
     }
     StarfishVideo *ctx = calloc(1, sizeof(StarfishVideo));
-    log(SS4S_LogLevelInfo, "SMP", "StarfishVideo = %p", ctx);
     pthread_mutex_init(&ctx->lock, NULL);
     ctx->log = log;
     ctx->appId = strdup(appId);
     ctx->res = StarfishResourceCreate(ctx->appId, log);
+    if (ctx->res == NULL) {
+        log(SS4S_LogLevelError, "SMP", "Failed to allocate resource");
+        free(ctx->appId);
+        pthread_mutex_destroy(&ctx->lock);
+        free(ctx);
+        return NULL;
+    }
     ctx->state = SMP_STATE_UNLOADED;
     return ctx;
 }
