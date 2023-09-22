@@ -2,6 +2,9 @@
 
 #include "StarfishMediaAPIs.h"
 
+extern "C" bool
+_ZN17StarfishMediaAPIs10setHdrInfoEPKc(StarfishMediaAPIs *api, const char *message) __attribute__((weak));
+
 extern "C" {
 
 struct StarfishMediaAPIs_C {
@@ -42,7 +45,10 @@ bool StarfishMediaAPIs_pause(StarfishMediaAPIs_C *api) {
 }
 
 bool StarfishMediaAPIs_setHdrInfo(StarfishMediaAPIs_C *api, const char *message) {
-    return api->inner.setHdrInfo(message);
+    if (_ZN17StarfishMediaAPIs10setHdrInfoEPKc == nullptr) {
+        return false;
+    }
+    return _ZN17StarfishMediaAPIs10setHdrInfoEPKc(&api->inner, message);
 }
 
 bool StarfishMediaAPIs_play(StarfishMediaAPIs_C *api) {
