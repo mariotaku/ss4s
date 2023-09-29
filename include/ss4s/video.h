@@ -14,6 +14,7 @@ typedef enum SS4S_VideoCodec {
     SS4S_VIDEO_H265 = 0x02,
     SS4S_VIDEO_VP9 = 0x04,
     SS4S_VIDEO_VP8 = 0x08,
+    SS4S_VIDEO_AV1 = 0x10,
 } SS4S_VideoCodec;
 
 typedef enum SS4S_VideoOpenResult {
@@ -112,6 +113,8 @@ static inline const char *SS4S_VideoCodecName(SS4S_VideoCodec codec) {
             return "VP9";
         case SS4S_VIDEO_VP8:
             return "VP8";
+        case SS4S_VIDEO_AV1:
+            return "AV1";
         default:
             return "NONE";
     }

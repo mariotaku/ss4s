@@ -224,6 +224,8 @@ static const char *CodecName(SS4S_VideoCodec codec) {
             return "H264";
         case SS4S_VIDEO_H265:
             return "H265";
+        case SS4S_VIDEO_AV1:
+            return "AV1";
         default:
             return NULL;
     }

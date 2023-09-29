@@ -4,7 +4,7 @@
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
-    capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265;
+    capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265 | SS4S_VIDEO_VP9 | SS4S_VIDEO_AV1;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
     capabilities->maxBitrate = 65000;
     capabilities->suggestedBitrate = 35000;
@@ -32,6 +32,10 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_Vid
         }
         case SS4S_VIDEO_VP9: {
             context->mediaInfo.video.type = NDL_VIDEO_TYPE_VP9;
+            break;
+        }
+        case SS4S_VIDEO_AV1: {
+            context->mediaInfo.video.type = NDL_VIDEO_TYPE_AV1;
             break;
         }
         default:
