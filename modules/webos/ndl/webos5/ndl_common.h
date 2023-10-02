@@ -23,6 +23,8 @@ extern const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver;
 
 int SS4S_NDL_webOS5_ReloadMedia(SS4S_PlayerContext *context);
 
+int SS4S_NDL_webOS5_UnloadMedia(SS4S_PlayerContext *context);
+
 int SS4S_NDL_webOS5_Driver_PostInit(int argc, char *argv[]);
 
 void SS4S_NDL_webOS5_Driver_Quit();

@@ -1,8 +1,16 @@
+#include <stdlib.h>
+#include <stddef.h>
+
 #include "ndl_common.h"
 
 static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
-    capabilities->codecs = SS4S_AUDIO_PCM_S16LE | SS4S_AUDIO_OPUS;
-    capabilities->maxChannels = 2;
+    capabilities->codecs = SS4S_AUDIO_PCM_S16LE;
+    int supportsMultiChannel = 0;
+    if (NDL_DirectAudioSupportMultiChannel(&supportsMultiChannel) == 0 && supportsMultiChannel) {
+        capabilities->maxChannels = 6;
+    } else {
+        capabilities->maxChannels = 2;
+    }
     return true;
 }
 
@@ -13,10 +21,16 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     SS4S_AudioOpenResult result;
     switch (info->codec) {
         case SS4S_AUDIO_PCM_S16LE: {
+            const char *mode = "stereo";
+            if (info->numOfChannels == 1) {
+                mode = "mono";
+            } else if (info->numOfChannels == 6) {
+                mode = "6-channel";
+            }
             NDL_DIRECTAUDIO_PCM_INFO_T pcmInfo = {
                     .type = NDL_AUDIO_TYPE_PCM,
                     .format = NDL_DIRECTMEDIA_AUDIO_PCM_FORMAT_S16LE,
-                    .channelMode = NDL_DIRECTMEDIA_AUDIO_PCM_MODE_STEREO,
+                    .channelMode = mode,
                     .sampleRate = NDL_DIRECTMEDIA_AUDIO_PCM_SAMPLE_RATE_OF(info->sampleRate),
             };
             context->mediaInfo.audio.pcm = pcmInfo;
@@ -42,6 +56,13 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     }
     *instance = (SS4S_AudioInstance *) context;
     result = SS4S_AUDIO_OPEN_OK;
+    if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_PCM) {
+        unsigned short empty_buf[8] = {0};
+        NDL_DirectAudioPlay(empty_buf, info->numOfChannels * sizeof(unsigned short), 0);
+    } else if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_OPUS) {
+        unsigned char empty_buf[1] = {0};
+        NDL_DirectAudioPlay(empty_buf, 1, 0);
+    }
 
     finish:
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
@@ -68,7 +89,7 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.audio.type = 0;
-    SS4S_NDL_webOS5_ReloadMedia(context);
+    SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }
 

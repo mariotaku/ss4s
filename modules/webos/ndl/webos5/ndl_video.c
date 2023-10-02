@@ -113,7 +113,7 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.video.type = 0;
-    SS4S_NDL_webOS5_ReloadMedia(context);
+    SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }
 

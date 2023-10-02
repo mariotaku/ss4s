@@ -16,7 +16,7 @@ const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver = {
         .SetWaitAudioVideoReady = PlayerSetWaitAudioVideoReady,
 };
 
-static void UnloadMedia(SS4S_PlayerContext *context);
+static int UnloadMedia(SS4S_PlayerContext *context);
 
 static int LoadMedia(SS4S_PlayerContext *context);
 
@@ -26,8 +26,15 @@ static SS4S_PlayerContext *ActivatePlayerContext = NULL;
 
 int SS4S_NDL_webOS5_ReloadMedia(SS4S_PlayerContext *context) {
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Reloading media");
-    UnloadMedia(context);
+    if (UnloadMedia(context) != 0) {
+        return -1;
+    }
     return LoadMedia(context);
+}
+
+int SS4S_NDL_webOS5_UnloadMedia(SS4S_PlayerContext *context) {
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Unloading media");
+    return UnloadMedia(context);
 }
 
 static SS4S_PlayerContext *CreatePlayerContext() {
@@ -48,15 +55,17 @@ static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool optio
     context->waitAudioVideoReady = option;
 }
 
-static void UnloadMedia(SS4S_PlayerContext *context) {
+static int UnloadMedia(SS4S_PlayerContext *context) {
+    int ret = 0;
     if (context->mediaLoaded) {
         context->mediaLoaded = false;
-        NDL_DirectMediaUnload();
+        ret = NDL_DirectMediaUnload();
     }
 //    if (SS4S_NDL_webOS5_Initialized) {
 //        NDL_DirectMediaQuit();
 //        SS4S_NDL_webOS5_Initialized = false;
 //    }
+    return ret;
 }
 
 static int LoadMedia(SS4S_PlayerContext *context) {
