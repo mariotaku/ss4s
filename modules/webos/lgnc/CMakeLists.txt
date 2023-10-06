@@ -11,5 +11,5 @@ ss4s_add_module(lgnc FOR_VIDEO FOR_AUDIO DISPLAY_NAME "NetCast Legacy"
 if (NOT SS4S_MODULE_TARGET)
     return()
 endif ()
-target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${LGNCOPENAPI_LIBRARIES} pthread)
+target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${LGNCOPENAPI_LIBRARIES} pthread dl)
 target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${LGNCOPENAPI_INCLUDE_DIRS})
