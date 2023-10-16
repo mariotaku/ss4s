@@ -8,8 +8,10 @@
 pthread_mutex_t SS4S_NDL_webOS4_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS4_Initialized = false;
 SS4S_LoggingFunction *SS4S_NDL_webOS4_Log = NULL;
+const SS4S_LibraryContext *SS4S_NDL_webOS4_LibContext = NULL;
 
 SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_LibraryContext *context) {
+    SS4S_NDL_webOS4_LibContext = context;
     SS4S_NDL_webOS4_Log = context->Log;
     assert(SS4S_NDL_webOS4_Log != NULL);
     module->Name = "ndl-webos4";

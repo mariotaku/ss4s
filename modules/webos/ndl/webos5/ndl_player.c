@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <pthread.h>
 
-static SS4S_PlayerContext *CreatePlayerContext();
+static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player);
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
@@ -37,9 +37,10 @@ int SS4S_NDL_webOS5_UnloadMedia(SS4S_PlayerContext *context) {
     return UnloadMedia(context);
 }
 
-static SS4S_PlayerContext *CreatePlayerContext() {
+static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player) {
     assert(ActivatePlayerContext == NULL);
     SS4S_PlayerContext *created = calloc(1, sizeof(SS4S_PlayerContext));
+    created->player = player;
     ActivatePlayerContext = created;
     return created;
 }

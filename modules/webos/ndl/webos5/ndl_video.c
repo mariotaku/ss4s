@@ -3,6 +3,8 @@
 
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
+static uint64_t GetTimeUs();
+
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265 | SS4S_VIDEO_VP9 | SS4S_VIDEO_AV1;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
@@ -59,7 +61,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_Vid
 static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
                                       SS4S_VideoFeedFlags flags) {
     (void) flags;
-    const SS4S_PlayerContext *context = (void *) instance;
+    SS4S_PlayerContext *context = (void *) instance;
     if (!context->mediaLoaded) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
@@ -69,6 +71,13 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
                             NDL_DirectMediaGetError());
         return SS4S_VIDEO_FEED_ERROR;
     }
+    uint64_t now = GetTimeUs();
+    int renderBufferLength = 0;
+    if (context->lastFrameTime > 0 && NDL_DirectVideoGetRenderBufferLength(&renderBufferLength) == 0) {
+        float latency = (float) (renderBufferLength + 0.5) * (float) (now - context->lastFrameTime);
+        SS4S_NDL_webOS5_Lib->VideoStats.ReportFrame(context->player, (int) latency);
+    }
+    context->lastFrameTime = now;
     return SS4S_VIDEO_FEED_OK;
 }
 
@@ -127,6 +136,12 @@ static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int widt
         return SS4S_VIDEO_OPEN_ERROR;
     }
     return SS4S_VIDEO_OPEN_OK;
+}
+
+static uint64_t GetTimeUs() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t) ts.tv_sec * 1000000 + (uint64_t) ts.tv_nsec / 1000;
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {

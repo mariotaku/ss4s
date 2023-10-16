@@ -8,6 +8,7 @@
 #include "library.h"
 #include "module.h"
 #include "driver.h"
+#include "stats.h"
 
 static struct {
     char *AppName;
@@ -33,6 +34,9 @@ static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const cha
 int SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
     SS4S_Log = config->loggingFunction != NULL ? config->loggingFunction : StdIOLoggingFunction;
     SS4S_LibContext.Log = SS4S_Log;
+    SS4S_LibContext.VideoStats.BeginFrame = SS4S_VideoStatsBeginFrame;
+    SS4S_LibContext.VideoStats.EndFrame = SS4S_VideoStatsEndFrame;
+    SS4S_LibContext.VideoStats.ReportFrame = SS4S_VideoStatsReportFrame;
     SS4S_Module module;
     if (config->audioDriver != NULL) {
         SS4S_Log(SS4S_LogLevelInfo, "Audio", "Opening driver %s", config->audioDriver);
@@ -108,6 +112,18 @@ const char *SS4S_GetAudioModuleName() {
 
 const char *SS4S_GetVideoModuleName() {
     return States.Video.ModuleName;
+}
+
+uint32_t SS4S_VideoStatsBeginFrame(SS4S_Player *player) {
+    return SS4S_StatsCounterBeginFrame(&player->stats.video);
+}
+
+void SS4S_VideoStatsEndFrame(SS4S_Player *player, uint32_t beginFrameResult) {
+    SS4S_StatsCounterEndFrame(&player->stats.video, beginFrameResult);
+}
+
+void SS4S_VideoStatsReportFrame(SS4S_Player *player, uint32_t latencyUs) {
+    SS4S_StatsCounterReportFrame(&player->stats.video, latencyUs);
 }
 
 static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {

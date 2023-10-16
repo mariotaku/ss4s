@@ -2,7 +2,16 @@
 
 #include <string.h>
 
+typedef struct PlayUserData {
+    SS4S_PlayerContext *context;
+    uint32_t beginResult;
+} PlayUserData;
+
+_Static_assert(sizeof(PlayUserData) == sizeof(unsigned long long), "PlayUserData too large");
+
 static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO_T *info);
+
+static void VideoCallback(unsigned long long userdata);
 
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264;
@@ -29,6 +38,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_Vid
         result = SS4S_VIDEO_OPEN_ERROR;
         goto finish;
     }
+    NDL_DirectVideoSetCallback(VideoCallback);
     context->videoOpened = true;
     FitVideo(&context->videoInfo);
     *instance = (SS4S_VideoInstance *) context;
@@ -46,7 +56,12 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     if (!context->videoOpened) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
-    int rc = NDL_DirectVideoPlay((void *) data, size);
+    PlayUserData dataStruct = {
+            .context = context,
+            .beginResult = SS4S_NDL_webOS4_LibContext->VideoStats.BeginFrame(context->player),
+    };
+    unsigned long long *userdata = (void *) &dataStruct;
+    int rc = NDL_DirectVideoPlayWithCallback((void *) data, size, *userdata);
     if (rc != 0) {
         return SS4S_VIDEO_FEED_ERROR;
     }
@@ -99,6 +114,11 @@ static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO_T *info) {
         int scaledWidth = 1920 * 1080 / scaledHeight;
         NDL_DirectVideoSetArea((1920 - scaledWidth) / 2, 0, scaledWidth, 1080);
     }
+}
+
+static void VideoCallback(unsigned long long userdata) {
+    PlayUserData *dataStruct = (void *) &userdata;
+    SS4S_NDL_webOS4_LibContext->VideoStats.EndFrame(dataStruct->context->player, dataStruct->beginResult);
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver = {

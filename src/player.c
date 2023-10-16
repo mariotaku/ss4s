@@ -12,13 +12,13 @@ SS4S_Player *SS4S_PlayerOpen() {
     const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
     if (audioPlayerDriver != videoPlayerDriver) {
         if (audioPlayerDriver != NULL) {
-            player->context.audio = audioPlayerDriver->Create();
+            player->context.audio = audioPlayerDriver->Create(player);
         }
         if (videoPlayerDriver != NULL) {
-            player->context.video = videoPlayerDriver->Create();
+            player->context.video = videoPlayerDriver->Create(player);
         }
     } else if (videoPlayerDriver != NULL) {
-        player->context.video = player->context.audio = videoPlayerDriver->Create();
+        player->context.video = player->context.audio = videoPlayerDriver->Create(player);
     }
     return player;
 }
@@ -87,4 +87,17 @@ void SS4S_PlayerSetViewportSize(SS4S_Player *player, int width, int height) {
 void *SS4S_PlayerGetUserdata(SS4S_Player *player) {
     assert(player != NULL);
     return player->userdata;
+}
+
+bool SS4S_PlayerGetVideoLatency(SS4S_Player *player, int avgIntervalUs, int *latencyUs) {
+    assert(player != NULL);
+    if (avgIntervalUs <= 0) {
+        avgIntervalUs = 1000000;
+    }
+    int32_t result = SS4S_StatsCounterGetAverageLatencyUs(&player->stats.video, avgIntervalUs);
+    if (result < 0) {
+        return false;
+    }
+    *latencyUs = result;
+    return true;
 }

@@ -8,8 +8,11 @@
 extern bool SS4S_NDL_webOS5_Initialized;
 extern SS4S_LoggingFunction *SS4S_NDL_webOS5_Log;
 extern pthread_mutex_t SS4S_NDL_webOS5_Lock;
+extern const SS4S_LibraryContext *SS4S_NDL_webOS5_Lib;
 
 struct SS4S_PlayerContext {
+    SS4S_Player *player;
+    uint64_t lastFrameTime;
     NDL_DIRECTMEDIA_DATA_INFO_T mediaInfo;
     bool mediaLoaded;
     bool waitAudioVideoReady;

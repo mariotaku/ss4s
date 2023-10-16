@@ -21,7 +21,10 @@ struct SS4S_VideoInstance {
     PlayerState state;
     int aspectRatio;
     bool hdr, shouldStop;
+    uint64_t openTime;
+    const SS4S_LibraryContext *lib;
     SS4S_LoggingFunction *log;
+    SS4S_Player *player;
 };
 
 static const char *CodecName(SS4S_VideoCodec codec);
@@ -34,23 +37,28 @@ static void StarfishLock(StarfishVideo *ctx);
 
 static void StarfishUnlock(StarfishVideo *ctx);
 
-StarfishVideo *StarfishVideoCreate(SS4S_LoggingFunction *log) {
+static uint64_t GetTime();
+
+StarfishVideo *StarfishVideoCreate(const SS4S_LibraryContext *lib, SS4S_Player *player) {
     const char *appId = getenv("APPID");
     if (appId == NULL) {
         return NULL;
     }
     StarfishVideo *ctx = calloc(1, sizeof(StarfishVideo));
     pthread_mutex_init(&ctx->lock, NULL);
-    ctx->log = log;
+    ctx->lib = lib;
+    ctx->log = lib->Log;
     ctx->appId = strdup(appId);
-    ctx->res = StarfishResourceCreate(ctx->appId, log);
+    ctx->res = StarfishResourceCreate(ctx->appId, lib->Log);
+    ctx->player = player;
     if (ctx->res == NULL) {
-        log(SS4S_LogLevelError, "SMP", "Failed to allocate resource");
+        lib->Log(SS4S_LogLevelError, "SMP", "Failed to allocate resource");
         free(ctx->appId);
         pthread_mutex_destroy(&ctx->lock);
         free(ctx);
         return NULL;
     }
+    ctx->openTime = GetTime();
     ctx->state = SMP_STATE_UNLOADED;
     return ctx;
 }
@@ -131,8 +139,9 @@ SS4S_VideoFeedResult StarfishVideoFeed(StarfishVideo *ctx, const unsigned char *
         return SS4S_VIDEO_FEED_NOT_READY;
     }
     char payload[256], result[256];
+    uint64_t diff = GetTime() - ctx->openTime;
     snprintf(payload, sizeof(payload), "{\"bufferAddr\":\"%p\",\"bufferSize\":%u,\"pts\":%llu,\"esData\":%d}",
-             data, size, 0LL, 1);
+             data, size, diff, 1);
     StarfishMediaAPIs_feed(ctx->api, payload, result, 256);
     if (strstr(result, "Ok") == NULL) {
         StarfishUnlock(ctx);
@@ -302,8 +311,11 @@ static jvalue_ref MakePayload(StarfishVideo *ctx, const SS4S_VideoInfo *info) {
 static void LoadCallback(int type, int64_t numValue, const char *strValue, void *data) {
     StarfishVideo *ctx = data;
     switch (type) {
-        case 0:
+        case STARFISH_EVENT_FRAMEREADY: {
+            uint64_t ptsNow = GetTime() - ctx->openTime;
+            ctx->lib->VideoStats.ReportFrame(ctx->player, (ptsNow - numValue) / 1000);
             break;
+        }
         case STARFISH_EVENT_STR_ERROR:
             ctx->log(SS4S_LogLevelWarn, "SMP", "LoadCallback STARFISH_EVENT_STR_ERROR, numValue: %lld, strValue: %p\n",
                      numValue, strValue);
@@ -346,4 +358,10 @@ static void StarfishLock(StarfishVideo *ctx) {
 
 static void StarfishUnlock(StarfishVideo *ctx) {
     pthread_mutex_unlock(&ctx->lock);
+}
+
+uint64_t GetTime() {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (now.tv_sec * 1000000000LL + now.tv_nsec);
 }

@@ -47,6 +47,8 @@ void SS4S_PlayerSetViewportSize(SS4S_Player *player, int width, int height);
 
 void *SS4S_PlayerGetUserdata(SS4S_Player *player);
 
+bool SS4S_PlayerGetVideoLatency(SS4S_Player *player, int avgIntervalUs, int *latencyUs);
+
 #ifdef __cplusplus
 }
 #endif

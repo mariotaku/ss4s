@@ -11,6 +11,7 @@ extern "C" {
 #include "ss4s/video.h"
 #include "ss4s/module.h"
 #include "ss4s/logging.h"
+#include "ss4s/stats.h"
 
 #include <stdbool.h>
 
@@ -25,7 +26,12 @@ typedef struct SS4S_DriverBase {
 typedef struct SS4S_PlayerContext SS4S_PlayerContext;
 
 typedef struct SS4S_PlayerDriver {
-    SS4S_PlayerContext *(*Create)();
+    /**
+     * Required.
+     * @param player Opaque player pointer
+     * @return
+     */
+    SS4S_PlayerContext *(*Create)(SS4S_Player *player);
 
     void (*Destroy)(SS4S_PlayerContext *context);
 
@@ -95,9 +101,14 @@ struct SS4S_Module {
 
 typedef struct SS4S_LibraryContext {
     SS4S_LoggingFunction *Log;
+    struct {
+        SS4S_VideoStatsBeginFrameFunction *BeginFrame;
+        SS4S_VideoStatsEndFrameFunction *EndFrame;
+        SS4S_VideoStatsReportFrameFunction *ReportFrame;
+    } VideoStats;
 } SS4S_LibraryContext;
 
-#define SS4S_EXPORTED __attribute__((unused,visibility("default")))
+#define SS4S_EXPORTED __attribute__((unused, visibility("default")))
 
 /**
  * Multiple calls to this function should have same effect.

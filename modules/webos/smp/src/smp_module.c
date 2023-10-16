@@ -4,16 +4,18 @@
 #include "ss4s/modapi.h"
 #include "smp_video.h"
 
-static SS4S_LoggingFunction *Log = NULL;
+static const SS4S_LibraryContext *LibContext = NULL;
 
 struct SS4S_PlayerContext {
-    SS4S_LoggingFunction *log;
+    const SS4S_LibraryContext *lib;
+    SS4S_Player *player;
     StarfishVideo *videoPlayer;
 };
 
-static SS4S_PlayerContext *CreatePlayer() {
+static SS4S_PlayerContext *CreatePlayer(SS4S_Player *player) {
     SS4S_PlayerContext *context = calloc(1, sizeof(SS4S_PlayerContext));
-    context->log = Log;
+    context->lib = LibContext;
+    context->player = player;
     return context;
 }
 
@@ -28,7 +30,7 @@ static SS4S_VideoOpenResult VideoOpen(const SS4S_VideoInfo *info, const SS4S_Vid
                                       SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
     (void) extraInfo;
     if (context->videoPlayer == NULL) {
-        context->videoPlayer = StarfishVideoCreate(context->log);
+        context->videoPlayer = StarfishVideoCreate(context->lib, context->player);
         if (context->videoPlayer == NULL) {
             return SS4S_VIDEO_OPEN_ERROR;
         }
@@ -65,8 +67,8 @@ static const SS4S_PlayerDriver PlayerDriver = {
 };
 
 SS4S_EXPORTED bool SS4S_MODULE_ENTRY(SS4S_Module *module, const SS4S_LibraryContext *context) {
-    Log = context->Log;
-    assert(Log != NULL);
+    LibContext = context;
+    assert(LibContext != NULL);
     module->Name = SS4S_MODULE_NAME;
     module->PlayerDriver = &PlayerDriver;
     module->VideoDriver = &VideoDriver;

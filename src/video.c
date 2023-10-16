@@ -24,6 +24,11 @@ SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoI
     if (result == SS4S_VIDEO_OPEN_OK) {
         assert(player->video != NULL);
     }
+    size_t statsCapacity = 120;
+    if (info->frameRateNumerator > 0 && info->frameRateNumerator > 0) {
+        statsCapacity = info->frameRateNumerator / info->frameRateDenominator * 2;
+    }
+    SS4S_StatsCounterInit(&player->stats.video, statsCapacity);
     return result;
 }
 
@@ -76,6 +81,7 @@ bool SS4S_PlayerVideoClose(SS4S_Player *player) {
     if (player->video == NULL) {
         return false;
     }
+    SS4S_StatsCounterDeinit(&player->stats.video);
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     assert(driver != NULL);
     assert(driver->Close != NULL);

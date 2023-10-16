@@ -5,7 +5,7 @@
 
 typedef struct SS4S_VideoInstance StarfishVideo;
 
-StarfishVideo *StarfishVideoCreate(SS4S_LoggingFunction*log);
+StarfishVideo *StarfishVideoCreate(const SS4S_LibraryContext *lib, SS4S_Player*player);
 
 void StarfishVideoDestroy(StarfishVideo *ctx);
 
