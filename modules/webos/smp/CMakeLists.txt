@@ -1,3 +1,5 @@
+find_package(PkgConfig REQUIRED)
+
 if (NOT LIBPLAYERAPIS_FOUND OR NOT LIBACBAPI_FOUND)
     pkg_check_modules(LIBPLAYERAPIS libplayerAPIs)
     pkg_check_modules(LIBACBAPI libAcbAPI)

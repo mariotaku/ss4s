@@ -1,3 +1,5 @@
+find_package(PkgConfig REQUIRED)
+
 if (NOT LGNCOPENAPI_FOUND)
     pkg_check_modules(LGNCOPENAPI lgncopenapi)
 endif ()
