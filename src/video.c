@@ -25,7 +25,7 @@ SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoI
         assert(player->video != NULL);
     }
     size_t statsCapacity = 120;
-    if (info->frameRateNumerator > 0 && info->frameRateNumerator > 0) {
+    if (info->frameRateNumerator > 0 && info->frameRateDenominator > 0) {
         statsCapacity = info->frameRateNumerator / info->frameRateDenominator * 2;
     }
     SS4S_StatsCounterInit(&player->stats.video, statsCapacity);
@@ -75,6 +75,17 @@ bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *s
         return false;
     }
     return driver->SetDisplayArea(player->video, src, dst);
+}
+
+bool SS4S_PlayerVideoSetFrameCallback(SS4S_Player *player, SS4S_VideoFrameCallback callback, void *userdata) {
+    if (player->video == NULL) {
+        return false;
+    }
+    const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
+    if (driver == NULL || driver->SetFrameCallback == NULL) {
+        return false;
+    }
+    return driver->SetFrameCallback(player->video, callback, userdata);
 }
 
 bool SS4S_PlayerVideoClose(SS4S_Player *player) {

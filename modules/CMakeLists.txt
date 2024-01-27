@@ -64,6 +64,7 @@ add_subdirectory(sdl)
 add_subdirectory(mmal)
 add_subdirectory(webos)
 add_subdirectory(steamlink)
+add_subdirectory(ffmpeg)
 
 if (SS4S_MODULE_BUILD_DUMMY)
     add_subdirectory(dummy)

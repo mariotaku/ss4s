@@ -87,6 +87,8 @@ typedef struct SS4S_VideoDriver {
 
     bool (*SetDisplayArea)(SS4S_VideoInstance *instance, const SS4S_VideoRect *src, const SS4S_VideoRect *dst);
 
+    bool (*SetFrameCallback)(SS4S_VideoInstance *instance, SS4S_VideoFrameCallback callback, void *userdata);
+
     void (*Close)(SS4S_VideoInstance *instance);
 } SS4S_VideoDriver;
 

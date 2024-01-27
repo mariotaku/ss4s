@@ -5,6 +5,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct SS4S_Player SS4S_Player;
 
@@ -78,11 +79,26 @@ typedef struct SS4S_VideoCapabilities {
     unsigned int maxFps;
     unsigned int maxWidth, maxHeight;
     bool fullColorRange, hdr;
+    enum {
+        SS4S_VIDEO_OUTPUT_OPAQUE = 0,
+        SS4S_VIDEO_OUTPUT_YUV = 1,
+    } output;
 } SS4S_VideoCapabilities;
 
 typedef struct SS4S_VideoExtraInfo {
     int viewportWidth, viewportHeight;
 } SS4S_VideoExtraInfo;
+
+typedef union SS4S_VideoOutputFrame {
+    struct {
+        uint8_t **data;
+        int *linesize;
+        int width, height;
+        int64_t pts;
+    } yuv;
+} SS4S_VideoOutputFrame;
+
+typedef void (*SS4S_VideoFrameCallback)(SS4S_VideoOutputFrame *frame, void *userdata);
 
 #ifndef SS4S_MODAPI_H
 
@@ -98,6 +114,8 @@ bool SS4S_PlayerVideoSizeChanged(SS4S_Player *player, int width, int height);
 bool SS4S_PlayerVideoSetHDRInfo(SS4S_Player *player, const SS4S_VideoHDRInfo *info);
 
 bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *src, const SS4S_VideoRect *dst);
+
+bool SS4S_PlayerVideoSetFrameCallback(SS4S_Player *player, SS4S_VideoFrameCallback callback, void *userdata);
 
 bool SS4S_PlayerVideoClose(SS4S_Player *player);
 
