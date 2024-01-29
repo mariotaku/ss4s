@@ -45,7 +45,11 @@ set_target_properties(ss4s PROPERTIES SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4
 
 get_target_property(SS4S_MODULE_TARGETS ss4s SS4S_MODULE_TARGETS)
 if (SS4S_GENERATE_MODULES_LIST)
-    include(GenerateModulesList)
+    if (SS4S_MODULE_TARGETS)
+        include(GenerateModulesList)
+    else ()
+        message(WARNING "No modules found, ss4s_modules.ini will not be generated")
+    endif ()
 endif ()
 
 # Don't include tests by default if used as library
