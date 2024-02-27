@@ -21,28 +21,14 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS5(SS4S_Module *module, const SS4S_Li
     return true;
 }
 
-int SS4S_NDL_webOS5_Driver_PostInit(int argc, char *argv[]) {
-    (void) argc;
-    (void) argv;
-    if (SS4S_NDL_webOS5_Initialized) {
-        return 0;
-    }
-    int ret;
-    if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) == 0) {
-        SS4S_NDL_webOS5_Initialized = true;
-        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Driver init.");
-    } else {
-        SS4S_NDL_webOS5_Log(SS4S_LogLevelError, "NDL", "Failed to init: ret=%d, error=%s", ret,
-                            NDL_DirectMediaGetError());
-    }
-    return ret;
-}
-
 void SS4S_NDL_webOS5_Driver_Quit() {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     if (!SS4S_NDL_webOS5_Initialized) {
+        pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
         return;
     }
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Driver quit.");
     NDL_DirectMediaQuit();
     SS4S_NDL_webOS5_Initialized = false;
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }

@@ -95,7 +95,6 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
 
 const SS4S_AudioDriver SS4S_NDL_webOS5_AudioDriver = {
         .Base = {
-                .PostInit = SS4S_NDL_webOS5_Driver_PostInit,
                 .Quit = SS4S_NDL_webOS5_Driver_Quit,
         },
         .GetCapabilities = GetCapabilities,

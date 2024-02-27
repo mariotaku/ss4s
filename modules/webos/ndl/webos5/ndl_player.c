@@ -62,21 +62,19 @@ static int UnloadMedia(SS4S_PlayerContext *context) {
         context->mediaLoaded = false;
         ret = NDL_DirectMediaUnload();
     }
-//    if (SS4S_NDL_webOS5_Initialized) {
-//        NDL_DirectMediaQuit();
-//        SS4S_NDL_webOS5_Initialized = false;
-//    }
     return ret;
 }
 
 static int LoadMedia(SS4S_PlayerContext *context) {
-    int ret = 0;
-//    if (!SS4S_NDL_webOS5_Initialized) {
-//        if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) != 0) {
-//            goto cleanup;
-//        }
-//        SS4S_NDL_webOS5_Initialized = true;
-//    }
+    int ret;
+    if (!SS4S_NDL_webOS5_Initialized) {
+        if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) != 0) {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelError, "NDL", "Failed to init: ret=%d, error=%s", ret,
+                                NDL_DirectMediaGetError());
+            return ret;
+        }
+        SS4S_NDL_webOS5_Initialized = true;
+    }
     assert(SS4S_NDL_webOS5_Initialized);
     assert(!context->mediaLoaded);
     NDL_DIRECTMEDIA_DATA_INFO_T info = context->mediaInfo;

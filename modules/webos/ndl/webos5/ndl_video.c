@@ -147,7 +147,6 @@ static uint64_t GetTimeUs() {
 
 const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {
         .Base = {
-                .PostInit = SS4S_NDL_webOS5_Driver_PostInit,
                 .Quit = SS4S_NDL_webOS5_Driver_Quit,
         },
         .GetCapabilities = GetCapabilities,
