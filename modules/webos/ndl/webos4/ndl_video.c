@@ -1,6 +1,7 @@
 #include "ndl_common.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 typedef struct PlayUserData {
     SS4S_PlayerContext *context;
@@ -56,12 +57,12 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     if (!context->videoOpened) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
-    PlayUserData dataStruct = {
-            .context = context,
-            .beginResult = SS4S_NDL_webOS4_LibContext->VideoStats.BeginFrame(context->player),
-    };
-    unsigned long long *userdata = (void *) &dataStruct;
-    int rc = NDL_DirectVideoPlayWithCallback((void *) data, size, *userdata);
+    PlayUserData *dataStruct = calloc(1, sizeof(PlayUserData));
+    pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
+    dataStruct->context = context;
+    dataStruct->beginResult = SS4S_NDL_webOS4_LibContext->VideoStats.BeginFrame(context->player);
+    pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
+    int rc = NDL_DirectVideoPlayWithCallback((void *) data, size, (unsigned int) dataStruct);
     if (rc != 0) {
         return SS4S_VIDEO_FEED_ERROR;
     }
@@ -117,8 +118,13 @@ static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO_T *info) {
 }
 
 static void VideoCallback(unsigned long long userdata) {
-    PlayUserData *dataStruct = (void *) &userdata;
-    SS4S_NDL_webOS4_LibContext->VideoStats.EndFrame(dataStruct->context->player, dataStruct->beginResult);
+    pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
+    PlayUserData *dataStruct = (void *) (unsigned int) userdata;
+    if (dataStruct->context->videoOpened) {
+        SS4S_NDL_webOS4_LibContext->VideoStats.EndFrame(dataStruct->context->player, dataStruct->beginResult);
+    }
+    pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
+    free(dataStruct);
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver = {
