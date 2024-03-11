@@ -3,8 +3,10 @@
 
 #include "ndl_common.h"
 
+static void Base64Enc(char *dst, const unsigned char *src, size_t srcLen);
+
 static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
-    capabilities->codecs = SS4S_AUDIO_PCM_S16LE;
+    capabilities->codecs = SS4S_AUDIO_PCM_S16LE | SS4S_AUDIO_OPUS;
     int supportsMultiChannel = 0;
     if (NDL_DirectAudioSupportMultiChannel(&supportsMultiChannel) == 0 && supportsMultiChannel) {
         capabilities->maxChannels = 6;
@@ -37,11 +39,19 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
             break;
         }
         case SS4S_AUDIO_OPUS: {
+            if (info->codecData && info->codecDataLen) {
+                context->streamHeader = malloc(((info->codecDataLen + 3 - 1) / 3) * 4 + 1);
+                if (!context->streamHeader) {
+                    result = SS4S_AUDIO_OPEN_ERROR;
+                    goto finish;
+                }
+                Base64Enc(context->streamHeader, info->codecData, info->codecDataLen);
+            }
             NDL_DIRECTMEDIA_AUDIO_OPUS_INFO_T opusInfo = {
                     .type = NDL_AUDIO_TYPE_OPUS,
                     .channels = info->numOfChannels,
                     .sampleRate = info->sampleRate / 1000.0,
-                    .streamHeader = NULL /* Not supported yet*/,
+                    .streamHeader = context->streamHeader,
             };
             context->mediaInfo.audio.opus = opusInfo;
             break;
@@ -89,8 +99,33 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.audio.type = 0;
+    if (context->streamHeader) {
+        free(context->streamHeader);
+        context->streamHeader = NULL;
+    }
     SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
+}
+
+void Base64Enc(char *dst, const unsigned char *src, size_t srcLen) {
+    static const char *base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    for (size_t i = 0; i < srcLen; i += 3) {
+        unsigned int val = src[i] << 16;
+        if (i + 1 < srcLen) {
+            val |= src[i + 1] << 8;
+        }
+        if (i + 2 < srcLen) {
+            val |= src[i + 2];
+        }
+        for (int j = 0; j < 4; j++) {
+            if (i + j <= srcLen) {
+                dst[i / 3 * 4 + j] = base64[(val >> (18 - j * 6)) & 0x3F];
+            } else {
+                dst[i / 3 * 4 + j] = '=';
+            }
+        }
+    }
+    dst[(srcLen + 2) / 3 * 4] = '\0';
 }
 
 const SS4S_AudioDriver SS4S_NDL_webOS5_AudioDriver = {
