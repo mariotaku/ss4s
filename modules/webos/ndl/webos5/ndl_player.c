@@ -33,7 +33,6 @@ int SS4S_NDL_webOS5_ReloadMedia(SS4S_PlayerContext *context) {
 }
 
 int SS4S_NDL_webOS5_UnloadMedia(SS4S_PlayerContext *context) {
-    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Unloading media");
     return UnloadMedia(context);
 }
 
@@ -59,6 +58,7 @@ static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool optio
 static int UnloadMedia(SS4S_PlayerContext *context) {
     int ret = 0;
     if (context->mediaLoaded) {
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Unloading media");
         context->mediaLoaded = false;
         ret = NDL_DirectMediaUnload();
     }

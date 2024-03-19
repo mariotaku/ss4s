@@ -51,7 +51,10 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
     pthread_mutex_lock(&SS4S_LGNC_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->audioInfo, 0, sizeof(LGNC_ADEC_DATA_INFO_T));
-    LGNC_DIRECTAUDIO_Close();
+    if (context->audioOpened) {
+        LGNC_DIRECTAUDIO_Close();
+    }
+    context->audioOpened = false;
     pthread_mutex_unlock(&SS4S_LGNC_Lock);
 }
 

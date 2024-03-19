@@ -100,8 +100,10 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(NDL_DIRECTVIDEO_DATA_INFO_T));
+    if (context->videoOpened) {
+        NDL_DirectVideoClose();
+    }
     context->videoOpened = false;
-    NDL_DirectVideoClose();
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
 }
 

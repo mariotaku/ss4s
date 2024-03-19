@@ -60,8 +60,10 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->audioInfo, 0, sizeof(NDL_DIRECTAUDIO_DATA_INFO_T));
+    if (context->audioOpened) {
+        NDL_DirectAudioClose();
+    }
     context->audioOpened = false;
-    NDL_DirectAudioClose();
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
 }
 

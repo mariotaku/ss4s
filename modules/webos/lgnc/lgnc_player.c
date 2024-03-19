@@ -16,10 +16,10 @@ static SS4S_PlayerContext *CreatePlayerContext() {
 }
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context) {
-    if (context->videoInfo.vdecFmt) {
+    if (context->videoOpened) {
         LGNC_DIRECTVIDEO_Close();
     }
-    if (context->audioInfo.codec) {
+    if (context->audioOpened) {
         LGNC_DIRECTAUDIO_Close();
     }
     free(context);

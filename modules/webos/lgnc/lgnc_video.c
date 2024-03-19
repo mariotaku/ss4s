@@ -87,8 +87,10 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
     pthread_mutex_lock(&SS4S_LGNC_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(LGNC_VDEC_DATA_INFO_T));
+    if (context->videoOpened) {
+        LGNC_DIRECTVIDEO_Close();
+    }
     context->videoOpened = false;
-    LGNC_DIRECTVIDEO_Close();
     pthread_mutex_unlock(&SS4S_LGNC_Lock);
 }
 
