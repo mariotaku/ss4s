@@ -1,0 +1,17 @@
+target_sources(ss4s PRIVATE library.c driver.c player.c audio.c video.c module.c stats.c)
+
+check_include_file("dlfcn.h" HAS_DLFCN)
+check_include_file("pthread.h" HAS_PTHREAD)
+
+if (WIN32)
+    target_sources(ss4s PRIVATE module_win32.c)
+else ()
+    if (HAS_DLFCN)
+        target_sources(ss4s PRIVATE module_libdl.c)
+        target_link_libraries(ss4s PRIVATE dl)
+    endif ()
+    if (HAS_PTHREAD)
+        target_sources(ss4s PRIVATE mutex_pthread.c)
+        target_link_libraries(ss4s PRIVATE pthread)
+    endif ()
+endif ()

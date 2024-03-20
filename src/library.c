@@ -115,15 +115,22 @@ const char *SS4S_GetVideoModuleName() {
 }
 
 uint32_t SS4S_VideoStatsBeginFrame(SS4S_Player *player) {
-    return SS4S_StatsCounterBeginFrame(&player->stats.video);
+    SS4S_MutexLock(player->mutex);
+    uint32_t result = SS4S_StatsCounterBeginFrame(&player->stats.video);
+    SS4S_MutexUnlock(player->mutex);
+    return result;
 }
 
 void SS4S_VideoStatsEndFrame(SS4S_Player *player, uint32_t beginFrameResult) {
+    SS4S_MutexLock(player->mutex);
     SS4S_StatsCounterEndFrame(&player->stats.video, beginFrameResult);
+    SS4S_MutexUnlock(player->mutex);
 }
 
 void SS4S_VideoStatsReportFrame(SS4S_Player *player, uint32_t latencyUs) {
+    SS4S_MutexLock(player->mutex);
     SS4S_StatsCounterReportFrame(&player->stats.video, latencyUs);
+    SS4S_MutexUnlock(player->mutex);
 }
 
 static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {

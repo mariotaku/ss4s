@@ -10,6 +10,8 @@ typedef struct PlayUserData {
 
 _Static_assert(sizeof(PlayUserData) == sizeof(unsigned long long), "PlayUserData too large");
 
+static const SS4S_PlayerContext *CurrentContext = NULL;
+
 static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO_T *info);
 
 static void VideoCallback(unsigned long long userdata);
@@ -39,6 +41,7 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_Vid
         result = SS4S_VIDEO_OPEN_ERROR;
         goto finish;
     }
+    CurrentContext = context;
     NDL_DirectVideoSetCallback(VideoCallback);
     context->videoOpened = true;
     FitVideo(&context->videoInfo);
@@ -86,6 +89,7 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
         }
         SS4S_NDL_webOS4_Log(SS4S_LogLevelInfo, "NDL", "Reopen video with size %d * %d", width, height);
         if (NDL_DirectVideoOpen(&context->videoInfo) != 0) {
+            CurrentContext = NULL;
             context->videoOpened = false;
             pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
             return false;
@@ -100,6 +104,7 @@ static void CloseVideo(SS4S_VideoInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(NDL_DIRECTVIDEO_DATA_INFO_T));
+    CurrentContext = NULL;
     if (context->videoOpened) {
         NDL_DirectVideoClose();
     }
@@ -122,7 +127,7 @@ static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO_T *info) {
 static void VideoCallback(unsigned long long userdata) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     PlayUserData *dataStruct = (void *) (unsigned int) userdata;
-    if (dataStruct->context->videoOpened) {
+    if (dataStruct->context == CurrentContext && dataStruct->context->videoOpened) {
         SS4S_NDL_webOS4_LibContext->VideoStats.EndFrame(dataStruct->context->player, dataStruct->beginResult);
     }
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
