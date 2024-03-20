@@ -44,9 +44,9 @@ SS4S_VideoFeedResult SS4S_PlayerVideoFeed(SS4S_Player *player, const unsigned ch
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     assert(driver != NULL);
     assert(driver->Feed != NULL);
-    SS4S_VideoFeedResult result = driver->Feed(player->video, data, size, flags);
+    SS4S_VideoInstance *video = player->video;
     SS4S_MutexUnlock(player->mutex);
-    return result;
+    return driver->Feed(video, data, size, flags);
 }
 
 bool SS4S_PlayerVideoSizeChanged(SS4S_Player *player, int width, int height) {
@@ -60,9 +60,9 @@ bool SS4S_PlayerVideoSizeChanged(SS4S_Player *player, int width, int height) {
         SS4S_MutexUnlock(player->mutex);
         return false;
     }
-    bool result = driver->SizeChanged(player->video, width, height);
+    SS4S_VideoInstance *video = player->video;
     SS4S_MutexUnlock(player->mutex);
-    return result;
+    return driver->SizeChanged(video, width, height);
 }
 
 bool SS4S_PlayerVideoSetHDRInfo(SS4S_Player *player, const SS4S_VideoHDRInfo *info) {
@@ -76,9 +76,9 @@ bool SS4S_PlayerVideoSetHDRInfo(SS4S_Player *player, const SS4S_VideoHDRInfo *in
         SS4S_MutexUnlock(player->mutex);
         return false;
     }
-    bool result = driver->SetHDRInfo(player->video, info);
+    SS4S_VideoInstance *video = player->video;
     SS4S_MutexUnlock(player->mutex);
-    return result;
+    return driver->SetHDRInfo(video, info);
 
 }
 
@@ -93,9 +93,9 @@ bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *s
         SS4S_MutexUnlock(player->mutex);
         return false;
     }
-    bool result = driver->SetDisplayArea(player->video, src, dst);
+    SS4S_VideoInstance *video = player->video;
     SS4S_MutexUnlock(player->mutex);
-    return result;
+    return driver->SetDisplayArea(video, src, dst);
 }
 
 bool SS4S_PlayerVideoClose(SS4S_Player *player) {

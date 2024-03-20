@@ -32,9 +32,9 @@ SS4S_AudioFeedResult SS4S_PlayerAudioFeed(SS4S_Player *player, const unsigned ch
     }
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     assert(driver != NULL);
-    SS4S_AudioFeedResult result = driver->Feed(player->audio, data, size);
+    SS4S_AudioInstance *audio = player->audio;
     SS4S_MutexUnlock(player->mutex);
-    return result;
+    return driver->Feed(audio, data, size);
 }
 
 bool SS4S_PlayerAudioClose(SS4S_Player *player) {
