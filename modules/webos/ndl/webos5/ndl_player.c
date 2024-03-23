@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <pthread.h>
+#include <string.h>
 
 static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player);
 
@@ -68,11 +68,13 @@ static int UnloadMedia(SS4S_PlayerContext *context) {
 static int LoadMedia(SS4S_PlayerContext *context) {
     int ret;
     if (!SS4S_NDL_webOS5_Initialized) {
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Initializing NDL");
         if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) != 0) {
             SS4S_NDL_webOS5_Log(SS4S_LogLevelError, "NDL", "Failed to init: ret=%d, error=%s", ret,
                                 NDL_DirectMediaGetError());
             return ret;
         }
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "NDL_DirectMediaInit succeeded");
         SS4S_NDL_webOS5_Initialized = true;
     }
     assert(SS4S_NDL_webOS5_Initialized);
@@ -92,6 +94,20 @@ static int LoadMedia(SS4S_PlayerContext *context) {
                             NDL_DirectMediaGetError());
         return ret;
     }
+    if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_PCM) {
+        unsigned short empty_buf[8] = {0};
+        int numChannels = 2;
+        if (strncmp(context->mediaInfo.audio.pcm.channelMode, "mono", 4) == 0) {
+            numChannels = 1;
+        } else if (strncmp(context->mediaInfo.audio.pcm.channelMode, "6-channel", 10) == 0) {
+            numChannels = 6;
+        }
+        NDL_DirectAudioPlay(empty_buf, numChannels * sizeof(unsigned short), 0);
+    } else if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_OPUS) {
+        unsigned char empty_buf[1] = {0};
+        NDL_DirectAudioPlay(empty_buf, 1, 0);
+    }
+
     context->mediaLoaded = true;
     return ret;
 }

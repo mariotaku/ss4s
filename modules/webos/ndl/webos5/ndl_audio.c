@@ -66,13 +66,6 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     }
     *instance = (SS4S_AudioInstance *) context;
     result = SS4S_AUDIO_OPEN_OK;
-    if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_PCM) {
-        unsigned short empty_buf[8] = {0};
-        NDL_DirectAudioPlay(empty_buf, info->numOfChannels * sizeof(unsigned short), 0);
-    } else if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_OPUS) {
-        unsigned char empty_buf[1] = {0};
-        NDL_DirectAudioPlay(empty_buf, 1, 0);
-    }
 
     finish:
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
@@ -130,6 +123,7 @@ void Base64Enc(char *dst, const unsigned char *src, size_t srcLen) {
 
 const SS4S_AudioDriver SS4S_NDL_webOS5_AudioDriver = {
         .Base = {
+                .PostInit = SS4S_NDL_webOS5_Driver_PostInit,
                 .Quit = SS4S_NDL_webOS5_Driver_Quit,
         },
         .GetCapabilities = GetCapabilities,

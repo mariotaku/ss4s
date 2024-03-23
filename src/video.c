@@ -26,7 +26,7 @@ SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoI
         assert(player->video != NULL);
     }
     size_t statsCapacity = 120;
-    if (info->frameRateNumerator > 0 && info->frameRateNumerator > 0) {
+    if (info->frameRateNumerator > 0 && info->frameRateDenominator > 0) {
         statsCapacity = info->frameRateNumerator / info->frameRateDenominator * 2;
     }
     SS4S_StatsCounterInit(&player->stats.video, statsCapacity);
