@@ -36,16 +36,16 @@ SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoI
 
 SS4S_VideoFeedResult SS4S_PlayerVideoFeed(SS4S_Player *player, const unsigned char *data, size_t size,
                                           SS4S_VideoFeedFlags flags) {
-    SS4S_MutexLock(player->mutex);
+    SS4S_MutexLockEx(player->mutex, NULL);
     if (player->video == NULL) {
-        SS4S_MutexUnlock(player->mutex);
+        SS4S_MutexUnlockEx(player->mutex, NULL);
         return SS4S_VIDEO_FEED_NOT_READY;
     }
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     assert(driver != NULL);
     assert(driver->Feed != NULL);
     SS4S_VideoInstance *video = player->video;
-    SS4S_MutexUnlock(player->mutex);
+    SS4S_MutexUnlockEx(player->mutex, NULL);
     return driver->Feed(video, data, size, flags);
 }
 

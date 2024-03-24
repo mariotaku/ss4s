@@ -6,26 +6,11 @@
 #include <time.h>
 
 #include "ss4s.h"
+#include "test_common.h"
 
 int main(int argc, char *argv[]) {
     char driver[16] = {'\0'};
-    if (argc > 1) {
-        strncpy(driver, argv[1], 15);
-    } else {
-        const char *prefix = "ss4s_test_pcm_playback_";
-        const char *basename = strstr(argv[0], prefix);
-        if (basename != NULL) {
-            const char *suffix = basename + strlen(prefix);
-            const char *extname = strrchr(suffix, '.');
-            size_t name_len = 0;
-            if (extname != NULL) {
-                name_len = extname - suffix;
-            } else {
-                name_len = strlen(suffix);
-            }
-            strncpy(driver, suffix, name_len > 15 ? 15 : name_len);
-        }
-    }
+    single_test_infer_module(driver, sizeof(driver), "ss4s_test_pcm_playback_", argc, argv);
     printf("Request audio driver: %s\n", driver);
     if (!SS4S_ModuleAvailable(driver, SS4S_MODULE_CHECK_AUDIO)) {
         printf("Skipping unsupported audio driver: %s\n", driver);

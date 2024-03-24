@@ -25,15 +25,15 @@ SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioI
 }
 
 SS4S_AudioFeedResult SS4S_PlayerAudioFeed(SS4S_Player *player, const unsigned char *data, size_t size) {
-    SS4S_MutexLock(player->mutex);
+    SS4S_MutexLockEx(player->mutex, NULL);
     if (player->audio == NULL) {
-        SS4S_MutexUnlock(player->mutex);
+        SS4S_MutexUnlockEx(player->mutex, NULL);
         return SS4S_AUDIO_FEED_NOT_READY;
     }
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     assert(driver != NULL);
     SS4S_AudioInstance *audio = player->audio;
-    SS4S_MutexUnlock(player->mutex);
+    SS4S_MutexUnlockEx(player->mutex, NULL);
     return driver->Feed(audio, data, size);
 }
 

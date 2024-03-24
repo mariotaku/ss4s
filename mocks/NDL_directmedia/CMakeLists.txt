@@ -1,0 +1,3 @@
+add_library(NDL_directmedia STATIC ndl_directmedia_mock.c ndl_directmedia_v1.c ndl_directmedia_v2.c)
+target_link_libraries(NDL_directmedia pthread)
+set_target_properties(NDL_directmedia PROPERTIES POSITION_INDEPENDENT_CODE ON)

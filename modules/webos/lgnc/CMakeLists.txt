@@ -1,10 +1,7 @@
 find_package(PkgConfig REQUIRED)
 
 if (NOT LGNCOPENAPI_FOUND)
-    pkg_check_modules(LGNCOPENAPI lgncopenapi)
-endif ()
-if (NOT LGNCOPENAPI_FOUND)
-    include(ExternalWebOSUserland)
+    pkg_check_modules(LGNCOPENAPI lgncopenapi REQUIRED)
 endif ()
 
 ss4s_add_module(lgnc FOR_VIDEO FOR_AUDIO DISPLAY_NAME "NetCast Legacy"
@@ -13,5 +10,5 @@ ss4s_add_module(lgnc FOR_VIDEO FOR_AUDIO DISPLAY_NAME "NetCast Legacy"
 if (NOT SS4S_MODULE_TARGET)
     return()
 endif ()
-target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${LGNCOPENAPI_LIBRARIES} pthread dl)
+target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${LGNCOPENAPI_LIBRARIES} dl)
 target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${LGNCOPENAPI_INCLUDE_DIRS})

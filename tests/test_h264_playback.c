@@ -1,17 +1,24 @@
 #include <stdio.h>
 #include <assert.h>
-#include <stdint.h>
-#include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "ss4s.h"
+#include "test_common.h"
+#include "nalu_reader.h"
+
+static int ss4s_nalu_cb(void *ctx, const unsigned char *nalu, size_t size) {
+    SS4S_Player *player = ctx;
+    SS4S_VideoFeedResult result = SS4S_PlayerVideoFeed(player, nalu, size, 0);
+    usleep(30000);
+    return result;
+}
 
 int main(int argc, char *argv[]) {
-    char *driver = "mmal";
-    if (argc > 1) {
-        driver = argv[1];
-    }
+    setenv("APPID", "com.example.test", 0);
+    char driver[16] = {'\0'};
+    single_test_infer_module(driver, sizeof(driver), "ss4s_test_h264_playback_", argc, argv);
     printf("Request video driver: %s\n", driver);
 
     SS4S_Config config = {.videoDriver = driver};
@@ -31,39 +38,13 @@ int main(int argc, char *argv[]) {
             .width = 1280,
             .height = 800,
     };
+    unsigned char tmp[16] = {0};
+    assert(SS4S_PlayerVideoFeed(player, tmp, 16, 0) == SS4S_VIDEO_FEED_NOT_READY);
     assert(SS4S_PlayerVideoOpen(player, &videoInfo) == SS4S_VIDEO_OPEN_OK);
 
     FILE *sampleFile = fopen("sample.h264", "rb");
     assert(sampleFile != NULL);
-    int c, headIdx = 0, naluCount = 0;
-    unsigned char *buf = malloc(1024 * 1024);
-    size_t bufSize = 0;
-    while ((c = fgetc(sampleFile)) >= 0) {
-        buf[bufSize++] = c;
-        switch (c) {
-            case 0: {
-                headIdx++;
-                break;
-            }
-            case 1: {
-                if (headIdx == 3) {
-                    naluCount++;
-                    if (bufSize > 4) {
-//                        SS4S_PlayerVideoFeed(player, buf, bufSize, 0);
-                        usleep(1000);
-                        bufSize = 4;
-                    }
-                }
-                headIdx = 0;
-                break;
-            }
-            default: {
-                headIdx = 0;
-                break;
-            }
-        }
-    }
-//    SS4S_PlayerVideoFeed(player, buf, bufSize, 0);
+    assert(nalu_read(sampleFile, ss4s_nalu_cb, player) == 0);
 
     fclose(sampleFile);
 

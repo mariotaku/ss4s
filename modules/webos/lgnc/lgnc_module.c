@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <dlfcn.h>
 
-pthread_mutex_t SS4S_LGNC_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_LGNC_Initialized = false;
 SS4S_LoggingFunction *SS4S_LGNC_Log = NULL;
 

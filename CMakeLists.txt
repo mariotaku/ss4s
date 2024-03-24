@@ -9,6 +9,18 @@ option(SS4S_SANITIZE_ADDRESS "Link Address Sanitizer" OFF)
 option(SS4S_MODULE_BUILD_DUMMY "Build Dummy module" OFF)
 option(SS4S_GENERATE_MODULES_LIST "Generate ss4s_modules.ini" ON)
 option(SS4S_COMPILE_CHECK_STRICT "Treat compile warnings as errors" ON)
+# Don't include tests by default if used as library
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    option(SS4S_ENABLE_TESTS "Enable tests" ON)
+else ()
+    option(SS4S_ENABLE_TESTS "Enable tests" OFF)
+endif ()
+
+set(SS4S_TARGET_WEBOS OFF)
+get_filename_component(CMAKE_C_COMPILER_NAME "${CMAKE_C_COMPILER}" NAME)
+if (CMAKE_C_COMPILER_NAME MATCHES "arm-webos-linux-gnueabi-.*" OR CMAKE_C_COMPILER_TARGET MATCHES "(i[3-6]86)-webos-linux-gnu")
+    set(SS4S_TARGET_WEBOS ON)
+endif ()
 
 if (SS4S_SANITIZE_ADDRESS)
     add_compile_definitions(SS4S_SANITIZE_ADDRESS)
@@ -32,6 +44,12 @@ target_include_directories(ss4s PUBLIC include PRIVATE src ${CMAKE_CURRENT_BINAR
 target_link_libraries(ss4s PRIVATE ss4s-module-api)
 
 add_subdirectory(src)
+
+# Include mocked webOS library for tests
+if (NOT SS4S_TARGET_WEBOS AND SS4S_ENABLE_TESTS)
+    add_subdirectory(mocks)
+endif ()
+
 add_subdirectory(modules)
 
 set_target_properties(ss4s PROPERTIES SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY})
@@ -41,8 +59,7 @@ if (SS4S_GENERATE_MODULES_LIST)
     include(GenerateModulesList)
 endif ()
 
-# Don't include tests by default if used as library
-if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if (SS4S_ENABLE_TESTS)
     add_subdirectory(samples)
 
     enable_testing()

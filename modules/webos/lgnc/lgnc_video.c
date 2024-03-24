@@ -16,11 +16,8 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
 static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
                                       SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
     (void) extraInfo;
-    pthread_mutex_lock(&SS4S_LGNC_Lock);
-    SS4S_VideoOpenResult result;
     if (info->codec != SS4S_VIDEO_H264) {
-        result = SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
-        goto finish;
+        return SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
     }
     context->videoInfo.vdecFmt = LGNC_VDEC_FMT_H264;
     context->videoInfo.trid_type = LGNC_VDEC_3D_TYPE_NONE;
@@ -29,17 +26,12 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_Vid
     context->aspectRatio = info->width * 100 / info->height;
 
     if (LGNC_DIRECTVIDEO_Open(&context->videoInfo) != 0) {
-        result = SS4S_VIDEO_OPEN_ERROR;
-        goto finish;
+        return SS4S_VIDEO_OPEN_ERROR;
     }
     context->videoOpened = true;
     FitVideo(&context->videoInfo);
     *instance = (SS4S_VideoInstance *) context;
-    result = SS4S_VIDEO_OPEN_OK;
-
-    finish:
-    pthread_mutex_unlock(&SS4S_LGNC_Lock);
-    return result;
+    return SS4S_VIDEO_OPEN_OK;
 }
 
 static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
@@ -57,10 +49,8 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
 }
 
 static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
-    pthread_mutex_lock(&SS4S_LGNC_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     if (width <= 0 || height <= 0) {
-        pthread_mutex_unlock(&SS4S_LGNC_Lock);
         return false;
     }
     int aspectRatio = width * 100 / height;
@@ -74,24 +64,20 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
         SS4S_LGNC_Log(SS4S_LogLevelInfo, "NDL", "Reopen video with size %d * %d", width, height);
         if (LGNC_DIRECTVIDEO_Open(&context->videoInfo) != 0) {
             context->videoOpened = false;
-            pthread_mutex_unlock(&SS4S_LGNC_Lock);
             return false;
         }
         FitVideo(&context->videoInfo);
     }
-    pthread_mutex_unlock(&SS4S_LGNC_Lock);
     return true;
 }
 
 static void CloseVideo(SS4S_VideoInstance *instance) {
-    pthread_mutex_lock(&SS4S_LGNC_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(LGNC_VDEC_DATA_INFO_T));
     if (context->videoOpened) {
         LGNC_DIRECTVIDEO_Close();
     }
     context->videoOpened = false;
-    pthread_mutex_unlock(&SS4S_LGNC_Lock);
 }
 
 static void FitVideo(const LGNC_VDEC_DATA_INFO_T *info) {

@@ -1,4 +1,6 @@
+message(STATUS "Configuring SS4S tests")
 set(TEST_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+set(TEST_LIBRARIES pthread)
 
 function(ss4s_add_test NAME)
     cmake_parse_arguments(TEST "" "" "SOURCES;ARGS;LIBRARIES" ${ARGN})
@@ -25,3 +27,9 @@ ss4s_add_test(pcm_playback_alsa SOURCES test_pcm_playback.c ARGS alsa)
 ss4s_add_test(pcm_playback_pulse SOURCES test_pcm_playback.c ARGS pulse)
 
 ss4s_add_test(pcm_playback_mmal SOURCES test_h264_playback.c ARGS mmal)
+
+ss4s_add_test(h264_playback_lgnc SOURCES test_h264_playback.c ARGS lgnc)
+
+ss4s_add_test(av_threaded_lgnc SOURCES test_av_threaded.c)
+ss4s_add_test(av_threaded_ndl-webos4 SOURCES test_av_threaded.c)
+ss4s_add_test(av_threaded_ndl-webos5 SOURCES test_av_threaded.c)

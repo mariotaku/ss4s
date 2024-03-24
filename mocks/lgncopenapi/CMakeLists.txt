@@ -1,0 +1,2 @@
+add_library(lgncopenapi STATIC lgnc_mock.c lgnc_plugin.c lgnc_directaudio.c lgnc_directvideo.c)
+set_target_properties(lgncopenapi PROPERTIES POSITION_INDEPENDENT_CODE ON)
