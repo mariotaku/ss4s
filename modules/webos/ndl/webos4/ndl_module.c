@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <dlfcn.h>
+#include <stdio.h>
+#include <memory.h>
 
 pthread_mutex_t SS4S_NDL_webOS4_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS4_Initialized = false;
@@ -22,23 +24,14 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_Li
 }
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
-    if (flags & SS4S_MODULE_CHECK_AUDIO) {
-        /*
-         * A simple check for unsupported hardware. A partial solution is to use ALSA/PulseAudio, so we fail the check
-         * if we have the problematic library, and let SS4S choose other modules
-         * Related issues:
-         * https://github.com/mariotaku/moonlight-tv/issues/110
-         * https://github.com/mariotaku/moonlight-tv/issues/184
-         * https://github.com/mariotaku/ihsplay/issues/13
-         */
-        void *lib = dlopen("libkadaptor.so.1", RTLD_LAZY);
-        if (lib != NULL) {
-            bool has_flow = dlsym(lib, "_Z8new_flowv") != NULL;
-            dlclose(lib);
-            if (has_flow) {
-                // If we have new_flow function, report audio model is not compatible
-                return flags & ~SS4S_MODULE_CHECK_AUDIO;
-            }
+    FILE *f = fopen("/etc/prefs/properties/machineName", "r");
+    char machine_name[16] = {0};
+    if (f != NULL) {
+        size_t read_len = fread(machine_name, 1, sizeof(machine_name), f);
+        fclose(f);
+        if (read_len > 0 && memcmp(machine_name, "k5lp", 4) == 0) {
+            // k5lp SoC is not supported
+            return 0;
         }
     }
     return flags;

@@ -11,6 +11,11 @@ struct SS4S_AudioInstance {
     pa_simple *dev;
 };
 
+static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
+    capabilities->codecs = SS4S_AUDIO_PCM_S16LE;
+    return true;
+}
+
 static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                  SS4S_PlayerContext *context) {
     (void) context;
@@ -77,6 +82,7 @@ static void Close(SS4S_AudioInstance *instance) {
 }
 
 static const SS4S_AudioDriver PulseDriver = {
+        .GetCapabilities = GetCapabilities,
         .Open = Open,
         .Feed = Feed,
         .Close = Close,
