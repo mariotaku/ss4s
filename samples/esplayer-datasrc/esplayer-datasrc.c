@@ -1,171 +1,68 @@
 #include "esplayer-datasrc.h"
 
-#include <gst/gst.h>
-#include <gst/app/app.h>
 #include <stdio.h>
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <unistd.h>
 
-static GstElement *pipeline;
-static GstBus *bus;
-struct DATASRC_CALLBACKS *callbacks;
+int datasrc_run(struct DATASRC_CALLBACKS *callbacks) {
+    const char *url = getenv("SS4S_SAMPLE_SOURCE");
+    if (!url) {
+        url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    }
+    int result = 0;
+    AVFormatContext *ic = NULL;
+    int audio_stream = -1, video_stream = -1;
+    const AVCodec *audio_codec = NULL, *video_codec = NULL;
+    if ((result = avformat_open_input(&ic, url, NULL, NULL)) != 0) {
+        printf("Failed to open input: %s\n", av_err2str(result));
+        return result;
+    }
+    audio_stream = av_find_best_stream(ic, AVMEDIA_TYPE_AUDIO, -1, -1, &audio_codec, 0);
+    video_stream = av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO, -1, -1, &video_codec, 0);
 
-static void audioEos(GstAppSink *appsink, gpointer user_data) {
-    callbacks->audioEos();
-}
+    AVCodecContext *audio_codec_ctx = NULL, *video_codec_ctx = NULL;
 
-static GstFlowReturn audioNewPreroll(GstAppSink *appsink, gpointer user_data) {
-    GstSample *preroll = gst_app_sink_pull_preroll(appsink);
-    GstCaps *caps = gst_sample_get_caps(preroll);
-    GstStructure *cap = gst_caps_get_structure(caps, 0);
-    int channels = 0, rate = 0;
-    gst_structure_get_int(cap, "channels", &channels);
-    gst_structure_get_int(cap, "rate", &rate);
-
-    gst_sample_unref(preroll);
-
-    if (callbacks->audioPreroll(channels, rate) != 0) {
-        return GST_FLOW_ERROR;
+    if (audio_stream >= 0) {
+//        callbacks->audioPreroll(ic->streams[audio_stream]->codecpar->ch_layout.nb_channels,
+//                                ic->streams[audio_stream]->codecpar->sample_rate);
+    }
+    if (video_stream >= 0) {
+        callbacks->videoPreroll(avcodec_get_name(ic->streams[video_stream]->codecpar->codec_id),
+                                ic->streams[video_stream]->codecpar->width,
+                                ic->streams[video_stream]->codecpar->height,
+                                ic->streams[video_stream]->avg_frame_rate.num,
+                                ic->streams[video_stream]->avg_frame_rate.den);
     }
 
-    return GST_FLOW_OK;
-}
+    AVPacket *pkt = av_packet_alloc();
+    AVFrame *a_frame = av_frame_alloc();
+    while ((result = av_read_frame(ic, pkt)) == 0) {
+        if (pkt->stream_index == audio_stream) {
+        } else if (pkt->stream_index == video_stream) {
+            int flags = 0;
+            if (pkt->flags & AV_PKT_FLAG_KEY) {
+                flags |= VIDEO_FLAG_FRAME_KEYFRAME;
+            }
+            callbacks->videoSample(pkt->data, pkt->size, flags);
+        }
+        av_packet_unref(pkt);
+    }
+    av_frame_free(&a_frame);
 
-static GstFlowReturn audioNewSample(GstAppSink *appsink, gpointer user_data) {
-    GstSample *sample = gst_app_sink_pull_sample(appsink);
-
-    GstBuffer *buf = gst_sample_get_buffer(sample);
-
-    GstMapInfo info;
-    gst_buffer_map(buf, &info, GST_MAP_READ);
-
-    if (callbacks->audioSample(info.data, info.size) != 0) {
-        gst_buffer_unmap(buf, &info);
-        gst_sample_unref(sample);
-        return GST_FLOW_ERROR;
+    if (audio_stream >= 0) {
+//        callbacks->audioEos();
     }
 
-    gst_buffer_unmap(buf, &info);
-    gst_sample_unref(sample);
-    return GST_FLOW_OK;
-}
-
-static void videoEos(GstAppSink *appsink, gpointer user_data) {
-    callbacks->videoEos();
-}
-
-static GstFlowReturn videoNewPreroll(GstAppSink *appsink, gpointer user_data) {
-    GstSample *preroll = gst_app_sink_pull_preroll(appsink);
-    GstCaps *caps = gst_sample_get_caps(preroll);
-    GstStructure *cap = gst_caps_get_structure(caps, 0);
-
-    int width, height;
-    g_assert(gst_structure_get_int(cap, "width", &width));
-    g_assert(gst_structure_get_int(cap, "height", &height));
-
-    gst_sample_unref(preroll);
-
-    if (callbacks->videoPreroll(width, height, 0) != 0) {
-        return GST_FLOW_ERROR;
-    }
-    return GST_FLOW_OK;
-}
-
-static GstFlowReturn videoNewSample(GstAppSink *appsink, gpointer user_data) {
-    GstSample *sample = gst_app_sink_pull_sample(appsink);
-
-    GstBuffer *buf = gst_sample_get_buffer(sample);
-
-    GstMapInfo info;
-    gst_buffer_map(buf, &info, GST_MAP_READ);
-
-    int flags = VIDEO_FLAG_FRAME;
-    if (!gst_buffer_has_flags(buf, GST_BUFFER_FLAG_DELTA_UNIT)) {
-        flags |= VIDEO_FLAG_FRAME_KEYFRAME;
+    if (video_stream >= 0) {
+        callbacks->videoEos();
     }
 
-    if (callbacks->videoSample(info.data, info.size, flags) != 0) {
-        gst_buffer_unmap(buf, &info);
-        gst_sample_unref(sample);
-        return GST_FLOW_ERROR;
-    }
-    return GST_FLOW_OK;
-}
+    callbacks->pipelineQuit(result);
 
-/* called when a new message is posted on the bus */
-static void cb_message(GstBus *bus, GstMessage *message, gpointer user_data) {
-    GstElement *pipeline = GST_ELEMENT(user_data);
-
-    switch (GST_MESSAGE_TYPE(message)) {
-        case GST_MESSAGE_ERROR:
-            g_print("we received an error!\n");
-            callbacks->pipelineQuit(GST_MESSAGE_ERROR);
-            break;
-        case GST_MESSAGE_EOS:
-            g_print("we reached EOS\n");
-            callbacks->pipelineQuit(0);
-            break;
-        default:
-            break;
-    }
-}
-
-void datasrc_init(int argc, char *argv[]) {
-    gst_init(0, NULL);
-}
-
-int datasrc_start(struct DATASRC_CALLBACKS *cb) {
-    callbacks = cb;
-    GstStateChangeReturn ret;
-
-    GstElement *audiosink, *videosink;
-    char gst_args[8192];
-    const char *url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-    snprintf(gst_args, 8192,
-             "curlhttpsrc location=%s ! qtdemux name=demux "
-             "demux.audio_0 ! queue ! aacparse ! avdec_aac ! audioconvert ! audio/x-raw,format=S16LE ! appsink name=audsink "
-             "demux.video_0 ! queue ! h264parse config-interval=5 ! video/x-h264,stream-format=byte-stream,alignment=au ! appsink name=vidsink",
-             url);
-    pipeline = gst_parse_launch(gst_args, NULL);
-
-    g_assert(pipeline);
-
-    audiosink = gst_bin_get_by_name(GST_BIN(pipeline), "audsink");
-    g_assert(audiosink);
-
-    videosink = gst_bin_get_by_name(GST_BIN(pipeline), "vidsink");
-    g_assert(videosink);
-
-    GstAppSinkCallbacks audioCallbacks = {
-            .eos = audioEos,
-            .new_preroll = audioNewPreroll,
-            .new_sample = audioNewSample,
-    };
-    gst_app_sink_set_callbacks(GST_APP_SINK(audiosink), &audioCallbacks, NULL, NULL);
-
-    GstAppSinkCallbacks videoCallbacks = {
-            .eos = videoEos,
-            .new_preroll = videoNewPreroll,
-            .new_sample = videoNewSample,
-    };
-    gst_app_sink_set_callbacks(GST_APP_SINK(videosink), &videoCallbacks, NULL, NULL);
-
-    bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
-    gst_bus_add_signal_watch(bus);
-    g_signal_connect(bus, "message", (GCallback) cb_message, pipeline);
-
-    /* Start playing */
-    ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
-    if (ret == GST_STATE_CHANGE_FAILURE) {
-        g_printerr("Unable to set the pipeline to the playing state.\n");
-        gst_object_unref(pipeline);
-        return -1;
-    }
+    av_packet_free(&pkt);
+    avformat_close_input(&ic);
 
     return 0;
 }
 
-int datasrc_stop() {
-    gst_element_set_state(pipeline, GST_STATE_NULL);
-    gst_object_unref(pipeline);
-    callbacks = NULL;
-    return 0;
-}

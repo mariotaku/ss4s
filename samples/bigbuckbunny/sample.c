@@ -8,41 +8,28 @@
 static SS4S_Player *player = NULL;
 static bool finished = false;
 
-#define SDL_USER_FRAME_EVENT 0x1000
-
-typedef struct FrameEventData {
-    SDL_mutex *mutex;
-    SDL_cond *cond;
-    SS4S_VideoOutputFrame *frame;
-} FrameEventData;
+#define FOURCC_H264 0x34363248
+#define FOURCC_H265 0x35363248
 
 void frameCallback(SS4S_VideoOutputFrame *frame, void *userdata) {
     (void) userdata;
-    FrameEventData data = {
-            .mutex = SDL_CreateMutex(),
-            .cond = SDL_CreateCond(),
-            .frame = frame,
-    };
-    SDL_Event event = {
-            .user.type = SDL_USEREVENT,
-            .user.code = SDL_USER_FRAME_EVENT,
-            .user.data1 = &data,
-    };
-    SDL_LockMutex(data.mutex);
-    SDL_PushEvent(&event);
-    SDL_CondWait(data.cond, data.mutex);
-    SDL_UnlockMutex(data.mutex);
-    SDL_DestroyMutex(data.mutex);
-    SDL_DestroyCond(data.cond);
+
 }
 
-int videoPreroll(int width, int height, int framerate) {
-    (void) framerate;
+int videoPreroll(const char *codec, int width, int height, int framerate_numerator, int framerate_denominator) {
     SS4S_VideoInfo info = {
-            .codec = SS4S_VIDEO_H264,
             .width = width,
             .height = height,
+            .frameRateNumerator = framerate_numerator,
+            .frameRateDenominator = framerate_denominator,
     };
+    if (strcasecmp(codec, "h264") == 0) {
+        info.codec = SS4S_VIDEO_H264;
+    } else if (strcasecmp(codec, "hevc") == 0) {
+        info.codec = SS4S_VIDEO_H265;
+    } else {
+        return -1;
+    }
     SS4S_VideoOpenResult result = SS4S_PlayerVideoOpen(player, &info);
     if (result == SS4S_VIDEO_OPEN_OK) {
         SS4S_PlayerVideoSetFrameCallback(player, frameCallback, NULL);
@@ -98,7 +85,6 @@ void pipelineQuit(int error) {
 
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
-    datasrc_init(argc, argv);
     const char *audioDriver = getenv("SS4S_AUDIO_DRIVER"), *videoDriver = getenv("SS4S_VIDEO_DRIVER");
     if (audioDriver == NULL) {
         audioDriver = "alsa";
@@ -117,7 +103,7 @@ int main(int argc, char *argv[]) {
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     SDL_Texture *texture = NULL;
-    if (caps.output != SS4S_VIDEO_OUTPUT_OPAQUE) {
+    if (caps.output != SS4S_VIDEO_OUTPUT_DIRECT) {
         window = SDL_CreateWindow("SS4S", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720,
                                   SDL_WINDOW_SHOWN);
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -133,37 +119,9 @@ int main(int argc, char *argv[]) {
             .audioEos = audioEos,
             .pipelineQuit = pipelineQuit,
     };
-    datasrc_start(&dscb);
-    while (!finished) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    finished = true;
-                    break;
-                case SDL_USEREVENT: {
-                    if (event.user.code == SDL_USER_FRAME_EVENT) {
-                        FrameEventData *data = event.user.data1;
-                        SDL_LockMutex(data->mutex);
-                        SDL_RenderClear(renderer);
-                        SDL_UpdateYUVTexture(texture, NULL,
-                                             data->frame->yuv.data[0], (int) data->frame->yuv.linesize[0],
-                                             data->frame->yuv.data[1], (int) data->frame->yuv.linesize[1],
-                                             data->frame->yuv.data[2], (int) data->frame->yuv.linesize[2]);
-                        SDL_RenderCopy(renderer, texture, NULL, NULL);
-                        SDL_RenderPresent(renderer);
-                        SDL_CondSignal(data->cond);
-                        SDL_UnlockMutex(data->mutex);
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-        usleep(1000);
-    }
-    datasrc_stop();
+
+    datasrc_run(&dscb);
+
     SS4S_PlayerClose(player);
     player = NULL;
     SS4S_Quit();

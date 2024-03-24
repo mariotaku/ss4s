@@ -62,16 +62,42 @@ static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, const SS4S_VideoExt
     if (codec == NULL) {
         return SS4S_VIDEO_OPEN_UNSUPPORTED_CODEC;
     }
-    AVPacket *packet = av_packet_alloc();
-    if (packet == NULL) {
-        return SS4S_VIDEO_OPEN_ERROR;
+
+    const AVCodecHWConfig *hw_config = NULL;
+    AVBufferRef *hw_device_ctx = NULL;
+    for (int i = 0; (hw_config = avcodec_get_hw_config(codec, i)) != NULL; i++) {
+        if (!(hw_config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX)) {
+            continue;
+        }
+        int hw_ret = av_hwdevice_ctx_create(&hw_device_ctx, hw_config->device_type, NULL, NULL, 0);
+        if (hw_ret < 0) {
+            continue;
+        }
+        SS4S_FFMPEG_LibContext->Log(SS4S_LogLevelDebug, "FFMPEG", "hw_config: %s",
+                                    av_hwdevice_get_type_name(hw_config->device_type));
+        break;
     }
 
     AVCodecContext *decoder_ctx = avcodec_alloc_context3(codec);
     if (decoder_ctx == NULL) {
-        av_packet_free(&packet);
+        av_buffer_unref(&hw_device_ctx);
         return SS4S_VIDEO_OPEN_ERROR;
     }
+
+    AVPacket *packet = av_packet_alloc();
+    if (packet == NULL) {
+        av_buffer_unref(&hw_device_ctx);
+        avcodec_free_context(&decoder_ctx);
+        return SS4S_VIDEO_OPEN_ERROR;
+    }
+
+    AVCodecParameters *codecParameters = avcodec_parameters_alloc();
+    codecParameters->codec_type = AVMEDIA_TYPE_VIDEO;
+    codecParameters->codec_id = codec->id;
+    codecParameters->width = info->width;
+    codecParameters->height = info->height;
+
+    avcodec_parameters_to_context(decoder_ctx, codecParameters);
 
     // Use low delay decoding
     decoder_ctx->flags |= AV_CODEC_FLAG_LOW_DELAY;
@@ -81,6 +107,9 @@ static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, const SS4S_VideoExt
     decoder_ctx->flags2 |= AV_CODEC_FLAG2_SHOW_ALL;
 
     decoder_ctx->hwaccel_flags |= AV_HWACCEL_FLAG_ALLOW_PROFILE_MISMATCH;
+    if (hw_device_ctx != NULL) {
+        decoder_ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+    }
 
     // Report decoding errors to allow us to request a key frame
     decoder_ctx->err_recognition |= AV_EF_EXPLODE;
@@ -131,7 +160,7 @@ static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned ch
     if (err != 0) {
         char errbuf[AV_ERROR_MAX_STRING_SIZE];
         av_strerror(err, errbuf, sizeof(errbuf));
-        SS4S_FFMPEG_LibContext->Log(SS4S_LogLevelError, "avcodec_send_packet: %s", errbuf);
+        SS4S_FFMPEG_LibContext->Log(SS4S_LogLevelError, "FFMPEG", "avcodec_send_packet: %s", errbuf);
         SS4S_FFMPEG_LibContext->VideoStats.EndFrame(instance->context->player, beginResult);
         return SS4S_VIDEO_FEED_ERROR;
     }

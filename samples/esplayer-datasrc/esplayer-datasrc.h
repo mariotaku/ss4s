@@ -10,7 +10,7 @@ enum {
 };
 
 struct DATASRC_CALLBACKS {
-    int (*videoPreroll)(int width, int height, int framerate);
+    int (*videoPreroll)(const char *codec, int width, int height, int framerate_numerator, int framerate_denominator);
 
     int (*videoSample)(const void *data, size_t size, int flags);
 
@@ -25,8 +25,4 @@ struct DATASRC_CALLBACKS {
     void (*pipelineQuit)(int error);
 };
 
-void datasrc_init(int argc, char *argv[]);
-
-int datasrc_start(struct DATASRC_CALLBACKS *callbacks);
-
-int datasrc_stop();
+int datasrc_run(struct DATASRC_CALLBACKS *callbacks);

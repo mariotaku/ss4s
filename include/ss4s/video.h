@@ -80,8 +80,8 @@ typedef struct SS4S_VideoCapabilities {
     unsigned int maxWidth, maxHeight;
     bool fullColorRange, hdr;
     enum {
-        SS4S_VIDEO_OUTPUT_OPAQUE = 0,
-        SS4S_VIDEO_OUTPUT_YUV = 1,
+        SS4S_VIDEO_OUTPUT_DIRECT = 0x00,
+        SS4S_VIDEO_OUTPUT_YUV = 0x01,
     } output;
 } SS4S_VideoCapabilities;
 
