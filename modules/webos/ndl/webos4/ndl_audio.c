@@ -3,7 +3,7 @@
 #include <string.h>
 
 static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
-    capabilities->codecs = SS4S_AUDIO_PCM_S16LE;
+    capabilities->codecs = SS4S_AUDIO_PCM_S16LE | SS4S_AUDIO_AAC | SS4S_AUDIO_AC3;
     capabilities->maxChannels = 2;
     return true;
 }
@@ -12,25 +12,35 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                                       SS4S_PlayerContext *context) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     SS4S_AudioOpenResult result;
+    NDL_DIRECTAUDIO_SRC_TYPE srcType;
     switch (info->codec) {
         case SS4S_AUDIO_PCM_S16LE: {
-            NDL_DIRECTAUDIO_DATA_INFO_T pcmInfo = {
-                    .number_of_channel = info->numOfChannels,
-                    .bit_per_sample = 16,
-                    .no_delay_mode = 1,
-                    .no_delay_upper_time = 48,
-                    .no_delay_lower_time = 16,
-                    .channel = NDL_DIRECTAUDIO_CH_MAIN,
-                    .source = NDL_DIRECTAUDIO_SRC_TYPE_PCM,
-                    .frequency = NDL_DIRECTAUDIO_SAMPLING_FREQ_OF(info->sampleRate),
-            };
-            context->audioInfo = pcmInfo;
+            srcType = NDL_DIRECTAUDIO_SRC_TYPE_PCM;
+            break;
+        }
+        case SS4S_AUDIO_AAC: {
+            srcType = NDL_DIRECTAUDIO_SRC_TYPE_AAC;
+            break;
+        }
+        case SS4S_AUDIO_AC3: {
+            srcType = NDL_DIRECTAUDIO_SRC_TYPE_AC3;
             break;
         }
         default:
             result = SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
             goto finish;
     }
+    NDL_DIRECTAUDIO_DATA_INFO_T audInfo = {
+            .number_of_channel = info->numOfChannels,
+            .bit_per_sample = 16,
+            .no_delay_mode = 1,
+            .no_delay_upper_time = 48,
+            .no_delay_lower_time = 16,
+            .channel = NDL_DIRECTAUDIO_CH_MAIN,
+            .source = srcType,
+            .frequency = NDL_DIRECTAUDIO_SAMPLING_FREQ_OF(info->sampleRate),
+    };
+    context->audioInfo = audInfo;
     if (NDL_DirectAudioOpen(&context->audioInfo) != 0) {
         result = SS4S_AUDIO_OPEN_ERROR;
         goto finish;

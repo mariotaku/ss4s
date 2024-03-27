@@ -12,6 +12,7 @@ typedef enum SS4S_AudioCodec {
     SS4S_AUDIO_PCM_S16LE = 0x1001,
     SS4S_AUDIO_OPUS = 0x2000,
     SS4S_AUDIO_AAC = 0x4000,
+    SS4S_AUDIO_AC3 = 0x8000,
 } SS4S_AudioCodec;
 
 typedef enum SS4S_AudioOpenResult {
@@ -63,6 +64,8 @@ static inline const char *SS4S_AudioCodecName(SS4S_AudioCodec codec) {
             return "OPUS";
         case SS4S_AUDIO_AAC:
             return "AAC";
+        case SS4S_AUDIO_AC3:
+            return "AC3";
         case SS4S_AUDIO_PCM_S16LE:
             return "PCM-S16LE";
         default:
