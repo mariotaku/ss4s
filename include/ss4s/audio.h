@@ -34,7 +34,7 @@ typedef struct SS4S_AudioInfo {
     int numOfChannels;
     int samplesPerFrame;
     const unsigned char *codecData;
-    const size_t codecDataLen;
+    size_t codecDataLen;
     const char *appName;
     const char *streamName;
 } SS4S_AudioInfo;
@@ -47,6 +47,8 @@ typedef struct SS4S_AudioCapabilities {
 typedef struct SS4S_Player SS4S_Player;
 
 #ifndef SS4S_MODAPI_H
+
+bool SS4S_GetAudioCapabilitiesByCodecs(SS4S_AudioCapabilities *capabilities, SS4S_AudioCodec codecs);
 
 bool SS4S_GetAudioCapabilities(SS4S_AudioCapabilities *capabilities);
 

@@ -2,12 +2,16 @@
 #include "ss4s.h"
 #include "library.h"
 
-bool SS4S_GetAudioCapabilities(SS4S_AudioCapabilities *capabilities) {
+bool SS4S_GetAudioCapabilitiesByCodecs(SS4S_AudioCapabilities *capabilities, SS4S_AudioCodec codecs) {
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     if (driver == NULL || driver->GetCapabilities == NULL) {
         return false;
     }
-    return driver->GetCapabilities(capabilities);
+    return driver->GetCapabilities(capabilities, codecs);
+}
+
+bool SS4S_GetAudioCapabilities(SS4S_AudioCapabilities *capabilities) {
+    return SS4S_GetAudioCapabilitiesByCodecs(capabilities, SS4S_AUDIO_NONE);
 }
 
 SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioInfo *info) {

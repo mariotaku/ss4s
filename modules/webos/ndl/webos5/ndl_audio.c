@@ -5,7 +5,10 @@
 
 static void Base64Enc(char *dst, const unsigned char *src, size_t srcLen);
 
-static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
+static bool GetCapabilities(SS4S_AudioCapabilities *capabilities, SS4S_AudioCodec wantedCodecs) {
+    if (!(wantedCodecs & SS4S_AUDIO_PCM_S16LE)) {
+        return false;
+    }
     capabilities->codecs = SS4S_AUDIO_PCM_S16LE;
     int supportsMultiChannel = 0;
     if (NDL_DirectAudioSupportMultiChannel(&supportsMultiChannel) == 0 && supportsMultiChannel) {

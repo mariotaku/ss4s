@@ -11,7 +11,8 @@ struct SS4S_AudioInstance {
     pa_simple *dev;
 };
 
-static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
+static bool GetCapabilities(SS4S_AudioCapabilities *capabilities, SS4S_AudioCodec wantedCodecs) {
+    (void) wantedCodecs;
     capabilities->codecs = SS4S_AUDIO_PCM_S16LE;
     return true;
 }

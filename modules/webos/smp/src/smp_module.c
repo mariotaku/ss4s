@@ -2,75 +2,20 @@
 #include <stdlib.h>
 
 #include "ss4s/modapi.h"
-#include "smp_video.h"
+#include "smp_player.h"
 
-static const SS4S_LibraryContext *LibContext = NULL;
+extern const SS4S_PlayerDriver StarfishPlayerDriver;
+extern const SS4S_AudioDriver StarfishAudioDriver;
+extern const SS4S_VideoDriver StarfishVideoDriver;
 
-struct SS4S_PlayerContext {
-    const SS4S_LibraryContext *lib;
-    SS4S_Player *player;
-    StarfishVideo *videoPlayer;
-};
-
-static SS4S_PlayerContext *CreatePlayer(SS4S_Player *player) {
-    SS4S_PlayerContext *context = calloc(1, sizeof(SS4S_PlayerContext));
-    context->lib = LibContext;
-    context->player = player;
-    return context;
-}
-
-static void DestroyPlayer(SS4S_PlayerContext *context) {
-    if (context->videoPlayer != NULL) {
-        StarfishVideoDestroy(context->videoPlayer);
-    }
-    free(context);
-}
-
-static SS4S_VideoOpenResult VideoOpen(const SS4S_VideoInfo *info, const SS4S_VideoExtraInfo *extraInfo,
-                                      SS4S_VideoInstance **instance, SS4S_PlayerContext *context) {
-    (void) extraInfo;
-    if (context->videoPlayer == NULL) {
-        context->videoPlayer = StarfishVideoCreate(context->lib, context->player);
-        if (context->videoPlayer == NULL) {
-            return SS4S_VIDEO_OPEN_ERROR;
-        }
-    }
-    StarfishVideo *player = context->videoPlayer;
-    SS4S_VideoOpenResult result;
-    if ((result = StarfishVideoLoad(player, info)) != SS4S_VIDEO_OPEN_OK) {
-        return result;
-    }
-    *instance = player;
-    return SS4S_VIDEO_OPEN_OK;
-}
-
-static void VideoClose(SS4S_VideoInstance *instance) {
-    assert(instance != NULL);
-    StarfishVideoUnload(instance);
-}
-
-
-static const SS4S_VideoDriver VideoDriver = {
-        .Base = {},
-        .GetCapabilities = StarfishVideoCapabilities,
-        .Open = VideoOpen,
-        .Feed = StarfishVideoFeed,
-        .SizeChanged = StarfishVideoSizeChanged,
-        .SetHDRInfo = StarfishVideoSetHDRInfo,
-        .SetDisplayArea = StarfishVideoSetDisplayArea,
-        .Close = VideoClose,
-};
-
-static const SS4S_PlayerDriver PlayerDriver = {
-        .Create = CreatePlayer,
-        .Destroy = DestroyPlayer,
-};
+const SS4S_LibraryContext *StarfishLibContext = NULL;
 
 SS4S_EXPORTED bool SS4S_MODULE_ENTRY(SS4S_Module *module, const SS4S_LibraryContext *context) {
-    LibContext = context;
-    assert(LibContext != NULL);
+    StarfishLibContext = context;
+    assert(StarfishLibContext != NULL);
     module->Name = SS4S_MODULE_NAME;
-    module->PlayerDriver = &PlayerDriver;
-    module->VideoDriver = &VideoDriver;
+    module->PlayerDriver = &StarfishPlayerDriver;
+    module->AudioDriver = &StarfishAudioDriver;
+    module->VideoDriver = &StarfishVideoDriver;
     return true;
 }

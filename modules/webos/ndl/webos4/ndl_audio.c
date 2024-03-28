@@ -2,9 +2,13 @@
 
 #include <string.h>
 
-static bool GetCapabilities(SS4S_AudioCapabilities *capabilities) {
+static bool GetCapabilities(SS4S_AudioCapabilities *capabilities, SS4S_AudioCodec wantedCodecs) {
     capabilities->codecs = SS4S_AUDIO_PCM_S16LE | SS4S_AUDIO_AAC | SS4S_AUDIO_AC3;
-    capabilities->maxChannels = 2;
+    if (wantedCodecs & (SS4S_AUDIO_AAC | SS4S_AUDIO_AC3)) {
+        capabilities->maxChannels = 6;
+    } else {
+        capabilities->maxChannels = 2;
+    }
     return true;
 }
 
