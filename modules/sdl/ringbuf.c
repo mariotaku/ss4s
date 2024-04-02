@@ -80,7 +80,10 @@ void sdlaud_ringbuf_clear(sdlaud_ringbuf *buf) {
 }
 
 size_t sdlaud_ringbuf_size(const sdlaud_ringbuf *buf) {
-    return buf->size;
+    SDL_LockMutex(buf->mutex);
+    size_t size = buf->size;
+    SDL_UnlockMutex(buf->mutex);
+    return size;
 }
 
 void sdlaud_ringbuf_delete(sdlaud_ringbuf *buf) {
