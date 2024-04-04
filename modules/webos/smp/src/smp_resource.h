@@ -11,8 +11,8 @@ StarfishResource *StarfishResourceCreate(const char *appId);
 
 void StarfishResourceDestroy(StarfishResource *res);
 
-jvalue_ref StarfishResourceMakeLoadPayload(StarfishResource *resource, const SS4S_AudioInfo *audioInfo,
-                                           const SS4S_VideoInfo *videoInfo);
+bool StarfishResourcePopulateLoadPayload(StarfishResource *resource, jvalue_ref arg,
+                                         const SS4S_AudioInfo *audioInfo, const SS4S_VideoInfo *videoInfo);
 
 bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *data, bool hdr);
 
