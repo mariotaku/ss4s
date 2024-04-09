@@ -49,6 +49,10 @@ FeedResult StarfishPlayerFeed(SS4S_PlayerContext *ctx, const unsigned char *data
 
 uint64_t StarfishPlayerGetTime();
 
-void StarfishPlayerLock(SS4S_PlayerContext *ctx);
+void StarfishPlayerLockEx(SS4S_PlayerContext *ctx, const char *funcName);
 
-void StarfishPlayerUnlock(SS4S_PlayerContext *ctx);
+void StarfishPlayerUnlockEx(SS4S_PlayerContext *ctx, const char *funcName);
+
+#define StarfishPlayerLock(ctx) StarfishPlayerLockEx(ctx, __FUNCTION__)
+
+#define StarfishPlayerUnlock(ctx) StarfishPlayerUnlockEx(ctx, __FUNCTION__)
