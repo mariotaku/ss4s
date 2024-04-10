@@ -32,6 +32,10 @@ const char *SS4S_GetAudioModuleName();
 
 const char *SS4S_GetVideoModuleName();
 
+void SS4S_SetLoggingFunction(SS4S_LoggingFunction *function);
+
+SS4S_LoggingFunction * SS4S_DefaultLoggingFunction();
+
 #ifdef __cplusplus
 }
 #endif

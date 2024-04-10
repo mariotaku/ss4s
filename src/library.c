@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -24,16 +23,21 @@ static struct {
     } Video;
 } States;
 
-SS4S_LoggingFunction *SS4S_Log = NULL;
-static SS4S_LibraryContext SS4S_LibContext = {
-        .Log = NULL,
-};
 
 static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...);
 
+static void NullLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...);
+
+SS4S_LoggingFunction *SS4S_Log = StdIOLoggingFunction;
+static SS4S_LibraryContext SS4S_LibContext = {
+        .Log = StdIOLoggingFunction,
+};
+
 int SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
-    SS4S_Log = config->loggingFunction != NULL ? config->loggingFunction : StdIOLoggingFunction;
-    SS4S_LibContext.Log = SS4S_Log;
+    assert(config != NULL);
+    if (config->loggingFunction) {
+        SS4S_SetLoggingFunction(config->loggingFunction);
+    }
     SS4S_LibContext.VideoStats.BeginFrame = SS4S_VideoStatsBeginFrame;
     SS4S_LibContext.VideoStats.EndFrame = SS4S_VideoStatsEndFrame;
     SS4S_LibContext.VideoStats.ReportFrame = SS4S_VideoStatsReportFrame;
@@ -130,6 +134,15 @@ void SS4S_VideoStatsReportFrame(SS4S_Player *player, uint32_t latencyUs) {
     SS4S_MutexUnlockEx(player->mutex, NULL);
 }
 
+void SS4S_SetLoggingFunction(SS4S_LoggingFunction *function) {
+    SS4S_Log = function != NULL ? function : NullLoggingFunction;
+    SS4S_LibContext.Log = SS4S_Log;
+}
+
+SS4S_LoggingFunction *SS4S_DefaultLoggingFunction() {
+    return StdIOLoggingFunction;
+}
+
 static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
     (void) level;
     fprintf(stderr, "[SS4S.%s] ", tag);
@@ -138,4 +151,10 @@ static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const cha
     vfprintf(stderr, fmt, arg);
     va_end(arg);
     printf("\n");
+}
+
+static void NullLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
+    (void) level;
+    (void) tag;
+    (void) fmt;
 }
