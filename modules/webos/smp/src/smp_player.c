@@ -168,8 +168,11 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
                                     numValue, strValue);
             break;
         }
+        case STARFISH_EVENT_STR_BUFFERLOW:
+            StarfishLibContext->Log(SS4S_LogLevelWarn, "SMP", "LoadCallback STARFISH_EVENT_STR_BUFFERLOW %s", strValue);
+            break;
         case STARFISH_EVENT_STR_BUFFERFULL:
-            StarfishLibContext->Log(SS4S_LogLevelWarn, "SMP", "LoadCallback STARFISH_EVENT_STR_BUFFERFULL\n");
+            StarfishLibContext->Log(SS4S_LogLevelWarn, "SMP", "LoadCallback STARFISH_EVENT_STR_BUFFERFULL %s", strValue);
             break;
         case STARFISH_EVENT_STR_STATE_UPDATE_LOADCOMPLETED: {
             StarfishPlayerLock(ctx);
@@ -197,6 +200,14 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
             StarfishLibContext->Log(SS4S_LogLevelWarn, "SMP", "LoadCallback unhandled 0x%02x\n", type);
             break;
     }
+}
+
+static inline jvalue_ref CreateMinMax(int minimum, int maximum) {
+    return jobject_create_var(
+            jkeyval(J_CSTR_TO_JVAL("minimum"), jnumber_create_i32(minimum)),
+            jkeyval(J_CSTR_TO_JVAL("maximum"), jnumber_create_i32(maximum)),
+            J_END_OBJ_DECL
+    );
 }
 
 jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioInfo,
@@ -256,10 +267,23 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
     jobject_set(option, J_CSTR_TO_BUF("externalStreamingInfo"), jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("contents"), contents),
             jkeyval(J_CSTR_TO_JVAL("streamQualityInfo"), jboolean_true()),
+            jkeyval(J_CSTR_TO_JVAL("bufferingCtrInfo"), jobject_create_var(
+                    /* This affects pipeline appsrc */
+                    jkeyval(J_CSTR_TO_JVAL("srcBufferLevelAudio"), CreateMinMax(1, 262144)),
+                    J_END_OBJ_DECL
+            )),
             J_END_OBJ_DECL
-    ));
+            ));
     jobject_set(option, J_CSTR_TO_BUF("transmission"), jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("trickType"), J_CSTR_TO_JVAL("client-side")),
+            J_END_OBJ_DECL
+    ));
+    jobject_set(option, J_CSTR_TO_BUF("queryPosition"), jboolean_false());
+    jobject_set(option, J_CSTR_TO_BUF("bufferControl"), jobject_create_var(
+            jkeyval(J_CSTR_TO_JVAL("userBufferCtrl"), jboolean_true()),
+            jkeyval(J_CSTR_TO_JVAL("preBufferTime"), jnumber_create_i32(3)),
+            jkeyval(J_CSTR_TO_JVAL("bufferingMinTime"), jnumber_create_i32(1)),
+            jkeyval(J_CSTR_TO_JVAL("bufferingMaxTime"), jnumber_create_i32(3)),
             J_END_OBJ_DECL
     ));
     if (videoInfo) {
@@ -321,6 +345,7 @@ jvalue_ref AudioCreateAc3PlusInfo(const SS4S_AudioInfo *audioInfo) {
             J_END_OBJ_DECL
     );
 }
+
 const SS4S_PlayerDriver StarfishPlayerDriver = {
         .Create = CreatePlayer,
         .Destroy = DestroyPlayer,

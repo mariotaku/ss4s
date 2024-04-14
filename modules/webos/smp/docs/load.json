@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Load Payload",
+  "type": "object",
+  "properties": {
+    "args": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "BufferStream.json"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "mediaTransportType": {
+                "const": "DIRECTMEDIA-ES-PLAYER"
+              },
+              "option": {
+                "type": "object",
+                "properties": {
+                  "appId": {
+                    "type": "string"
+                  },
+                  "externalStreamingInfo": {
+                    "type": "object",
+                    "properties": {
+                      "contents": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
