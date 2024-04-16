@@ -91,6 +91,9 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                 Base64Enc(context->streamHeader, info->codecData, info->codecDataLen);
                 opusInfo.streamHeader = context->streamHeader;
                 if (opusConfig.channels == 6 && !IsOpusPassthroughSupported(&opusConfig)) {
+                    SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL",
+                                        "Channel config is not supported, enabling re-encoding. "
+                                        "This will introduce audio latency");
                     context->opusFix = SS4S_NDLOpusFixCreate(&opusConfig);
                     if (!context->opusFix) {
                         result = SS4S_AUDIO_OPEN_ERROR;
