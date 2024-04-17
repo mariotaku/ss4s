@@ -1,9 +1,14 @@
 #include "StarfishMediaAPIs_C.h"
 
-#include "StarfishMediaAPIs.h"
+#include <StarfishMediaAPIs.h>
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "bugprone-reserved-identifier"
 extern "C" bool
 _ZN17StarfishMediaAPIs10setHdrInfoEPKc(StarfishMediaAPIs *api, const char *message) __attribute__((weak));
+extern "C" bool
+_ZN17StarfishMediaAPIs18getAudioBufferSizeERiS0_(StarfishMediaAPIs *api, int *total, int *used) __attribute__((weak));
+#pragma clang diagnostic pop
 
 extern "C" {
 
@@ -44,6 +49,14 @@ bool StarfishMediaAPIs_pause(StarfishMediaAPIs_C *api) {
     return api->inner.Pause();
 }
 
+bool StarfishMediaAPIs_play(StarfishMediaAPIs_C *api) {
+    return api->inner.Play();
+}
+
+bool StarfishMediaAPIs_pushEOS(StarfishMediaAPIs_C *api) {
+    return api->inner.pushEOS();
+}
+
 bool StarfishMediaAPIs_setHdrInfo(StarfishMediaAPIs_C *api, const char *message) {
     if (_ZN17StarfishMediaAPIs10setHdrInfoEPKc == nullptr) {
         return false;
@@ -51,12 +64,11 @@ bool StarfishMediaAPIs_setHdrInfo(StarfishMediaAPIs_C *api, const char *message)
     return _ZN17StarfishMediaAPIs10setHdrInfoEPKc(&api->inner, message);
 }
 
-bool StarfishMediaAPIs_play(StarfishMediaAPIs_C *api) {
-    return api->inner.Play();
-}
-
-bool StarfishMediaAPIs_pushEOS(StarfishMediaAPIs_C *api) {
-    return api->inner.pushEOS();
+bool StarfishMediaAPIs_getAudioBufferSize(StarfishMediaAPIs_C *api, int *total, int *used) {
+    if (_ZN17StarfishMediaAPIs18getAudioBufferSizeERiS0_ == nullptr) {
+        return false;
+    }
+    return _ZN17StarfishMediaAPIs18getAudioBufferSizeERiS0_(&api->inner, total, used);
 }
 
 bool StarfishMediaAPIs_unload(StarfishMediaAPIs_C *api) {

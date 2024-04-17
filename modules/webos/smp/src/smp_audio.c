@@ -19,7 +19,8 @@ const char *StarfishAudioCodecName(SS4S_AudioCodec codec) {
 }
 
 static bool GetAudioCapabilities(SS4S_AudioCapabilities *capabilities, SS4S_AudioCodec wantedCodecs) {
-    capabilities->codecs = SS4S_AUDIO_PCM_S16LE | SS4S_AUDIO_AAC | SS4S_AUDIO_AC3;
+    (void) wantedCodecs;
+    capabilities->codecs = SS4S_AUDIO_PCM_S16LE | SS4S_AUDIO_OPUS | SS4S_AUDIO_AAC | SS4S_AUDIO_AC3;
     capabilities->maxChannels = 6;
     return true;
 }

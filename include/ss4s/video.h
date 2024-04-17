@@ -43,9 +43,13 @@ typedef struct SS4S_VideoInfo {
     int frameRateNumerator, frameRateDenominator;
 } SS4S_VideoInfo;
 
+typedef struct SS4S_VideoDisplayPrimaries {
+    int r, g, b;
+} SS4S_VideoDisplayPrimaries;
+
 typedef struct SS4S_VideoHDRInfo {
-    int displayPrimariesX[3];
-    int displayPrimariesY[3];
+    SS4S_VideoDisplayPrimaries displayPrimariesX;
+    SS4S_VideoDisplayPrimaries displayPrimariesY;
     int whitePointX;
     int whitePointY;
     int maxDisplayMasteringLuminance;
