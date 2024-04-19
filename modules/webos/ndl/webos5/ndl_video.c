@@ -13,6 +13,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->hdr = true;
     // If fullColorRange is set to true, the video will be displayed with over saturated colors.
     capabilities->fullColorRange = false;
+    capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT2020 | SS4S_VIDEO_CAP_COLORSPACE_BT709;
     return true;
 }
 

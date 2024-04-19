@@ -19,6 +19,8 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
     capabilities->maxBitrate = 65000;
     capabilities->suggestedBitrate = 35000;
+    capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    capabilities->fullColorRange = false;
     return true;
 }
 

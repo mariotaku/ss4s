@@ -82,6 +82,11 @@ typedef struct SS4S_VideoCapabilities {
     unsigned int maxFps;
     unsigned int maxWidth, maxHeight;
     bool fullColorRange, hdr;
+    enum {
+        SS4S_VIDEO_CAP_COLORSPACE_BT601 = 0x00,
+        SS4S_VIDEO_CAP_COLORSPACE_BT709 = 0x01,
+        SS4S_VIDEO_CAP_COLORSPACE_BT2020 = 0x02,
+    } colorSpace;
 } SS4S_VideoCapabilities;
 
 typedef struct SS4S_VideoExtraInfo {

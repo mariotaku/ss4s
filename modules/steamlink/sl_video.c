@@ -2,7 +2,8 @@
 
 #include <string.h>
 
-static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
+static bool GetCapabilities(SS4S_VideoCapabilities *capabilities, SS4S_VideoCodec wantedCodecs) {
+    (void) wantedCodecs;
     capabilities->codecs = SS4S_VIDEO_H264;
     capabilities->maxBitrate = 30000;
     capabilities->suggestedBitrate = 25000;
@@ -10,6 +11,8 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->maxHeight = 1080;
     capabilities->maxFps = 60;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_EXCLUSIVE;
+    capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    capabilities->fullColorRange = false;
     return true;
 }
 

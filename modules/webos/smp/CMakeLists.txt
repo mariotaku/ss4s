@@ -16,7 +16,7 @@ pkg_check_modules(SDL2 REQUIRED sdl2)
 
 add_subdirectory(wrapper)
 
-ss4s_add_module(smp-webos FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 20 OS_VERSION ">=5" SOURCES
+ss4s_add_module(smp-webos FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 10 OS_VERSION ">=5" SOURCES
         src/smp_module.c
         src/smp_player.c
         src/smp_video.c
@@ -34,7 +34,7 @@ target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE USE_SDL_WEBOS _GNU_SOUR
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
 
 
-ss4s_add_module(smp-webos4 FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 40 OS_VERSION "=4" SOURCES
+ss4s_add_module(smp-webos4 FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 10 OS_VERSION "=4" SOURCES
         src/smp_module.c
         src/smp_player.c
         src/smp_video.c
@@ -51,7 +51,7 @@ target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE USE_SDL_WEBOS _GNU_SOUR
         SS4S_MODULE_ENTRY=SS4S_ModuleOpen_SMP_WEBOS4)
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
 
-ss4s_add_module(smp-webos3 FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 40 OS_VERSION "<4" SOURCES
+ss4s_add_module(smp-webos3 FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 10 OS_VERSION "<4" SOURCES
         src/smp_module.c
         src/smp_player.c
         src/smp_video.c

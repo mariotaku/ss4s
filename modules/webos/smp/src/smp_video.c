@@ -27,6 +27,8 @@ static bool GetVideoCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
     capabilities->hdr = true;
+    capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT2020 | SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    capabilities->fullColorRange = false;
     return true;
 }
 
