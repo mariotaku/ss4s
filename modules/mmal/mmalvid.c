@@ -106,8 +106,7 @@ static void output_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf) {
     }
 }
 
-static bool GetCapabilities(SS4S_VideoCapabilities *capabilities, SS4S_VideoCodec wantedCodecs) {
-    (void) wantedCodecs;
+static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC | SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST;
     capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
