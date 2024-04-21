@@ -112,8 +112,8 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
     if (info == NULL) {
         return true;
     }
-    return NDL_DirectVideoSetHDRInfo(info->displayPrimariesX.b, info->displayPrimariesY.b, info->displayPrimariesX.g,
-                                     info->displayPrimariesY.g, info->displayPrimariesX.r, info->displayPrimariesY.r,
+    return NDL_DirectVideoSetHDRInfo(info->displayPrimariesX.g, info->displayPrimariesY.g, info->displayPrimariesX.b,
+                                     info->displayPrimariesY.b, info->displayPrimariesX.r, info->displayPrimariesY.r,
                                      info->whitePointX, info->whitePointY, info->maxDisplayMasteringLuminance,
                                      info->minDisplayMasteringLuminance, info->maxContentLightLevel,
                                      info->maxPicAverageLightLevel) == 0;
