@@ -120,10 +120,10 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
     jvalue_ref info_json = jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("hdrType"), J_CSTR_TO_JVAL("HDR10")),
             jkeyval(J_CSTR_TO_JVAL("sei"), jobject_create_var(
-                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesX0"), jnumber_create_i32(info->displayPrimariesX.b)),
-                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesY0"), jnumber_create_i32(info->displayPrimariesY.b)),
-                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesX1"), jnumber_create_i32(info->displayPrimariesX.g)),
-                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesY1"), jnumber_create_i32(info->displayPrimariesY.g)),
+                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesX0"), jnumber_create_i32(info->displayPrimariesX.g)),
+                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesY0"), jnumber_create_i32(info->displayPrimariesY.g)),
+                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesX1"), jnumber_create_i32(info->displayPrimariesX.b)),
+                    jkeyval(J_CSTR_TO_JVAL("displayPrimariesY1"), jnumber_create_i32(info->displayPrimariesY.b)),
                     jkeyval(J_CSTR_TO_JVAL("displayPrimariesX2"), jnumber_create_i32(info->displayPrimariesX.r)),
                     jkeyval(J_CSTR_TO_JVAL("displayPrimariesY2"), jnumber_create_i32(info->displayPrimariesY.r)),
                     jkeyval(J_CSTR_TO_JVAL("whitePointX"), jnumber_create_i32(info->whitePointX)),
