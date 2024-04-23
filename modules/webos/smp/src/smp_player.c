@@ -219,7 +219,7 @@ static inline jvalue_ref CreateMinMax(int minimum, int maximum) {
 
 jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioInfo,
                            const SS4S_VideoInfo *videoInfo) {
-    const char *audioCodec, *videoCodec;
+    const char *audioCodec = NULL, *videoCodec = NULL;
     if (audioInfo != NULL) {
         audioCodec = StarfishAudioCodecName(audioInfo->codec);
         if (audioCodec == NULL) {
