@@ -31,16 +31,11 @@ static bool GetCapabilities(SS4S_AudioCapabilities *capabilities, SS4S_AudioCode
         return false;
     }
     capabilities->codecs = SS4S_AUDIO_PCM_S16LE | SS4S_AUDIO_OPUS;
-    if (SupportsPCM6Channel) {
-        int supportsMultiChannel = 0;
-        if (NDL_DirectAudioSupportMultiChannel(&supportsMultiChannel) == 0 && supportsMultiChannel) {
-            capabilities->maxChannels = 6;
-        } else {
-            capabilities->maxChannels = 2;
-        }
-    } else {
-        capabilities->maxChannels = 6;
-    }
+    /*
+     * Don't check for system settings to determine the number of channels, just provide 6 channels.
+     * webOS should be able to down-mix that anyway.
+     */
+    capabilities->maxChannels = 6;
     return true;
 }
 
