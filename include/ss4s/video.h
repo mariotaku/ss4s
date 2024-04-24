@@ -67,7 +67,7 @@ typedef struct SS4S_VideoHDRInfo {
     /**
      * @see AVColorSpace
      */
-    int matrixCoeffs;
+    int matrixCoefficients;
     int videoFullRange;
 } SS4S_VideoHDRInfo;
 

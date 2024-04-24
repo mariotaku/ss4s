@@ -127,7 +127,7 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
             .maxPicAverageLightLevel = info->maxPicAverageLightLevel,
             .transferCharacteristics = info->transferCharacteristics,
             .colorPrimaries = info->colorPrimaries,
-            .matrixCoeffs = info->matrixCoeffs,
+            .matrixCoeffs = info->matrixCoefficients,
     };
     SS4S_NDL_webOS5_Lib->Log(SS4S_LogLevelInfo, "NDL", "Setting HDR info: "
                                                        "displayPrimariesX=[%d, %d, %d], displayPrimariesY=[%d, %d, %d], "
