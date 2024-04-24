@@ -50,6 +50,9 @@ if (NOT SS4S_TARGET_WEBOS AND SS4S_ENABLE_TESTS)
     add_subdirectory(mocks)
 endif ()
 
+# Might be used by modules
+set(SS4S_SYSTEM_LIBRARY_MOCKS "${CMAKE_CURRENT_SOURCE_DIR}/mocks")
+
 add_subdirectory(modules)
 
 set_target_properties(ss4s PROPERTIES SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY})

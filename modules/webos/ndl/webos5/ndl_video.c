@@ -112,11 +112,36 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
     if (info == NULL) {
         return true;
     }
-    return NDL_DirectVideoSetHDRInfo(info->displayPrimariesX.g, info->displayPrimariesY.g, info->displayPrimariesX.b,
-                                     info->displayPrimariesY.b, info->displayPrimariesX.r, info->displayPrimariesY.r,
-                                     info->whitePointX, info->whitePointY, info->maxDisplayMasteringLuminance,
-                                     info->minDisplayMasteringLuminance, info->maxContentLightLevel,
-                                     info->maxPicAverageLightLevel) == 0;
+    NDL_DIRECTVIDEO_HDR_INFO_T hdrInfo = {
+            .displayPrimariesX0 = info->displayPrimariesX.g,
+            .displayPrimariesY0 = info->displayPrimariesY.g,
+            .displayPrimariesX1 = info->displayPrimariesX.b,
+            .displayPrimariesY1 = info->displayPrimariesY.b,
+            .displayPrimariesX2 = info->displayPrimariesX.r,
+            .displayPrimariesY2 = info->displayPrimariesY.r,
+            .whitePointX = info->whitePointX,
+            .whitePointY = info->whitePointY,
+            .maxDisplayMasteringLuminance = info->maxDisplayMasteringLuminance,
+            .minDisplayMasteringLuminance = info->minDisplayMasteringLuminance,
+            .maxContentLightLevel = info->maxContentLightLevel,
+            .maxPicAverageLightLevel = info->maxPicAverageLightLevel,
+            .transferCharacteristics = info->transferCharacteristics,
+            .colorPrimaries = info->colorPrimaries,
+            .matrixCoeffs = info->matrixCoeffs,
+    };
+    SS4S_NDL_webOS5_Lib->Log(SS4S_LogLevelInfo, "NDL", "Setting HDR info: "
+                                                       "displayPrimariesX=[%d, %d, %d], displayPrimariesY=[%d, %d, %d], "
+                                                       "whitePoint=[%d, %d], displayMasteringLuminance=[%d, %d], "
+                                                       "maxContentLightLevel=%d, maxPicAverageLightLevel=%d, "
+                                                       "transferCharacteristics=%d, colorPrimaries=%d, matrixCoeffs=%d",
+                             hdrInfo.displayPrimariesX0, hdrInfo.displayPrimariesX1, hdrInfo.displayPrimariesX2,
+                             hdrInfo.displayPrimariesY0, hdrInfo.displayPrimariesY1, hdrInfo.displayPrimariesY2,
+                             hdrInfo.whitePointX, hdrInfo.whitePointY,
+                             hdrInfo.maxDisplayMasteringLuminance, hdrInfo.minDisplayMasteringLuminance,
+                             hdrInfo.maxContentLightLevel, hdrInfo.maxPicAverageLightLevel,
+                             hdrInfo.transferCharacteristics, hdrInfo.colorPrimaries, hdrInfo.matrixCoeffs);
+
+    return NDL_DirectVideoSetHDRInfo(hdrInfo) == 0;
 }
 
 static void CloseVideo(SS4S_VideoInstance *instance) {

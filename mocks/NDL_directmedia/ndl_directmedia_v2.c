@@ -50,11 +50,8 @@ int NDL_DirectVideoGetRenderBufferLength(int *length) {
     return 0;
 }
 
-int NDL_DirectVideoSetHDRInfo(int displayPrimariesX0, int displayPrimariesY0, int displayPrimariesX1,
-                              int displayPrimariesY1, int displayPrimariesX2, int displayPrimariesY2,
-                              int whitePointX, int whitePointY,
-                              int maxDisplayMasteringLuminance, int minDisplayMasteringLuminance,
-                              int maxContentLightLevel, int maxPicAverageLightLevel) {
+int NDL_DirectVideoSetHDRInfo(NDL_DIRECTVIDEO_HDR_INFO_T hdrInfo) {
+    (void) hdrInfo;
     mock_ndl_lock(__func__);
     if (!video_opened) {
         mock_ndl_unlock(__func__);

@@ -56,6 +56,19 @@ typedef struct SS4S_VideoHDRInfo {
     int minDisplayMasteringLuminance;
     int maxContentLightLevel;
     int maxPicAverageLightLevel;
+    /**
+     * @see AVColorTransferCharacteristic
+     */
+    int transferCharacteristics;
+    /**
+     * @see AVColorPrimaries
+     */
+    int colorPrimaries;
+    /**
+     * @see AVColorSpace
+     */
+    int matrixCoeffs;
+    int videoFullRange;
 } SS4S_VideoHDRInfo;
 
 typedef struct SS4S_VideoRect {
