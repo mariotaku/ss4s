@@ -137,11 +137,12 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
                             jnumber_create_i32(info->maxPicAverageLightLevel)),
                     J_END_OBJ_DECL)),
             jkeyval(J_CSTR_TO_JVAL("vui"), jobject_create_var(
-                    jkeyval(J_CSTR_TO_JVAL("transferCharacteristics"), jnumber_create_i32(16)), // SMPTE ST 2084
-                    jkeyval(J_CSTR_TO_JVAL("colorPrimaries"), jnumber_create_i32(9)), // ITU-R BT2020
-                    jkeyval(J_CSTR_TO_JVAL("matrixCoeffs"), jnumber_create_i32(9)), // ITU-R BT2020 non-constant luminance system
-                    jkeyval(J_CSTR_TO_JVAL("videoFullRangeFlag"), jboolean_create(false)), // MPEG range
-                    J_END_OBJ_DECL)),        
+                    jkeyval(J_CSTR_TO_JVAL("transferCharacteristics"),
+                            jnumber_create_i32(info->transferCharacteristics)),
+                    jkeyval(J_CSTR_TO_JVAL("colorPrimaries"), jnumber_create_i32(info->colorPrimaries)),
+                    jkeyval(J_CSTR_TO_JVAL("matrixCoeffs"), jnumber_create_i32(info->matrixCoefficients)),
+                    jkeyval(J_CSTR_TO_JVAL("videoFullRangeFlag"), jboolean_create(info->videoFullRange)),
+                    J_END_OBJ_DECL)),
             J_END_OBJ_DECL
     );
     const char *payload = jvalue_stringify(info_json);
