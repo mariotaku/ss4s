@@ -16,7 +16,7 @@ pkg_check_modules(SDL2 REQUIRED sdl2)
 
 add_subdirectory(wrapper)
 
-ss4s_add_module(smp-webos FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 10 OS_VERSION ">=5" SOURCES
+ss4s_add_module(smp-webos FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 10 OS_VERSION ">=5" SOURCES
         src/smp_module.c
         src/smp_player.c
         src/smp_video.c
