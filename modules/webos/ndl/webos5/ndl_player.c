@@ -102,10 +102,15 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         } else if (strncmp(context->mediaInfo.audio.pcm.channelMode, "6-channel", 10) == 0) {
             numChannels = 6;
         }
-        NDL_DirectAudioPlay(empty_buf, numChannels * sizeof(unsigned short), 0);
+        size_t size = numChannels * sizeof(unsigned short);
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty PCM audio frame (%u bytes)", size);
+        NDL_DirectAudioPlay(empty_buf, size, 0);
     } else if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_OPUS) {
-        unsigned char empty_buf[1] = {0};
-        NDL_DirectAudioPlay(empty_buf, 1, 0);
+        if (context->opusEmptyFrameLen > 0) {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty OPUS audio frame (%u bytes)",
+                                context->opusEmptyFrameLen);
+            NDL_DirectAudioPlay(context->opusEmptyFrame, context->opusEmptyFrameLen, 0);
+        }
     }
 
     context->mediaLoaded = true;

@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "ndl_common.h"
+#include "opus_empty.h"
 #include <opus_multistream.h>
 
 static int SupportsPCM6Channel = 0;
@@ -85,6 +86,8 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                 }
                 Base64Enc(context->streamHeader, info->codecData, info->codecDataLen);
                 opusInfo.streamHeader = context->streamHeader;
+                context->opusEmptyFrameLen = opus_empty_frames_copy(context->opusEmptyFrame, opusConfig.channels,
+                                                                    opusConfig.streamCount, opusConfig.coupledCount);
                 if (opusConfig.channels == 6 && !IsOpusPassthroughSupported(&opusConfig)) {
                     SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL",
                                         "Channel config is not supported, enabling re-encoding. "
@@ -149,6 +152,7 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
         SS4S_NDLOpusFixDestroy(context->opusFix);
         context->opusFix = NULL;
     }
+    context->opusEmptyFrameLen = 0;
     SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }
