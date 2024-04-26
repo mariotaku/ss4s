@@ -110,6 +110,8 @@ typedef struct SS4S_VideoExtraInfo {
 
 bool SS4S_GetVideoCapabilities(SS4S_VideoCapabilities *capabilities);
 
+SS4S_VideoCodec SS4S_GetVideoPreferredCodecs(const SS4S_VideoInfo *info);
+
 SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info);
 
 SS4S_VideoFeedResult SS4S_PlayerVideoFeed(SS4S_Player *player, const unsigned char *data, size_t size,

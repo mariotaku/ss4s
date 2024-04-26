@@ -40,6 +40,13 @@ static bool GetCapabilities(SS4S_AudioCapabilities *capabilities, SS4S_AudioCode
     return true;
 }
 
+static SS4S_AudioCodec GetPreferredCodecs(const SS4S_AudioInfo *info) {
+    if (info->numOfChannels == 6) {
+        return SS4S_AUDIO_OPUS;
+    }
+    return SS4S_AUDIO_PCM_S16LE;
+}
+
 static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                       SS4S_PlayerContext *context) {
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "OpenAudio called");
@@ -207,6 +214,7 @@ const SS4S_AudioDriver SS4S_NDL_webOS5_AudioDriver = {
                 .Quit = SS4S_NDL_webOS5_Driver_Quit,
         },
         .GetCapabilities = GetCapabilities,
+        .GetPreferredCodecs = GetPreferredCodecs,
         .Open = OpenAudio,
         .Feed = FeedAudio,
         .Close = CloseAudio,
