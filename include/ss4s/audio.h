@@ -53,6 +53,8 @@ bool SS4S_GetAudioCapabilitiesByCodecs(SS4S_AudioCapabilities *capabilities, SS4
 
 bool SS4S_GetAudioCapabilities(SS4S_AudioCapabilities *capabilities);
 
+SS4S_AudioCodec SS4S_GetAudioPreferredCodecs(const SS4S_AudioInfo *info);
+
 SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioInfo *info);
 
 SS4S_AudioFeedResult SS4S_PlayerAudioFeed(SS4S_Player *player, const unsigned char *data, size_t size);

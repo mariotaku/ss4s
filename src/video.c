@@ -10,6 +10,14 @@ bool SS4S_GetVideoCapabilities(SS4S_VideoCapabilities *capabilities) {
     return driver->GetCapabilities(capabilities);
 }
 
+SS4S_VideoCodec SS4S_GetVideoPreferredCodecs(const SS4S_VideoInfo *info) {
+    const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
+    if (driver == NULL || driver->GetPreferredCodecs == NULL) {
+        return SS4S_VIDEO_NONE;
+    }
+    return driver->GetPreferredCodecs(info);
+}
+
 SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoInfo *info) {
     const SS4S_VideoDriver *driver = SS4S_GetVideoDriver();
     if (driver == NULL) {

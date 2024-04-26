@@ -14,6 +14,14 @@ bool SS4S_GetAudioCapabilities(SS4S_AudioCapabilities *capabilities) {
     return SS4S_GetAudioCapabilitiesByCodecs(capabilities, SS4S_AUDIO_NONE);
 }
 
+SS4S_AudioCodec SS4S_GetAudioPreferredCodecs(const SS4S_AudioInfo *info) {
+    const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
+    if (driver == NULL || driver->GetPreferredCodecs == NULL) {
+        return SS4S_AUDIO_NONE;
+    }
+    return driver->GetPreferredCodecs(info);
+}
+
 SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioInfo *info) {
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     if (driver == NULL) {

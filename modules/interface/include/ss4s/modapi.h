@@ -43,7 +43,22 @@ typedef struct SS4S_AudioInstance SS4S_AudioInstance;
 typedef struct SS4S_AudioDriver {
     SS4S_DriverBase Base;
 
+    /**
+     * Get audio capabilities by specified codecs. The capabilities should be an union of all codecs.
+     * This function is optional.
+     * @param capabilities Audio capabilities field to assign
+     * @param wantedCodecs Codecs to get capabilities for
+     * @return True if the capabilities are available, false otherwise
+     */
     bool (*GetCapabilities)(SS4S_AudioCapabilities *capabilities, SS4S_AudioCodec wantedCodecs);
+
+    /**
+     * Get preferred codecs for the specified audio configuration.
+     * This function is optional.
+     * @param info Audio info. It doesn't have to be complete.
+     * @return Preferred codecs for the specified info
+     */
+    SS4S_AudioCodec (*GetPreferredCodecs)(const SS4S_AudioInfo *info);
 
     SS4S_AudioOpenResult (*Open)(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                  SS4S_PlayerContext *context);
@@ -58,7 +73,21 @@ typedef struct SS4S_VideoInstance SS4S_VideoInstance;
 typedef struct SS4S_VideoDriver {
     SS4S_DriverBase Base;
 
+    /**
+     * Get video capabilities. The capabilities should be an union of all codecs.
+     * This function is optional.
+     * @param capabilities Video capabilities field to assign
+     * @return True if the capabilities are available, false otherwise
+     */
     bool (*GetCapabilities)(SS4S_VideoCapabilities *capabilities);
+
+    /**
+     * Get preferred codecs for the specified video configuration.
+     * This function is optional.
+     * @param info Video info. It doesn't have to be complete.
+     * @return Preferred codecs for the specified info
+     */
+    SS4S_VideoCodec (*GetPreferredCodecs)(const SS4S_VideoInfo *info);
 
     /**
      * Required.
