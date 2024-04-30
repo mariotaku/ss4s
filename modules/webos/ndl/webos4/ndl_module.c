@@ -29,9 +29,11 @@ SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckF
     if (f != NULL) {
         size_t read_len = fread(machine_name, 1, sizeof(machine_name), f);
         fclose(f);
-        if (read_len > 0 && memcmp(machine_name, "k5lp", 4) == 0) {
-            // k5lp SoC is not supported
-            return 0;
+        if (read_len > 0) {
+            if (memcmp(machine_name, "k5lp", 4) == 0 || memcmp(machine_name, "k3lp", 4) == 0) {
+                // k5lp and k3lp SoCs are not supported
+                return 0;
+            }
         }
     }
     return flags;
