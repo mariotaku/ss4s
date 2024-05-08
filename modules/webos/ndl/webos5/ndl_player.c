@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <unistd.h>
 
 static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player);
 
@@ -109,7 +110,13 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         if (context->opusEmptyFrameLen > 0) {
             SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty OPUS audio frame (%u bytes)",
                                 context->opusEmptyFrameLen);
-            NDL_DirectAudioPlay(context->opusEmptyFrame, context->opusEmptyFrameLen, 0);
+            if (NDL_DirectAudioPlay(context->opusEmptyFrame, context->opusEmptyFrameLen, 0) == 0) {
+                // Wait for empty sample to be played
+                usleep(5000);
+            } else {
+                SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "Playing empty OPUS audio frame failed: %s",
+                                    NDL_DirectMediaGetError());
+            }
         }
     }
 
@@ -118,7 +125,24 @@ static int LoadMedia(SS4S_PlayerContext *context) {
 }
 
 static void LoadCallback(int type, long long numValue, const char *strValue) {
-    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "MediaLoadCallback type=%d, numValue=%llx, strValue=%p\n",
-                        type, numValue, strValue);
-//    SS4S_PlayerContext *context = ActivatePlayerContext;
+    switch (type) {
+        case 0x16: {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "%s STATE_UPDATE_LOADCOMPLETED: %s", __FUNCTION__, strValue);
+            break;
+        }
+        case 0x17: {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "%s STATE_UPDATE_UNLOADCOMPLETED: %s", __FUNCTION__,
+                                strValue);
+            break;
+        }
+        case 0x1a: {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "%s STATE_UPDATE_PLAYING: %s", __FUNCTION__, strValue);
+            break;
+        }
+        default: {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "%s type=0x%02x, numValue=0x%llx, strValue=%p", __FUNCTION__,
+                                type, numValue, strValue);
+            break;
+        }
+    }
 }
