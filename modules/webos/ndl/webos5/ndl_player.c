@@ -111,8 +111,7 @@ static int LoadMedia(SS4S_PlayerContext *context) {
             SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty OPUS audio frame (%u bytes)",
                                 context->opusEmptyFrameLen);
             if (NDL_DirectAudioPlay(context->opusEmptyFrame, context->opusEmptyFrameLen, 0) == 0) {
-                // Wait for empty sample to be played
-                usleep(5000);
+                usleep(40000);
             } else {
                 SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "Playing empty OPUS audio frame failed: %s",
                                     NDL_DirectMediaGetError());
