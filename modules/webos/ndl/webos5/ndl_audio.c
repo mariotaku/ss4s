@@ -93,8 +93,8 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                 }
                 Base64Enc(context->streamHeader, info->codecData, info->codecDataLen);
                 opusInfo.streamHeader = context->streamHeader;
-                context->opusEmptyFrameLen = opus_empty_frames_copy(context->opusEmptyFrame, opusConfig.channels,
-                                                                    opusConfig.streamCount, opusConfig.coupledCount);
+                context->opusEmpty = SS4S_NDLOpusEmptyCreate(opusConfig.channels, opusConfig.streamCount,
+                                                             opusConfig.coupledCount);
                 if (opusConfig.channels == 6 && !IsOpusPassthroughSupported(&opusConfig)) {
                     SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL",
                                         "Channel config is not supported, enabling re-encoding. "
@@ -131,6 +131,9 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
     if (!context->mediaLoaded) {
         return SS4S_AUDIO_FEED_NOT_READY;
     }
+    if (context->opusEmpty) {
+        SS4S_NDLOpusEmptyMediaAudioReady(context->opusEmpty);
+    }
     int rc;
     if (context->opusFix) {
         int fixed_size = SS4S_NDLOpusFixProcess(context->opusFix, data, size);
@@ -159,7 +162,10 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
         SS4S_NDLOpusFixDestroy(context->opusFix);
         context->opusFix = NULL;
     }
-    context->opusEmptyFrameLen = 0;
+    if (context->opusEmpty) {
+        SS4S_NDLOpusEmptyDestroy(context->opusEmpty);
+        context->opusEmpty = NULL;
+    }
     SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }

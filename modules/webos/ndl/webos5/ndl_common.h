@@ -4,6 +4,7 @@
 #include <NDL_directmedia_v2.h>
 
 #include "ss4s/modapi.h"
+#include "opus_empty.h"
 #include "opus_fix.h"
 
 extern bool SS4S_NDL_webOS5_Initialized;
@@ -16,8 +17,7 @@ struct SS4S_PlayerContext {
     uint64_t lastFrameTime;
     NDL_DIRECTMEDIA_DATA_INFO_T mediaInfo;
     void *streamHeader;
-    uint8_t opusEmptyFrame[64];
-    size_t opusEmptyFrameLen;
+    SS4S_NDLOpusEmpty *opusEmpty;
     SS4S_NDLOpusFix *opusFix;
     bool mediaLoaded;
     bool waitAudioVideoReady;
