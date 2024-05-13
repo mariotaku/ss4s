@@ -61,6 +61,9 @@ static int UnloadMedia(SS4S_PlayerContext *context) {
     if (context->mediaLoaded) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Unloading media");
         context->mediaLoaded = false;
+        if (context->opusEmpty) {
+            SS4S_NDLOpusEmptyMediaUnloaded(context->opusEmpty);
+        }
         ret = NDL_DirectMediaUnload();
     }
     return ret;
@@ -107,16 +110,9 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty PCM audio frame (%u bytes)", size);
         NDL_DirectAudioPlay(empty_buf, size, 0);
     } else if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_OPUS) {
-        if (context->opusEmptyFrameLen > 0) {
-            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty OPUS audio frame (%u bytes)",
-                                context->opusEmptyFrameLen);
-            if (NDL_DirectAudioPlay(context->opusEmptyFrame, context->opusEmptyFrameLen, 0) == 0) {
-                // Wait for empty sample to be played
-                usleep(5000);
-            } else {
-                SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "Playing empty OPUS audio frame failed: %s",
-                                    NDL_DirectMediaGetError());
-            }
+        SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Will play empty OPUS audio later");
+        if (context->opusEmpty) {
+            SS4S_NDLOpusEmptyMediaLoaded(context->opusEmpty);
         }
     }
 
