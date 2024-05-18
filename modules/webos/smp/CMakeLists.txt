@@ -59,7 +59,7 @@ ss4s_add_module(smp-webos3 FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS 
         src/pbnjson_compat.c
         src/smp_resource_acb.c
 )
-target_include_directories(${SS4S_MODULE_TARGET} PRIVATE ${GLIB_INCLUDE_DIRS} ${ACBAPI_INCLUDE_DIRS}
+target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${GLIB_INCLUDE_DIRS} ${ACBAPI_INCLUDE_DIRS}
         ${PBNJSON_C_INCLUDE_DIRS})
 target_include_directories(${SS4S_MODULE_TARGET} PRIVATE src)
 target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE playerAPIs_C_Legacy dl ${GLIB_LIBRARIES} ${ACBAPI_LIBRARIES}
