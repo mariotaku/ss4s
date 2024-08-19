@@ -4,7 +4,7 @@ check_include_file("dlfcn.h" HAS_DLFCN)
 check_include_file("pthread.h" HAS_PTHREAD)
 
 if (WIN32)
-    target_sources(ss4s PRIVATE module_win32.c)
+    target_sources(ss4s PRIVATE module_win32.c mutex_win32.c)
 else ()
     if (HAS_DLFCN)
         target_sources(ss4s PRIVATE module_libdl.c)

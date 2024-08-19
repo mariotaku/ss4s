@@ -27,7 +27,7 @@ FILE *SS4S_ModulesListFileOpen() {
     }
     snprintf(iniPath, PATH_MAX, "%.*s/ss4s_modules.ini", (int) (dirnameEnd - info.dli_fname), info.dli_fname);
 #else
-    snprintf(iniPath, 255, "%.*s/ss4s_modules.ini", getcwd());
+    snprintf(iniPath, 255, "ss4s_modules.ini");
 #endif
     return fopen(iniPath, "r");
 }

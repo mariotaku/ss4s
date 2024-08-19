@@ -1,4 +1,9 @@
-add_library(ss4s-modules-list-ini SHARED modules_ini.c)
+if (HAS_DLFCN)
+    set(SS4S_INI_LIB_TYPE SHARED)
+else ()
+    set(SS4S_INI_LIB_TYPE STATIC)
+endif ()
+add_library(ss4s-modules-list-ini ${SS4S_INI_LIB_TYPE} modules_ini.c)
 set_target_properties(ss4s-modules-list-ini PROPERTIES
         PREFIX ""
         LIBRARY_OUTPUT_NAME "ss4s_modules"
