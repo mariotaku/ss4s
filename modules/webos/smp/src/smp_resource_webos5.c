@@ -44,6 +44,18 @@ bool StarfishResourcePopulateLoadPayload(StarfishResource *resource, jvalue_ref 
     return true;
 }
 
+bool StarfishResourceSetMediaId(StarfishResource *resource, const char *connId) {
+    (void) resource;
+    (void) connId;
+    return true;
+}
+
+bool StarfishResourceSetMediaAudioData(StarfishResource *resource, const char *data) {
+    (void) resource;
+    (void) data;
+    return true;
+}
+
 bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *data, bool hdr) {
     (void) resource;
     (void) data;
