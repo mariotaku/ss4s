@@ -122,7 +122,7 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
     snprintf(gst_args, 8192,
              "curlhttpsrc location=%s ! qtdemux name=demux "
              "demux.audio_0 ! queue ! aacparse ! avdec_aac ! audioconvert ! audio/x-raw,format=S16LE ! appsink name=audsink "
-             "demux.video_0 ! queue ! h264parse config-interval=5 ! video/x-h264,stream-format=byte-stream,alignment=au ! appsink name=vidsink",
+             "demux.video_0 ! queue ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=nal ! appsink name=vidsink",
              url);
     pipeline = gst_parse_launch(gst_args, NULL);
 
