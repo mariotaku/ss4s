@@ -1,0 +1,9 @@
+{
+  "id": "org.mariotaku.ss4s.sample-bbb",
+  "version": "1.0.0",
+  "vendor": "github.com/mariotaku",
+  "type": "native",
+  "main": "sample-bigbuckbunny",
+  "title": "Big Buck Bunny",
+  "icon": "icon.png"
+}
