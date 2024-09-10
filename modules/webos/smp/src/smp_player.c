@@ -120,7 +120,6 @@ FeedResult StarfishPlayerFeed(SS4S_PlayerContext *ctx, const unsigned char *data
     uint64_t diff = StarfishPlayerGetTime() - ctx->openTime;
     snprintf(payload, sizeof(payload), "{\"bufferAddr\":\"%p\",\"bufferSize\":%u,\"pts\":%llu,\"esData\":%d}",
              data, size, diff, esData);
-    StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "Feed(%s)", payload);
     StarfishMediaAPIs_feed(ctx->api, payload, result, 256);
     if (strstr(result, "Ok") == NULL) {
         StarfishPlayerUnlock(ctx);
@@ -271,7 +270,7 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
     jvalue_ref contents = jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("codec"), codec),
             jkeyval(J_CSTR_TO_JVAL("esInfo"), jobject_create_var(
-//                    jkeyval(J_CSTR_TO_JVAL("pauseAtDecodeTime"), jboolean_create(true)),
+                    jkeyval(J_CSTR_TO_JVAL("pauseAtDecodeTime"), jboolean_create(true)),
                     jkeyval(J_CSTR_TO_JVAL("ptsToDecode"), jnumber_create_i64(0)),
                     jkeyval(J_CSTR_TO_JVAL("seperatedPTS"), jboolean_true()),
                     J_END_OBJ_DECL
@@ -314,10 +313,10 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
     jobject_set(option, J_CSTR_TO_BUF("externalStreamingInfo"), jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("contents"), contents),
             jkeyval(J_CSTR_TO_JVAL("streamQualityInfo"), jboolean_true()),
+            jkeyval(J_CSTR_TO_JVAL("audioSync"), jboolean_true()),
             jkeyval(J_CSTR_TO_JVAL("streamQualityInfoCorruptedFrame"), jboolean_true()),
             jkeyval(J_CSTR_TO_JVAL("streamQualityInfoNonFlushable"), jboolean_true()),
             jkeyval(J_CSTR_TO_JVAL("restartStreaming"), jboolean_false()),
-//            jkeyval(J_CSTR_TO_JVAL("audioSync"), jboolean_true()),
             jkeyval(J_CSTR_TO_JVAL("bufferingCtrInfo"), jobject_create_var(
                     jkeyval(J_CSTR_TO_JVAL("bufferMaxLevel"), jnumber_create_i32(0)),
                     jkeyval(J_CSTR_TO_JVAL("bufferMinLevel"), jnumber_create_i32(0)),
@@ -327,8 +326,8 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
                     /* This affects pipeline appsrc.
                      * A very low maximum is meaningless because it only causes the pipeline to discard buffers
                      */
-                    jkeyval(J_CSTR_TO_JVAL("srcBufferLevelAudio"), CreateMinMax(1024, 2097152)),
-                    jkeyval(J_CSTR_TO_JVAL("srcBufferLevelVideo"), CreateMinMax(1024, 8388608)),
+                    jkeyval(J_CSTR_TO_JVAL("srcBufferLevelAudio"), CreateMinMax(1, 32768)),
+                    jkeyval(J_CSTR_TO_JVAL("srcBufferLevelVideo"), CreateMinMax(1, 1048576)),
                     J_END_OBJ_DECL
             )),
             J_END_OBJ_DECL
@@ -339,11 +338,9 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
             J_END_OBJ_DECL
     ));
     // When queryPosition is set to true, STARFISH_EVENT_FRAMEREADY will not be sent
-    jobject_set(option, J_CSTR_TO_BUF("queryPosition"), jboolean_true());
-    jobject_set(option, J_CSTR_TO_BUF("forcedPrerollOnPause"), jboolean_true());
+    jobject_set(option, J_CSTR_TO_BUF("queryPosition"), jboolean_false());
     // Recognized on webOS 5+, doesn't seem to have any effect
     jobject_set(option, J_CSTR_TO_BUF("lowDelayMode"), jboolean_true());
-    jobject_set(option, J_CSTR_TO_BUF("windowId"), J_CSTR_TO_JVAL("DefaultId"));
 
     if (videoInfo) {
         int frameRate = 6000;
