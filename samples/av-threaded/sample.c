@@ -8,6 +8,15 @@
 #include "ss4s.h"
 #include "nalu_reader.h"
 
+enum {
+    EVENT_START_PLAYBACK = 0,
+};
+
+typedef struct app_context {
+    SDL_Thread *session_thread;
+    SDL_bool interrupted;
+} app_context_t;
+
 int ss4s_nalu_cb(void *ctx, const unsigned char *nalu, size_t size);
 
 int audio_proc(void *arg);
@@ -16,14 +25,10 @@ int video_proc(void *arg);
 
 int session_proc(void *arg);
 
-void handle_event(SDL_Event *event);
-
-enum {
-    EVENT_START_PLAYBACK = 0,
-};
+void handle_event(app_context_t *app, SDL_Event *event);
 
 int main(int argc, char *argv[]) {
-    char *vid_driver = "lgnc", *aud_driver = "lgnc";
+    char *vid_driver = "ndl-webos4", *aud_driver = "ndl-webos4";
     printf("Request audio driver: %s\n", aud_driver);
     printf("Request video driver: %s\n", vid_driver);
     SDL_Init(SDL_INIT_VIDEO);
@@ -46,6 +51,7 @@ int main(int argc, char *argv[]) {
         abort();
     }
 
+    app_context_t app = {0};
 
     SDL_Window *window = SDL_CreateWindow("SS4S", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1920, 1080,
                                           SDL_WINDOW_FULLSCREEN);
@@ -60,7 +66,7 @@ int main(int argc, char *argv[]) {
     while (!SDL_QuitRequested()) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            handle_event(&event);
+            handle_event(&app, &event);
         }
         if (!rendered) {
             rendered = 1;
@@ -70,6 +76,9 @@ int main(int argc, char *argv[]) {
         }
         SDL_Delay(16);
     }
+    app.interrupted = SDL_TRUE;
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Waiting for session thread to finish");
+    SDL_WaitThread(app.session_thread, NULL);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -81,6 +90,7 @@ int main(int argc, char *argv[]) {
 int session_proc(void *arg) {
     SS4S_Player *player = SS4S_PlayerOpen();
     assert(player != NULL);
+    SS4S_PlayerSetUserdata(player, arg);
     SS4S_PlayerInfo playerInfo;
     assert(SS4S_PlayerGetInfo(player, &playerInfo));
     assert(playerInfo.audio.module != NULL);
@@ -109,6 +119,7 @@ int session_proc(void *arg) {
 
 int audio_proc(void *arg) {
     SS4S_Player *player = arg;
+    app_context_t *app = SS4S_PlayerGetUserdata(player);
     SS4S_AudioInfo audioInfo = {
             .numOfChannels = 2,
             .sampleRate = 48000,
@@ -127,6 +138,9 @@ int audio_proc(void *arg) {
     size_t unitSize = sizeof(int16_t) * 2;
     size_t numOfSamples = 0;
     while ((samplesRead = fread(buf, unitSize, 240, sampleFile)) > 0) {
+        if (app->interrupted) {
+            break;
+        }
         Uint32 start = SDL_GetTicks();
         if (SS4S_PlayerAudioFeed(player, (unsigned char *) buf, samplesRead * unitSize) != SS4S_AUDIO_FEED_OK) {
             break;
@@ -165,6 +179,10 @@ int video_proc(void *arg) {
 int ss4s_nalu_cb(void *ctx, const unsigned char *nalu, size_t size) {
     Uint32 start = SDL_GetTicks();
     SS4S_Player *player = ctx;
+    app_context_t *app = SS4S_PlayerGetUserdata(player);
+    if (app->interrupted) {
+        return -1;
+    }
     SS4S_VideoFeedResult result = SS4S_PlayerVideoFeed(player, nalu, size, 0);
     Sint32 delay = (Sint32) (33 - (SDL_GetTicks() - start));
     if (delay > 0) {
@@ -173,12 +191,13 @@ int ss4s_nalu_cb(void *ctx, const unsigned char *nalu, size_t size) {
     return result;
 }
 
-void handle_event(SDL_Event *event) {
+void handle_event(app_context_t *app, SDL_Event *event) {
     switch (event->type) {
         case SDL_USEREVENT: {
             switch (event->user.code) {
                 case EVENT_START_PLAYBACK: {
-                    SDL_CreateThread(session_proc, "session_proc", NULL);
+                    app->session_thread = SDL_CreateThread(session_proc, "session_proc", app);
+                    break;
                 }
             }
             break;
