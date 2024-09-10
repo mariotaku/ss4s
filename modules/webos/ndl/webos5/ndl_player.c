@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <unistd.h>
 
 static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player);
 
@@ -61,9 +60,11 @@ static int UnloadMedia(SS4S_PlayerContext *context) {
     if (context->mediaLoaded) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Unloading media");
         context->mediaLoaded = false;
+#ifdef HAS_OPUS
         if (context->opusEmpty) {
             SS4S_NDLOpusEmptyMediaUnloaded(context->opusEmpty);
         }
+#endif
         ret = NDL_DirectMediaUnload();
     }
     return ret;
@@ -109,12 +110,16 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         size_t size = numChannels * sizeof(unsigned short);
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty PCM audio frame (%u bytes)", size);
         NDL_DirectAudioPlay(empty_buf, size, 0);
-    } else if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_OPUS) {
+    }
+#ifdef HAS_OPUS
+    else if (context->mediaInfo.audio.type == NDL_AUDIO_TYPE_OPUS) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Will play empty OPUS audio later");
+
         if (context->opusEmpty) {
             SS4S_NDLOpusEmptyMediaLoaded(context->opusEmpty);
         }
     }
+#endif
 
     context->mediaLoaded = true;
     return ret;
