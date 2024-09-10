@@ -4,6 +4,12 @@
 #include <assert.h>
 #include <string.h>
 
+#ifdef HAS_OPUS
+
+#include "opus_empty.h"
+
+#endif
+
 static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player);
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
