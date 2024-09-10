@@ -1,6 +1,12 @@
 #include <string.h>
 #include "ndl_common.h"
 
+#ifdef HAS_OPUS
+
+#include "opus_empty.h"
+
+#endif
+
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
 static uint64_t GetTimeUs();
