@@ -17,8 +17,8 @@ function(ss4s_add_test NAME)
     set(SS4S_TEST_CASE ${SS4S_TEST_CASE} PARENT_SCOPE)
 endfunction()
 
-configure_file(sample.pcm ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-configure_file(sample.h264 ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file(../samples/av-threaded/sample.pcm ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file(../samples/av-threaded/sample.h264 ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 ss4s_add_test(initialization SOURCES test_initialization.c)
 

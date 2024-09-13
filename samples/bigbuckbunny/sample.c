@@ -7,7 +7,6 @@
 #include "ss4s.h"
 
 static SS4S_Player *player = NULL;
-static bool finished = false;
 
 int videoPreroll(int width, int height, int framerate) {
     (void) framerate;
@@ -62,7 +61,8 @@ void audioEos() {
 }
 
 void pipelineQuit(int error) {
-    finished = true;
+    SDL_Event quit = {SDL_QUIT};
+    SDL_PushEvent(&quit);
 }
 
 int main(int argc, char *argv[]) {
@@ -95,12 +95,12 @@ int main(int argc, char *argv[]) {
             .pipelineQuit = pipelineQuit,
     };
     datasrc_start(&dscb);
-    while (!finished) {
+    while (!SDL_QuitRequested()) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                finished = true;
-                break;
+            if (event.type == SDL_MOUSEBUTTONDOWN) {
+                datasrc_stop();
+                continue;
             }
         }
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -108,7 +108,6 @@ int main(int argc, char *argv[]) {
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
-    datasrc_stop();
 
     SS4S_PlayerClose(player);
     player = NULL;
@@ -116,7 +115,10 @@ int main(int argc, char *argv[]) {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
+    datasrc_destroy();
+
     SS4S_Quit();
 
     SDL_Quit();
+
 }

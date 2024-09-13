@@ -113,7 +113,7 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         } else if (strncmp(context->mediaInfo.audio.pcm.channelMode, "6-channel", 10) == 0) {
             numChannels = 6;
         }
-        size_t size = numChannels * sizeof(unsigned short);
+        uint32_t size = (uint32_t) (numChannels * sizeof(unsigned short));
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty PCM audio frame (%u bytes)", size);
         NDL_DirectAudioPlay(empty_buf, size, 0);
     }

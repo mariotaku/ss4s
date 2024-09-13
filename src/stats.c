@@ -19,6 +19,7 @@ void SS4S_StatsCounterInit(SS4S_StatsCounter *counter, size_t capacity) {
 
 void SS4S_StatsCounterDeinit(SS4S_StatsCounter *counter) {
     free(counter->items);
+    counter->items = NULL;
     counter->size = 0;
     counter->capacity = 0;
     counter->index = 0;
@@ -88,6 +89,7 @@ int32_t SS4S_StatsCounterGetAverageLatencyUs(const SS4S_StatsCounter *counter, u
 }
 
 uint8_t NextIndex(const SS4S_StatsCounter *counter) {
+    assert(counter->capacity > 0);
     return (counter->index + 1) % counter->capacity;
 }
 

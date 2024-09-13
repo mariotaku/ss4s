@@ -30,3 +30,5 @@ void datasrc_init(int argc, char *argv[]);
 int datasrc_start(struct DATASRC_CALLBACKS *callbacks);
 
 int datasrc_stop();
+
+int datasrc_destroy();

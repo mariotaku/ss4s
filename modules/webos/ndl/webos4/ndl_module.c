@@ -24,18 +24,18 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_Li
 }
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
-    FILE *f = fopen("/etc/prefs/properties/machineName", "r");
-    char machine_name[16] = {0};
-    if (f != NULL) {
-        size_t read_len = fread(machine_name, 1, sizeof(machine_name), f);
-        fclose(f);
-        if (read_len > 0) {
-            if (memcmp(machine_name, "k5lp", 4) == 0 || memcmp(machine_name, "k3lp", 4) == 0) {
-                // k5lp and k3lp SoCs are not supported
-                return 0;
-            }
-        }
-    }
+//    FILE *f = fopen("/etc/prefs/properties/machineName", "r");
+//    char machine_name[16] = {0};
+//    if (f != NULL) {
+//        size_t read_len = fread(machine_name, 1, sizeof(machine_name), f);
+//        fclose(f);
+//        if (read_len > 0) {
+//            if (memcmp(machine_name, "k3lp", 4) == 0) {
+//                // k3lp SoCs are not supported
+//                return 0;
+//            }
+//        }
+//    }
     return flags;
 }
 

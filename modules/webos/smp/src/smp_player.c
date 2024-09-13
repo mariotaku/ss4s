@@ -156,8 +156,10 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
     switch (type) {
         case STARFISH_EVENT_FRAMEREADY: {
             StarfishPlayerLock(ctx);
-            uint64_t ptsNow = StarfishPlayerGetTime() - ctx->openTime;
-            StarfishLibContext->VideoStats.ReportFrame(ctx->player, (ptsNow - numValue) / 1000);
+            if (ctx->state == SMP_STATE_PLAYING) {
+                uint64_t ptsNow = StarfishPlayerGetTime() - ctx->openTime;
+                StarfishLibContext->VideoStats.ReportFrame(ctx->player, (ptsNow - numValue) / 1000);
+            }
             StarfishPlayerUnlock(ctx);
             break;
         }

@@ -4,8 +4,7 @@
 #include <gst/app/app.h>
 #include <stdio.h>
 
-static GstElement *pipeline;
-static GstBus *bus;
+static GstElement *pipeline = NULL;
 struct DATASRC_CALLBACKS *callbacks;
 
 static void audioEos(GstAppSink *appsink, gpointer user_data) {
@@ -126,13 +125,13 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
              url);
     pipeline = gst_parse_launch(gst_args, NULL);
 
-    g_assert(pipeline);
+    g_assert_nonnull(pipeline);
 
     audiosink = gst_bin_get_by_name(GST_BIN(pipeline), "audsink");
-    g_assert(audiosink);
+    g_assert_nonnull(audiosink);
 
     videosink = gst_bin_get_by_name(GST_BIN(pipeline), "vidsink");
-    g_assert(videosink);
+    g_assert_nonnull(videosink);
 
     GstAppSinkCallbacks audioCallbacks = {
             .eos = audioEos,
@@ -148,9 +147,10 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
     };
     gst_app_sink_set_callbacks(GST_APP_SINK(videosink), &videoCallbacks, NULL, NULL);
 
-    bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
+    GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
     gst_bus_add_signal_watch(bus);
     g_signal_connect(bus, "message", (GCallback) cb_message, pipeline);
+    gst_object_unref(bus);
 
     /* Start playing */
     ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
@@ -164,8 +164,15 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
 }
 
 int datasrc_stop() {
+    g_print("Stopping pipeline\n");
+    gst_element_send_event(pipeline, gst_event_new_eos());
+    return 0;
+}
+
+int datasrc_destroy() {
     gst_element_set_state(pipeline, GST_STATE_NULL);
     gst_object_unref(pipeline);
+    pipeline = NULL;
     callbacks = NULL;
     return 0;
 }
