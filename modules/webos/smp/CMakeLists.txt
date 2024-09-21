@@ -9,6 +9,14 @@ if (NOT LIBPLAYERAPIS_FOUND OR NOT ACBAPI_FOUND)
     endif ()
 endif ()
 
+include(CheckSymbolExists)
+
+cmake_push_check_state()
+list(APPEND CMAKE_REQUIRED_INCLUDES "${ACBAPI_INCLUDE_DIRS}")
+list(APPEND CMAKE_REQUIRED_LIBRARIES "${ACBAPI_LIBRARIES}")
+check_symbol_exists(AcbAPI_setMediaAudioData "AcbAPI.h" HAVE_SETMEDIAAUDIODATA)
+cmake_pop_check_state()
+
 
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(PBNJSON_C REQUIRED pbnjson_c)
@@ -48,7 +56,7 @@ target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${GLIB_INCLUDE_D
 target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE playerAPIs_C dl ${GLIB_LIBRARIES} ${ACBAPI_LIBRARIES}
         ${PBNJSON_C_LIBRARIES})
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE USE_SDL_WEBOS _GNU_SOURCE SS4S_MODULE_NAME="smp-webos"
-        SS4S_MODULE_ENTRY=SS4S_ModuleOpen_SMP_WEBOS4)
+        SS4S_MODULE_ENTRY=SS4S_ModuleOpen_SMP_WEBOS4 HAVE_SETMEDIAAUDIODATA=${HAVE_SETMEDIAAUDIODATA})
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")
 
 ss4s_add_module(smp-webos3 FOR_AUDIO FOR_VIDEO IN_GROUP smp DISPLAY_NAME "webOS SMP" WEIGHT 10 OS_VERSION "<4" SOURCES
@@ -65,5 +73,5 @@ target_include_directories(${SS4S_MODULE_TARGET} PRIVATE src)
 target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE playerAPIs_C_Legacy dl ${GLIB_LIBRARIES} ${ACBAPI_LIBRARIES}
         ${PBNJSON_C_LIBRARIES})
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE USE_SDL_WEBOS _GNU_SOURCE SS4S_MODULE_NAME="smp-webos"
-        SS4S_MODULE_ENTRY=SS4S_ModuleOpen_SMP_WEBOS3)
+        SS4S_MODULE_ENTRY=SS4S_ModuleOpen_SMP_WEBOS3 HAVE_SETMEDIAAUDIODATA=${HAVE_SETMEDIAAUDIODATA})
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE "$<$<CONFIG:DEBUG>:DEBUG>")

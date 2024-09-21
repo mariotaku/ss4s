@@ -65,7 +65,11 @@ bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *d
 
     const char *modified_info = jvalue_stringify(request);
     StarfishLibContext->Log(SS4S_LogLevelInfo, "StarfishResource", "SetMediaVideoData: %s", modified_info);
+#if HAVE_SETMEDIAAUDIODATA
+    AcbAPI_setMediaVideoData(resource->acbId, modified_info, NULL);
+#else
     AcbAPI_setMediaVideoData(resource->acbId, modified_info);
+#endif
 
     jdomparser_release(&parser);
     return true;
