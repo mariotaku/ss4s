@@ -67,9 +67,12 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
             .stream_type = NDL_ESP_AUDIO_ES,
             .timestamp = 0,
     };
-    int rc = NDL_EsplayerFeedData(SS4S_NDL_Esplayer_Handle, &buff);
-    if (rc != 0) {
-        SS4S_NDL_Esplayer_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectAudioPlay returned %d", rc);
+    int rc = NDL_EsplayerFeedData(context->handle, &buff);
+    if (rc < 0) {
+        if (rc == NDL_ESP_RESULT_FEED_FULL) {
+            return SS4S_AUDIO_FEED_OK;
+        }
+        SS4S_NDL_Esplayer_Log(SS4S_LogLevelWarn, "NDL", "NDL_EsplayerFeedData returned %d", rc);
         return SS4S_AUDIO_FEED_ERROR;
     }
     return SS4S_AUDIO_FEED_OK;

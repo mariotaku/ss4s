@@ -5,12 +5,12 @@
 
 #include "ss4s/modapi.h"
 
-extern NDL_EsplayerHandle SS4S_NDL_Esplayer_Handle;
 extern SS4S_LoggingFunction *SS4S_NDL_Esplayer_Log;
 extern pthread_mutex_t SS4S_NDL_Esplayer_Lock;
 
 struct SS4S_PlayerContext {
     SS4S_Player *player;
+    NDL_EsplayerHandle handle;
     NDL_ESP_META_DATA mediaInfo;
     void *streamHeader;
     bool mediaLoaded;

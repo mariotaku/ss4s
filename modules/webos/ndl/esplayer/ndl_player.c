@@ -10,6 +10,8 @@ static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
 static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool option);
 
+static void EsplayerCallback(NDL_ESP_EVENT event, void *playerdata, void *userdata);
+
 const SS4S_PlayerDriver SS4S_NDL_Esplayer_PlayerDriver = {
         .Create = CreatePlayerContext,
         .Destroy = DestroyPlayerContext,
@@ -19,8 +21,6 @@ const SS4S_PlayerDriver SS4S_NDL_Esplayer_PlayerDriver = {
 static int UnloadMedia(SS4S_PlayerContext *context);
 
 static int LoadMedia(SS4S_PlayerContext *context);
-
-static void LoadCallback(int type, long long numValue, const char *strValue);
 
 static SS4S_PlayerContext *ActivatePlayerContext = NULL;
 
@@ -40,12 +40,14 @@ static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player) {
     assert(ActivatePlayerContext == NULL);
     SS4S_PlayerContext *created = calloc(1, sizeof(SS4S_PlayerContext));
     created->player = player;
+    created->handle = NDL_EsplayerCreate(getenv("APPID"), EsplayerCallback, created);
     ActivatePlayerContext = created;
     return created;
 }
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context) {
     UnloadMedia(context);
+    NDL_EsplayerDestroy(context->handle);
     free(context);
     assert(context == ActivatePlayerContext);
     ActivatePlayerContext = NULL;
@@ -60,15 +62,15 @@ static int UnloadMedia(SS4S_PlayerContext *context) {
     if (context->mediaLoaded) {
         SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "Unloading media");
         context->mediaLoaded = false;
-        ret = NDL_EsplayerUnload(SS4S_NDL_Esplayer_Handle);
+        ret = NDL_EsplayerUnload(context->handle);
     }
     return ret;
 }
 
 static int LoadMedia(SS4S_PlayerContext *context) {
     int ret;
-    assert(SS4S_NDL_Esplayer_Handle);
     assert(!context->mediaLoaded);
+    assert(context->handle);
     NDL_ESP_META_DATA info = context->mediaInfo;
     if (info.video_codec == NDL_ESP_VIDEO_NONE && info.audio_codec == NDL_ESP_AUDIO_NONE) {
         SS4S_NDL_Esplayer_Log(SS4S_LogLevelWarn, "NDL", "LoadMedia but audio and video has no type");
@@ -78,52 +80,20 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "Defer LoadMedia because audio or video has no type");
         return 0;
     }
-    SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "NDL_DirectMediaLoad(video=%u (%d*%d), atype=%u)", info.video_codec,
+    SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "NDL_EsplayerLoad(video=%u (%d*%d), atype=%u)", info.video_codec,
                           info.width, info.height, info.audio_codec);
-    if ((ret = NDL_EsplayerLoad(SS4S_NDL_Esplayer_Handle, &info)) != 0) {
-        SS4S_NDL_Esplayer_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectMediaLoad returned %d", ret);
+    NDL_EsplayerSetAppForegroundState(context->handle, NDL_ESP_APP_STATE_FOREGROUND);
+    if ((ret = NDL_EsplayerLoad(context->handle, &info)) != 0) {
+        SS4S_NDL_Esplayer_Log(SS4S_LogLevelWarn, "NDL", "NDL_EsplayerLoad returned %d", ret);
         return ret;
     }
-    if (context->mediaInfo.audio_codec == NDL_ESP_AUDIO_CODEC_PCM_48000_2CH) {
-        unsigned short empty_buf[8] = {0};
-        int numChannels = (int) context->mediaInfo.channels;
-        size_t size = numChannels * sizeof(unsigned short);
-        NDL_ESP_STREAM_BUFFER buff = {
-                .data = (uint8_t *) empty_buf,
-                .data_len = size,
-                .offset = 0,
-                .stream_type = NDL_ESP_AUDIO_ES,
-                .timestamp = 0,
-        };
-        SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "Playing empty PCM audio frame (%u bytes)", size);
-        NDL_EsplayerFeedData(SS4S_NDL_Esplayer_Handle, &buff);
-    }
-
     context->mediaLoaded = true;
+    NDL_EsplayerPlay(context->handle);
     return ret;
 }
 
-static void LoadCallback(int type, long long numValue, const char *strValue) {
-    switch (type) {
-        case 0x16: {
-            SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "%s STATE_UPDATE_LOADCOMPLETED: %s", __FUNCTION__,
-                                  strValue);
-            break;
-        }
-        case 0x17: {
-            SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "%s STATE_UPDATE_UNLOADCOMPLETED: %s", __FUNCTION__,
-                                  strValue);
-            break;
-        }
-        case 0x1a: {
-            SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "%s STATE_UPDATE_PLAYING: %s", __FUNCTION__, strValue);
-            break;
-        }
-        default: {
-            SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "%s type=0x%02x, numValue=0x%llx, strValue=%p",
-                                  __FUNCTION__,
-                                  type, numValue, strValue);
-            break;
-        }
-    }
+void EsplayerCallback(NDL_ESP_EVENT event, void *playerdata, void *userdata) {
+    (void) playerdata;
+    (void) userdata;
+    SS4S_NDL_Esplayer_Log(SS4S_LogLevelInfo, "NDL", "Esplayer Callback %d", event);
 }

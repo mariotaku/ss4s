@@ -8,12 +8,12 @@ static uint64_t GetTimeUs();
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
-    capabilities->maxBitrate = 65000;
-    capabilities->suggestedBitrate = 35000;
+    capabilities->maxBitrate = 40000;
+    capabilities->suggestedBitrate = 25000;
     capabilities->hdr = false;
     // If fullColorRange is set to true, the video will be displayed with over saturated colors.
     capabilities->fullColorRange = false;
-    capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT2020 | SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
     return true;
 }
 
@@ -68,9 +68,12 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
             .stream_type = NDL_ESP_VIDEO_ES,
             .timestamp = 0,
     };
-    int rc = NDL_EsplayerFeedData(SS4S_NDL_Esplayer_Handle, &buff);
-    if (rc != 0) {
-        SS4S_NDL_Esplayer_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectVideoPlay returned %d", rc);
+    int rc = NDL_EsplayerFeedData(context->handle, &buff);
+    if (rc < 0) {
+        if (rc == NDL_ESP_RESULT_FEED_FULL) {
+            return SS4S_VIDEO_FEED_OK;
+        }
+        SS4S_NDL_Esplayer_Log(SS4S_LogLevelWarn, "NDL", "NDL_EsplayerFeedData returned %d", rc);
         return SS4S_VIDEO_FEED_ERROR;
     }
     return SS4S_VIDEO_FEED_OK;
