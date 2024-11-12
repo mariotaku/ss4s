@@ -8,7 +8,6 @@
 extern NDL_EsplayerHandle SS4S_NDL_Esplayer_Handle;
 extern SS4S_LoggingFunction *SS4S_NDL_Esplayer_Log;
 extern pthread_mutex_t SS4S_NDL_Esplayer_Lock;
-extern const SS4S_LibraryContext *SS4S_NDL_Esplayer_Lib;
 
 struct SS4S_PlayerContext {
     SS4S_Player *player;
