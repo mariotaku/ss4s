@@ -3,10 +3,13 @@
 #include <lgnc_directaudio.h>
 #include <lgnc_directvideo.h>
 
+#include <pthread.h>
+
 #include "ss4s/modapi.h"
 
 extern bool SS4S_LGNC_Initialized;
 extern SS4S_LoggingFunction *SS4S_LGNC_Log;
+extern pthread_mutex_t SS4S_LGNC_Lock;
 
 struct SS4S_PlayerContext {
     bool audioOpened, videoOpened;

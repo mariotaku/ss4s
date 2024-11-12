@@ -19,10 +19,13 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
         default:
             return SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
     }
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
     if (LGNC_DIRECTAUDIO_Open(&context->audioInfo) != 0) {
+        pthread_mutex_unlock(&SS4S_LGNC_Lock);
         return SS4S_AUDIO_OPEN_ERROR;
     }
     context->audioOpened = true;
+    pthread_mutex_unlock(&SS4S_LGNC_Lock);
     *instance = (SS4S_AudioInstance *) context;
     return SS4S_AUDIO_OPEN_OK;
 }
@@ -42,10 +45,12 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
 static void CloseAudio(SS4S_AudioInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->audioInfo, 0, sizeof(LGNC_ADEC_DATA_INFO_T));
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
     if (context->audioOpened) {
         LGNC_DIRECTAUDIO_Close();
     }
     context->audioOpened = false;
+    pthread_mutex_unlock(&SS4S_LGNC_Lock);
 }
 
 const SS4S_AudioDriver SS4S_LGNC_AudioDriver = {

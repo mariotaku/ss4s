@@ -27,11 +27,14 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_Vid
     context->videoInfo.height = info->height;
     context->aspectRatio = info->width * 100 / info->height;
 
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
     if (LGNC_DIRECTVIDEO_Open(&context->videoInfo) != 0) {
+        pthread_mutex_unlock(&SS4S_LGNC_Lock);
         return SS4S_VIDEO_OPEN_ERROR;
     }
     context->videoOpened = true;
     FitVideo(&context->videoInfo);
+    pthread_mutex_unlock(&SS4S_LGNC_Lock);
     *instance = (SS4S_VideoInstance *) context;
     return SS4S_VIDEO_OPEN_OK;
 }
@@ -60,15 +63,18 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
         context->aspectRatio = aspectRatio;
         context->videoInfo.width = width;
         context->videoInfo.height = height;
+        pthread_mutex_lock(&SS4S_LGNC_Lock);
         if (context->videoOpened) {
             LGNC_DIRECTVIDEO_Close();
         }
         SS4S_LGNC_Log(SS4S_LogLevelInfo, "NDL", "Reopen video with size %d * %d", width, height);
         if (LGNC_DIRECTVIDEO_Open(&context->videoInfo) != 0) {
             context->videoOpened = false;
+            pthread_mutex_unlock(&SS4S_LGNC_Lock);
             return false;
         }
         FitVideo(&context->videoInfo);
+        pthread_mutex_unlock(&SS4S_LGNC_Lock);
     }
     return true;
 }
@@ -76,9 +82,11 @@ static bool SizeChanged(SS4S_VideoInstance *instance, int width, int height) {
 static void CloseVideo(SS4S_VideoInstance *instance) {
     SS4S_PlayerContext *context = (void *) instance;
     memset(&context->videoInfo, 0, sizeof(LGNC_VDEC_DATA_INFO_T));
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
     if (context->videoOpened) {
         LGNC_DIRECTVIDEO_Close();
     }
+    pthread_mutex_unlock(&SS4S_LGNC_Lock);
     context->videoOpened = false;
 }
 

@@ -8,6 +8,7 @@
 
 bool SS4S_LGNC_Initialized = false;
 SS4S_LoggingFunction *SS4S_LGNC_Log = NULL;
+pthread_mutex_t SS4S_LGNC_Lock = PTHREAD_MUTEX_INITIALIZER;
 
 SS4S_EXPORTED bool SS4S_ModuleOpen_LGNC(SS4S_Module *module, const SS4S_LibraryContext *context) {
     (void) context;
@@ -49,19 +50,23 @@ int SS4S_LGNC_Driver_Init() {
     }
     LGNC_CALLBACKS_T callbacks = {.msgHandler=NULL};
     int ret;
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
     if ((ret = LGNC_PLUGIN_Initialize(&callbacks)) == 0) {
         LGNC_PLUGIN_SetAppId(getenv("APPID"));
         SS4S_LGNC_Log(SS4S_LogLevelInfo, "LGNC", "Driver init.");
         SS4S_LGNC_Initialized = true;
     }
+    pthread_mutex_unlock(&SS4S_LGNC_Lock);
     return ret;
 }
 
 void SS4S_LGNC_Driver_Quit() {
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
     if (!SS4S_LGNC_Initialized) {
         return;
     }
     SS4S_LGNC_Log(SS4S_LogLevelInfo, "LGNC", "Driver quit.");
     LGNC_PLUGIN_Finalize();
     SS4S_LGNC_Initialized = false;
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
 }

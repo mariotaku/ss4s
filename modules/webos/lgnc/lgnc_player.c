@@ -16,11 +16,13 @@ static SS4S_PlayerContext *CreatePlayerContext() {
 }
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context) {
+    pthread_mutex_lock(&SS4S_LGNC_Lock);
     if (context->videoOpened) {
         LGNC_DIRECTVIDEO_Close();
     }
     if (context->audioOpened) {
         LGNC_DIRECTAUDIO_Close();
     }
+    pthread_mutex_unlock(&SS4S_LGNC_Lock);
     free(context);
 }

@@ -30,10 +30,19 @@ static SS4S_PlayerContext *CreatePlayer(SS4S_Player *player) {
     pthread_mutex_init(&context->lock, NULL);
     context->player = player;
 
+    context->api = StarfishMediaAPIs_create(NULL);
+    if (context->api == NULL) {
+        StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Failed to instantiate media APIs");
+        free(context->appId);
+        pthread_mutex_destroy(&context->lock);
+        free(context);
+        return NULL;
+    }
     context->res = StarfishResourceCreate(context->appId);
     if (context->res == NULL) {
         StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Failed to allocate resource");
         free(context->appId);
+        StarfishMediaAPIs_destroy(context->api);
         pthread_mutex_destroy(&context->lock);
         free(context);
         return NULL;
@@ -62,10 +71,6 @@ static void SetWaitAudioVideoReady(SS4S_PlayerContext *context, bool wait) {
 bool StarfishPlayerLoadInner(SS4S_PlayerContext *ctx) {
     if (ctx->state != SMP_STATE_UNLOADED) {
         StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Media already loaded");
-        return false;
-    }
-    if (ctx->api == NULL && (ctx->api = StarfishMediaAPIs_create(NULL)) == NULL) {
-        StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Failed to instantiate media APIs");
         return false;
     }
     bool result = false;

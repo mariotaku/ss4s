@@ -18,8 +18,12 @@ int session_proc(void *arg);
 
 void handle_event(SDL_Event *event);
 
+enum {
+    EVENT_START_PLAYBACK = 0,
+};
+
 int main(int argc, char *argv[]) {
-    char *vid_driver = "smp-webos4", *aud_driver = "smp-webos4";
+    char *vid_driver = "dummy", *aud_driver = "dummy";
     printf("Request audio driver: %s\n", aud_driver);
     printf("Request video driver: %s\n", vid_driver);
     SDL_Init(SDL_INIT_VIDEO);
@@ -29,17 +33,17 @@ int main(int argc, char *argv[]) {
             .videoDriver = vid_driver,
     };
     if (SS4S_Init(argc, argv, &config) != 0) {
-        return 127;
+        abort();
     }
 
     if (SS4S_GetAudioModuleName() == NULL) {
         fprintf(stderr, "No audio driver available\n");
-        return 127;
+        abort();
     }
 
     if (SS4S_GetVideoModuleName() == NULL) {
         fprintf(stderr, "No video driver available\n");
-        return 127;
+        abort();
     }
 
 
@@ -47,20 +51,25 @@ int main(int argc, char *argv[]) {
                                           SDL_WINDOW_FULLSCREEN);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
+    SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND));
 
     SS4S_PostInit(argc, argv);
 
-    SDL_Event startPlayback = {SDL_USEREVENT};
+    SDL_Event startPlayback = {.user = {SDL_USEREVENT, EVENT_START_PLAYBACK}};
     SDL_PushEvent(&startPlayback);
 
+    static int rendered = 0;
     while (!SDL_QuitRequested()) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             handle_event(&event);
         }
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-        SDL_RenderClear(renderer);
-        SDL_RenderPresent(renderer);
+        if (!rendered) {
+            rendered = 1;
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+            SDL_RenderClear(renderer);
+            SDL_RenderPresent(renderer);
+        }
         SDL_Delay(16);
     }
 
@@ -170,7 +179,7 @@ void handle_event(SDL_Event *event) {
     switch (event->type) {
         case SDL_USEREVENT: {
             switch (event->user.code) {
-                case 0: {
+                case EVENT_START_PLAYBACK: {
                     SDL_CreateThread(session_proc, "session_proc", NULL);
                 }
             }
