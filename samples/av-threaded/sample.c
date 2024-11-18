@@ -1,12 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <string.h>
 
 #include <SDL2/SDL.h>
 
 #include "ss4s.h"
 #include "nalu_reader.h"
+#include "os_info.h"
+#include "ss4s_modules.h"
+#include "array_list.h"
 
 enum {
     EVENT_START_PLAYBACK = 0,
@@ -28,14 +30,26 @@ int session_proc(void *arg);
 void handle_event(app_context_t *app, SDL_Event *event);
 
 int main(int argc, char *argv[]) {
-    char *vid_driver = "ndl-webos4", *aud_driver = "ndl-webos4";
-    printf("Request audio driver: %s\n", aud_driver);
-    printf("Request video driver: %s\n", vid_driver);
+    os_info_t os_info = {0};
+    os_info_get(&os_info);
+    array_list_t modules = {0};
+
+    if (SS4S_ModulesList(&modules, &os_info) != 0) {
+        return 1;
+    }
+    SS4S_ModuleSelection selected_modules;
+    if (!SS4S_ModulesSelect(&modules, NULL, &selected_modules, true)) {
+        return 1;
+    }
+
+    printf("Request audio module: %s\n", SS4S_ModuleInfoGetName(selected_modules.audio_module));
+    printf("Request video module: %s\n", SS4S_ModuleInfoGetName(selected_modules.video_module));
+
     SDL_Init(SDL_INIT_VIDEO);
 
     SS4S_Config config = {
-            .audioDriver = aud_driver,
-            .videoDriver = vid_driver,
+            .audioDriver = SS4S_ModuleInfoGetId(selected_modules.audio_module),
+            .videoDriver = SS4S_ModuleInfoGetId(selected_modules.video_module),
     };
     if (SS4S_Init(argc, argv, &config) != 0) {
         abort();
