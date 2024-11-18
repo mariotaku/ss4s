@@ -6,7 +6,7 @@
 
 #include "ss4s.h"
 #include "test_common.h"
-#include "nalu_reader.h"
+#include "../samples/av-threaded/nalu_reader.h"
 
 static int ss4s_nalu_cb(void *ctx, const unsigned char *nalu, size_t size) {
     SS4S_Player *player = ctx;

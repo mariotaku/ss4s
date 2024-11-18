@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <stdlib.h>
 
 typedef int(*nalu_cb)(void *ctx, const unsigned char *nalu, size_t size);
 
