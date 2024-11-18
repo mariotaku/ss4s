@@ -5,6 +5,7 @@
 
 struct StarfishResource {
     long acbId;
+    long taskId;
 };
 
 static void AcbCallback(long acbId, long taskId, long eventType, long appState, long playState,
@@ -17,7 +18,10 @@ StarfishResource *StarfishResourceCreate(const char *appId) {
         free(res);
         return NULL;
     }
-    AcbAPI_initialize(res->acbId, PLAYER_TYPE_MSE, appId, AcbCallback);
+    if (!AcbAPI_initialize(res->acbId, PLAYER_TYPE_MSE, appId, AcbCallback)) {
+        free(res);
+        return NULL;
+    }
     return res;
 }
 
@@ -34,6 +38,24 @@ bool StarfishResourcePopulateLoadPayload(StarfishResource *resource, jvalue_ref 
     (void) arg;
     (void) audioInfo;
     (void) videoInfo;
+    return true;
+}
+
+bool StarfishResourceSetMediaId(StarfishResource *resource, const char *connId) {
+    if (resource->acbId == 0) {
+        return false;
+    }
+    StarfishLibContext->Log(SS4S_LogLevelInfo, "StarfishResource", "SetMediaId: %s", connId);
+    AcbAPI_setMediaId(resource->acbId, connId);
+    return true;
+}
+
+bool StarfishResourceSetMediaAudioData(StarfishResource *resource, const char *data) {
+    if (resource->acbId == 0) {
+        return false;
+    }
+    StarfishLibContext->Log(SS4S_LogLevelInfo, "StarfishResource", "SetMediaAudioData: %s", data);
+    AcbAPI_setMediaAudioData(resource->acbId, data, &resource->taskId);
     return true;
 }
 
@@ -68,7 +90,7 @@ bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *d
 #ifdef HAVE_SETMEDIAAUDIODATA
     AcbAPI_setMediaVideoData(resource->acbId, modified_info, NULL);
 #else
-    AcbAPI_setMediaVideoData(resource->acbId, modified_info);
+    AcbAPI_setMediaVideoData(resource->acbId, modified_info, &resource->taskId);
 #endif
 
     jdomparser_release(&parser);
@@ -79,9 +101,9 @@ bool StarfishResourceLoadCompleted(StarfishResource *resource, const char *media
     if (resource->acbId == 0) {
         return false;
     }
+    StarfishLibContext->Log(SS4S_LogLevelInfo, "StarfishResource", "LoadCompleted: %s", mediaId);
     AcbAPI_setSinkType(resource->acbId, SINK_TYPE_MAIN);
-    AcbAPI_setMediaId(resource->acbId, mediaId);
-    AcbAPI_setState(resource->acbId, APPSTATE_FOREGROUND, PLAYSTATE_LOADED, NULL);
+    AcbAPI_setState(resource->acbId, APPSTATE_FOREGROUND, PLAYSTATE_LOADED, &resource->taskId);
     return true;
 }
 
@@ -89,7 +111,7 @@ bool StarfishResourcePostLoad(StarfishResource *resource, const SS4S_VideoInfo *
     if (resource->acbId == 0) {
         return false;
     }
-    AcbAPI_setDisplayWindow(resource->acbId, 0, 0, info->width, info->height, true, NULL);
+    AcbAPI_setDisplayWindow(resource->acbId, 0, 0, info->width, info->height, true, &resource->taskId);
     return true;
 }
 
@@ -97,7 +119,7 @@ bool StarfishResourceStartPlaying(StarfishResource *resource) {
     if (resource->acbId == 0) {
         return false;
     }
-    AcbAPI_setState(resource->acbId, APPSTATE_FOREGROUND, PLAYSTATE_PLAYING, NULL);
+    AcbAPI_setState(resource->acbId, APPSTATE_FOREGROUND, PLAYSTATE_PLAYING, &resource->taskId);
     return true;
 }
 
@@ -105,11 +127,13 @@ bool StarfishResourcePostUnload(StarfishResource *resource) {
     if (resource->acbId == 0) {
         return false;
     }
-    AcbAPI_setState(resource->acbId, APPSTATE_FOREGROUND, PLAYSTATE_UNLOADED, NULL);
+    AcbAPI_setState(resource->acbId, APPSTATE_FOREGROUND, PLAYSTATE_UNLOADED, &resource->taskId);
     return true;
 }
 
 static void AcbCallback(long acbId, long taskId, long eventType, long appState, long playState,
                         const char *reply) {
-
+    StarfishLibContext->Log(SS4S_LogLevelInfo, "AcbCallback",
+                            "acbId: %ld, taskId: %ld, eventType: %ld, appState: %ld, playState: %ld, reply: %s",
+                            acbId, taskId, eventType, appState, playState, reply);
 }

@@ -14,6 +14,10 @@ void StarfishResourceDestroy(StarfishResource *res);
 bool StarfishResourcePopulateLoadPayload(StarfishResource *resource, jvalue_ref arg,
                                          const SS4S_AudioInfo *audioInfo, const SS4S_VideoInfo *videoInfo);
 
+bool StarfishResourceSetMediaId(StarfishResource *resource, const char *connId);
+
+bool StarfishResourceSetMediaAudioData(StarfishResource *resource, const char *data);
+
 bool StarfishResourceSetMediaVideoData(StarfishResource *resource, const char *data, bool hdr);
 
 bool StarfishResourceLoadCompleted(StarfishResource *resource, const char *mediaId);

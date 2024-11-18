@@ -25,6 +25,11 @@ static bool GetAudioCapabilities(SS4S_AudioCapabilities *capabilities, SS4S_Audi
     return true;
 }
 
+static SS4S_AudioCodec GetPreferredCodecs(const SS4S_AudioInfo *info) {
+    (void) info;
+    return SS4S_AUDIO_PCM_S16LE;
+}
+
 static SS4S_AudioOpenResult AudioOpen(const SS4S_AudioInfo *info, SS4S_AudioInstance **instance,
                                       SS4S_PlayerContext *context) {
     if (context == NULL) {
@@ -74,6 +79,7 @@ static SS4S_AudioFeedResult AudioFeed(SS4S_AudioInstance *instance, const unsign
 
 const SS4S_AudioDriver StarfishAudioDriver = {
         .GetCapabilities = GetAudioCapabilities,
+        .GetPreferredCodecs = GetPreferredCodecs,
         .Open = AudioOpen,
         .Feed = AudioFeed,
         .Close = AudioClose,
