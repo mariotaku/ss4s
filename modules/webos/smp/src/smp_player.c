@@ -227,6 +227,13 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
             StarfishResourceLoadCompleted(ctx->res, StarfishMediaAPIs_getMediaID(ctx->api));
             StarfishMediaAPIs_play(ctx->api);
             StarfishPlayerUnlock(ctx);
+            if (ctx->audioInfo.codec == SS4S_AUDIO_PCM_S16LE) {
+                unsigned short empty_buf[8] = {0};
+                int numChannels = ctx->audioInfo.numOfChannels;
+                size_t size = numChannels * sizeof(unsigned short);
+                StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "Playing empty PCM audio frame (%u bytes)", size);
+                StarfishPlayerFeed(ctx, (unsigned char *) empty_buf, size, 2);
+            }
             break;
         }
         case STARFISH_EVENT_STR_STATE_UPDATE_UNLOADCOMPLETED: {
@@ -339,11 +346,13 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
             )),
             J_END_OBJ_DECL
     ));
-    // Setting contentsType to WEBRTC will reduce video latency significantly
+    // Setting contentsType to WEBRTC will reduce video latency significantly,
+    // while setting to LIVE will improve audio sync
     jobject_set(option, J_CSTR_TO_BUF("transmission"), jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("contentsType"), J_CSTR_TO_JVAL("WEBRTC")),
             J_END_OBJ_DECL
     ));
+    jobject_set(option, J_CSTR_TO_BUF("needAudio"), jboolean_create(false));
     // When queryPosition is set to true, STARFISH_EVENT_FRAMEREADY will not be sent
     jobject_set(option, J_CSTR_TO_BUF("queryPosition"), jboolean_false());
     // Recognized on webOS 5+, doesn't seem to have any effect

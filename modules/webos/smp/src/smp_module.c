@@ -30,5 +30,10 @@ SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_MODULE_CHECK(SS4S_ModuleCheckFlag flags)
         return 0;
     }
 #endif
+#ifdef SS4S_SMP_AUDIO
     return flags;
+#else
+    // Disable audio support
+    return flags & ~SS4S_MODULE_CHECK_AUDIO;
+#endif
 }
