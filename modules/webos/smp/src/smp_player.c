@@ -30,10 +30,19 @@ static SS4S_PlayerContext *CreatePlayer(SS4S_Player *player) {
     pthread_mutex_init(&context->lock, NULL);
     context->player = player;
 
+    context->api = StarfishMediaAPIs_create(NULL);
+    if (context->api == NULL) {
+        StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Failed to instantiate media APIs");
+        free(context->appId);
+        pthread_mutex_destroy(&context->lock);
+        free(context);
+        return NULL;
+    }
     context->res = StarfishResourceCreate(context->appId);
     if (context->res == NULL) {
         StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Failed to allocate resource");
         free(context->appId);
+        StarfishMediaAPIs_destroy(context->api);
         pthread_mutex_destroy(&context->lock);
         free(context);
         return NULL;
@@ -64,12 +73,10 @@ bool StarfishPlayerLoadInner(SS4S_PlayerContext *ctx) {
         StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Media already loaded");
         return false;
     }
-    if (ctx->api == NULL && (ctx->api = StarfishMediaAPIs_create(NULL)) == NULL) {
-        StarfishLibContext->Log(SS4S_LogLevelError, "SMP", "Failed to instantiate media APIs");
-        return false;
-    }
     bool result = false;
     StarfishMediaAPIs_notifyForeground(ctx->api);
+    StarfishResourceSetMediaId(ctx->res, StarfishMediaAPIs_getMediaID(ctx->api));
+
     jvalue_ref payload = MakeLoadPayload(ctx, ctx->hasAudio ? &ctx->audioInfo : NULL,
                                          ctx->hasVideo ? &ctx->videoInfo : NULL);
     const char *payload_str = jvalue_stringify(payload);
@@ -154,8 +161,10 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
     switch (type) {
         case STARFISH_EVENT_FRAMEREADY: {
             StarfishPlayerLock(ctx);
-            uint64_t ptsNow = StarfishPlayerGetTime() - ctx->openTime;
-            StarfishLibContext->VideoStats.ReportFrame(ctx->player, (ptsNow - numValue) / 1000);
+            if (ctx->state == SMP_STATE_PLAYING) {
+                uint64_t ptsNow = StarfishPlayerGetTime() - ctx->openTime;
+                StarfishLibContext->VideoStats.ReportFrame(ctx->player, (ptsNow - numValue) / 1000);
+            }
             StarfishPlayerUnlock(ctx);
             break;
         }
@@ -170,10 +179,42 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
                                     numValue, strValue);
             break;
         }
-        case STARFISH_EVENT_STR_AUDIO_INFO:
-            StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "LoadCallback STARFISH_EVENT_STR_AUDIO_INFO %s\n",
+        case STARFISH_EVENT_INT_NUM_PROGRAM: {
+            StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "LoadCallback STARFISH_EVENT_INT_NUM_PROGRAM %lld\n",
+                                    numValue);
+            break;
+        }
+        case STARFISH_EVENT_INT_NUM_VIDEO_TRACK: {
+            StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP",
+                                    "LoadCallback STARFISH_EVENT_INT_NUM_VIDEO_TRACK %lld\n", numValue);
+            break;
+        }
+        case STARFISH_EVENT_STR_VIDEO_TRACK_INFO: {
+            StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "LoadCallback STARFISH_EVENT_STR_VIDEO_TRACK_INFO %s\n",
                                     strValue);
             break;
+        }
+        case STARFISH_EVENT_INT_NUM_AUDIO_TRACK: {
+            StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP",
+                                    "LoadCallback STARFISH_EVENT_INT_NUM_AUDIO_TRACK %lld\n", numValue);
+            break;
+        }
+        case STARFISH_EVENT_STR_AUDIO_TRACK_INFO: {
+            StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "LoadCallback STARFISH_EVENT_STR_AUDIO_TRACK_INFO %s\n",
+                                    strValue);
+            break;
+        }
+        case STARFISH_EVENT_STR_RESOURCE_INFO: {
+            StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "LoadCallback STARFISH_EVENT_STR_RESOURCE_INFO %s\n",
+                                    strValue);
+            break;
+        }
+        case STARFISH_EVENT_STR_AUDIO_INFO: {
+            StarfishPlayerLock(ctx);
+            StarfishResourceSetMediaAudioData(ctx->res, strValue);
+            StarfishPlayerUnlock(ctx);
+            break;
+        }
         case STARFISH_EVENT_INT_BUFFERLOW:
         case STARFISH_EVENT_STR_BUFFERLOW:
             break;
@@ -238,6 +279,7 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
             jkeyval(J_CSTR_TO_JVAL("esInfo"), jobject_create_var(
                     jkeyval(J_CSTR_TO_JVAL("pauseAtDecodeTime"), jboolean_create(true)),
                     jkeyval(J_CSTR_TO_JVAL("ptsToDecode"), jnumber_create_i64(0)),
+                    jkeyval(J_CSTR_TO_JVAL("seperatedPTS"), jboolean_true()),
                     J_END_OBJ_DECL
             )),
             jkeyval(J_CSTR_TO_JVAL("format"), J_CSTR_TO_JVAL("RAW")),
@@ -279,7 +321,12 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
             jkeyval(J_CSTR_TO_JVAL("contents"), contents),
             jkeyval(J_CSTR_TO_JVAL("streamQualityInfo"), jboolean_true()),
             jkeyval(J_CSTR_TO_JVAL("audioSync"), jboolean_true()),
+            jkeyval(J_CSTR_TO_JVAL("streamQualityInfoCorruptedFrame"), jboolean_true()),
+            jkeyval(J_CSTR_TO_JVAL("streamQualityInfoNonFlushable"), jboolean_true()),
+            jkeyval(J_CSTR_TO_JVAL("restartStreaming"), jboolean_false()),
             jkeyval(J_CSTR_TO_JVAL("bufferingCtrInfo"), jobject_create_var(
+                    jkeyval(J_CSTR_TO_JVAL("bufferMaxLevel"), jnumber_create_i32(0)),
+                    jkeyval(J_CSTR_TO_JVAL("bufferMinLevel"), jnumber_create_i32(0)),
                     jkeyval(J_CSTR_TO_JVAL("preBufferByte"), jnumber_create_i32(0)),
                     jkeyval(J_CSTR_TO_JVAL("qBufferLevelAudio"), jnumber_create_i32(0)),
                     jkeyval(J_CSTR_TO_JVAL("qBufferLevelVideo"), jnumber_create_i32(0)),
@@ -299,15 +346,8 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
     ));
     // When queryPosition is set to true, STARFISH_EVENT_FRAMEREADY will not be sent
     jobject_set(option, J_CSTR_TO_BUF("queryPosition"), jboolean_false());
-//    jobject_set(option, J_CSTR_TO_BUF("bufferControl"), jobject_create_var(
-//            jkeyval(J_CSTR_TO_JVAL("userBufferCtrl"), jboolean_true()),
-//            jkeyval(J_CSTR_TO_JVAL("preBufferTime"), jnumber_create_i32(3)),
-//            jkeyval(J_CSTR_TO_JVAL("bufferingMinTime"), jnumber_create_i32(1)),
-//            jkeyval(J_CSTR_TO_JVAL("bufferingMaxTime"), jnumber_create_i32(3)),
-//            J_END_OBJ_DECL
-//    ));
     // Recognized on webOS 5+, doesn't seem to have any effect
-    jobject_set(option, J_CSTR_TO_BUF("lowDelayMode"), jboolean_create(true));
+    jobject_set(option, J_CSTR_TO_BUF("lowDelayMode"), jboolean_true());
 
     if (videoInfo) {
         int frameRate = 6000;
@@ -346,7 +386,8 @@ jvalue_ref AudioCreatePcmInfo(const SS4S_AudioInfo *audioInfo) {
     return jobject_create_var(
             jkeyval(J_CSTR_TO_JVAL("channelMode"), j_cstr_to_jval(channelMode)),
             jkeyval(J_CSTR_TO_JVAL("format"), j_cstr_to_jval("S16LE")),
-            jkeyval(J_CSTR_TO_JVAL("sampleRate"), jnumber_create_i32(1)),
+            jkeyval(J_CSTR_TO_JVAL("sampleRate"), jnumber_create_f64(audioInfo->sampleRate / 1000.0)),
+            jkeyval(J_CSTR_TO_JVAL("bitsPerSample"), jnumber_create_i32(16)),
             jkeyval(J_CSTR_TO_JVAL("layout"), j_cstr_to_jval("interleaved")),
             J_END_OBJ_DECL
     );

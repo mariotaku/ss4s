@@ -3,9 +3,8 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <dlfcn.h>
-#include <stdio.h>
-#include <memory.h>
+
+#include "knlp_check.h"
 
 pthread_mutex_t SS4S_NDL_webOS4_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS4_Initialized = false;
@@ -24,17 +23,8 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_Li
 }
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
-    FILE *f = fopen("/etc/prefs/properties/machineName", "r");
-    char machine_name[16] = {0};
-    if (f != NULL) {
-        size_t read_len = fread(machine_name, 1, sizeof(machine_name), f);
-        fclose(f);
-        if (read_len > 0) {
-            if (memcmp(machine_name, "k5lp", 4) == 0 || memcmp(machine_name, "k3lp", 4) == 0) {
-                // k5lp and k3lp SoCs are not supported
-                return 0;
-            }
-        }
+    if (SS4S_webOS_KNLP_IsProblematic()) {
+        return 0;
     }
     return flags;
 }
