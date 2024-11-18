@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-bool SS4S_webOS_KNLP_IsProblematic() {
+bool SS4S_webOS_KNLP_IsJailConfigBroken() {
     // Read SoC name
     FILE *f = fopen("/etc/prefs/properties/machineName", "r");
     char machine_name[16] = {0};

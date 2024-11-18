@@ -23,7 +23,7 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_Li
 }
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
-    if (SS4S_webOS_KNLP_IsProblematic()) {
+    if (SS4S_webOS_KNLP_IsJailConfigBroken()) {
         return 0;
     }
     return flags;

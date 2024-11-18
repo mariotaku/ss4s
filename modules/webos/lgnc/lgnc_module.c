@@ -23,7 +23,7 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_LGNC(SS4S_Module *module, const SS4S_LibraryC
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_LGNC(SS4S_ModuleCheckFlag flags) {
     if (flags & SS4S_MODULE_CHECK_AUDIO) {
-        if (SS4S_webOS_KNLP_IsProblematic()) {
+        if (SS4S_webOS_KNLP_IsJailConfigBroken()) {
             return flags & ~SS4S_MODULE_CHECK_AUDIO;
         }
     }

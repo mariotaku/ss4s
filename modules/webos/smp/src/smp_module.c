@@ -26,7 +26,7 @@ SS4S_EXPORTED bool SS4S_MODULE_ENTRY(SS4S_Module *module, const SS4S_LibraryCont
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_MODULE_CHECK(SS4S_ModuleCheckFlag flags) {
 #ifdef SS4S_KNLP_CHECK
-    if (SS4S_webOS_KNLP_IsProblematic()) {
+    if (SS4S_webOS_KNLP_IsJailConfigBroken()) {
         return 0;
     }
 #endif
