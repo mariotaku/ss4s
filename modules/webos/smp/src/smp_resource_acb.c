@@ -55,7 +55,9 @@ bool StarfishResourceSetMediaAudioData(StarfishResource *resource, const char *d
         return false;
     }
     StarfishLibContext->Log(SS4S_LogLevelInfo, "StarfishResource", "SetMediaAudioData: %s", data);
+#ifdef HAVE_SETMEDIAAUDIODATA
     AcbAPI_setMediaAudioData(resource->acbId, data, &resource->taskId);
+#endif
     return true;
 }
 
