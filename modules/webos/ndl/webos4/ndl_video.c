@@ -63,7 +63,9 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
     PlayUserData playUserData = {context, SS4S_NDL_webOS4_LibContext->VideoStats.BeginFrame(context->player)};
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
-    int rc = NDL_DirectVideoPlayWithCallback((void *) data, size, *((unsigned long long *) &playUserData));
+    unsigned long long userDataParam = 0;
+    memcpy(&userDataParam, &playUserData, sizeof(playUserData));
+    int rc = NDL_DirectVideoPlayWithCallback((void *) data, size, userDataParam);
     if (rc != 0) {
         return SS4S_VIDEO_FEED_ERROR;
     }
