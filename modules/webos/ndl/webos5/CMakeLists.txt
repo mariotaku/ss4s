@@ -5,7 +5,7 @@ if (NOT SS4S_MODULE_TARGET)
     return()
 endif ()
 target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${NDL_DIRECTMEDIA_INCLUDE_DIRS})
-target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${NDL_DIRECTMEDIA_LIBRARIES} pthread dl)
+target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${NDL_DIRECTMEDIA_LIBRARIES} pthread dl ss4s-webos-utils)
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE NDL_DIRECTMEDIA_API_VERSION=2 _GNU_SOURCE)
 target_compile_options(${SS4S_MODULE_TARGET} PRIVATE -Wno-error=attributes)
 

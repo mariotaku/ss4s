@@ -4,6 +4,7 @@
 #ifdef HAS_OPUS
 
 #include "opus_empty.h"
+#include "o22plus_check.h"
 
 #endif
 
@@ -14,8 +15,13 @@ static uint64_t GetTimeUs();
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265 | SS4S_VIDEO_VP9 | SS4S_VIDEO_AV1;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
-    capabilities->maxBitrate = 65000;
-    capabilities->suggestedBitrate = 35000;
+    if (SS4S_webOS_Is_O22_And_Above()) {
+        capabilities->maxBitrate = 95000;
+        capabilities->suggestedBitrate = 45000;
+    } else {
+        capabilities->maxBitrate = 65000;
+        capabilities->suggestedBitrate = 35000;
+    }
     capabilities->hdr = true;
     // If fullColorRange is set to true, the video will be displayed with over saturated colors.
     capabilities->fullColorRange = false;
