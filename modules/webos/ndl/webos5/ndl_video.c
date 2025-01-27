@@ -1,10 +1,10 @@
 #include <string.h>
 #include "ndl_common.h"
+#include "o22plus_check.h"
 
 #ifdef HAS_OPUS
 
 #include "opus_empty.h"
-#include "o22plus_check.h"
 
 #endif
 
