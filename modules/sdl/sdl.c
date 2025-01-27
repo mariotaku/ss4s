@@ -5,7 +5,8 @@
 #include <SDL2/SDL.h>
 
 struct SS4S_AudioInstance {
-    sdlaud_ringbuf *ringbuf;
+    ss4s_ringbuf_t *ringbuf;
+    SDL_mutex *ringbuf_mutex;
     unsigned char *readbuf;
     int readbuf_size;
 };
@@ -50,17 +51,18 @@ static SS4S_AudioOpenResult Open(const SS4S_AudioInfo *info, SS4S_AudioInstance 
     }
     if (have.format != want.format) {
     }
-    newInstance->ringbuf = sdlaud_ringbuf_new(bufSize * 1024);
+    newInstance->ringbuf = ringbuf_new(bufSize * 1024);
+    newInstance->ringbuf_mutex = SDL_CreateMutex();
     *instance = newInstance;
     SDL_PauseAudio(0); // start audio playing.
     return SS4S_AUDIO_OPEN_OK;
 }
 
 static int Feed(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
-    size_t write_size = sdlaud_ringbuf_write(instance->ringbuf, data, size);
+    size_t write_size = ringbuf_write(instance->ringbuf, data, size);
     if (!write_size) {
         LibContext->Log(SS4S_LogLevelWarn, "SDLAudio", "ring buffer overflow, clean the whole buffer");
-        sdlaud_ringbuf_clear(instance->ringbuf);
+        ringbuf_clear(instance->ringbuf);
     }
     return 0;
 }
@@ -71,7 +73,7 @@ static void Callback(void *userdata, Uint8 *stream, int len) {
         instance->readbuf = SDL_realloc(instance->readbuf, len);
         instance->readbuf_size = len;
     }
-    size_t read_size = sdlaud_ringbuf_read(instance->ringbuf, instance->readbuf, len);
+    size_t read_size = ringbuf_read(instance->ringbuf, instance->readbuf, len);
     if (read_size > 0) {
         SDL_memset(stream, 0, len);
         SDL_MixAudio(stream, instance->readbuf, read_size, SDL_MIX_MAXVOLUME);
@@ -82,7 +84,7 @@ static void Callback(void *userdata, Uint8 *stream, int len) {
 static void Close(SS4S_AudioInstance *instance) {
     SDL_CloseAudio();
     if (instance->ringbuf != NULL) {
-        sdlaud_ringbuf_delete(instance->ringbuf);
+        ringbuf_delete(instance->ringbuf);
         instance->ringbuf = NULL;
     }
     if (instance->readbuf != NULL) {

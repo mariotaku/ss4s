@@ -57,6 +57,7 @@ function(ss4s_add_module NAME)
     message(STATUS "Enable SS4S module `${NAME}`")
 endfunction()
 
+add_subdirectory(utils)
 
 add_subdirectory(alsa)
 add_subdirectory(pulse)
