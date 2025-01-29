@@ -1,9 +1,16 @@
 #pragma once
 
-typedef struct SS4S_NDLOpusEmpty SS4S_NDLOpusEmpty;
+#include <stddef.h>
+#include <stdbool.h>
 
-SS4S_NDLOpusEmpty *SS4S_NDLOpusEmptyCreate(int channels, int streams, int coupled);
+typedef struct SS4S_OpusEmpty SS4S_OpusEmpty;
 
-void SS4S_NDLOpusEmptyDestroy(SS4S_NDLOpusEmpty *instance);
+typedef int (*SS4S_NDLOpusEmptyFeedFunc)(const unsigned char *data, size_t size);
 
-int SS4S_NDLOpusEmptyPlay(const SS4S_NDLOpusEmpty *instance);
+SS4S_OpusEmpty *SS4S_OpusEmptyCreate(int channels, int streams, int coupled);
+
+void SS4S_OpusEmptyDestroy(SS4S_OpusEmpty *instance);
+
+bool SS4S_OpusIsEmptyFrame(const SS4S_OpusEmpty *instance, const unsigned char *data, size_t size);
+
+int SS4S_OpusEmptyPlay(const SS4S_OpusEmpty *instance, SS4S_NDLOpusEmptyFeedFunc feed);
