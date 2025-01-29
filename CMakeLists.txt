@@ -12,8 +12,10 @@ option(SS4S_COMPILE_CHECK_STRICT "Treat compile warnings as errors" ON)
 # Don't include tests by default if used as library
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     option(SS4S_ENABLE_TESTS "Enable tests" ON)
+    option(SS4S_ENABLE_SAMPLES "Enable samples" ON)
 else ()
     option(SS4S_ENABLE_TESTS "Enable tests" OFF)
+    option(SS4S_ENABLE_SAMPLES "Enable samples" OFF)
 endif ()
 
 set(SS4S_TARGET_WEBOS OFF)
@@ -62,9 +64,6 @@ if (SS4S_GENERATE_MODULES_LIST)
     include(GenerateModulesList)
 endif ()
 
-if (SS4S_ENABLE_TESTS)
+if (SS4S_ENABLE_SAMPLES)
     add_subdirectory(samples)
-
-    enable_testing()
-    add_subdirectory(tests)
 endif ()

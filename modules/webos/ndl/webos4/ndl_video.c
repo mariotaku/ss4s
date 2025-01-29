@@ -1,12 +1,6 @@
 #include "ndl_common.h"
 
 #include <string.h>
-#include <stdlib.h>
-
-typedef struct PlayUserData {
-    SS4S_PlayerContext *context;
-    uint32_t beginResult;
-} PlayUserData;
 
 static const SS4S_PlayerContext *CurrentContext = NULL;
 
@@ -41,11 +35,11 @@ static SS4S_VideoOpenResult OpenVideo(const SS4S_VideoInfo *info, const SS4S_Vid
         result = SS4S_VIDEO_OPEN_ERROR;
         goto finish;
     }
-    CurrentContext = context;
     NDL_DirectVideoSetCallback(VideoCallback);
     context->videoOpened = true;
     FitVideo(&context->videoInfo);
     *instance = (SS4S_VideoInstance *) context;
+    CurrentContext = context;
     result = SS4S_VIDEO_OPEN_OK;
 
     finish:
@@ -61,10 +55,8 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
         return SS4S_VIDEO_FEED_NOT_READY;
     }
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
-    PlayUserData playUserData = {context, SS4S_NDL_webOS4_LibContext->VideoStats.BeginFrame(context->player)};
+    unsigned long long userDataParam = SS4S_NDL_webOS4_LibContext->VideoStats.BeginFrame(context->player);
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
-    unsigned long long userDataParam = 0;
-    memcpy(&userDataParam, &playUserData, sizeof(playUserData));
     int rc = NDL_DirectVideoPlayWithCallback((void *) data, size, userDataParam);
     if (rc != 0) {
         return SS4S_VIDEO_FEED_ERROR;
@@ -126,9 +118,8 @@ static void FitVideo(const NDL_DIRECTVIDEO_DATA_INFO_T *info) {
 
 static void VideoCallback(unsigned long long userdata) {
     pthread_mutex_lock(&SS4S_NDL_webOS4_Lock);
-    PlayUserData *dataStruct = (void *) &userdata;
-    if (dataStruct->context == CurrentContext && dataStruct->context->videoOpened) {
-        SS4S_NDL_webOS4_LibContext->VideoStats.EndFrame(dataStruct->context->player, dataStruct->beginResult);
+    if (CurrentContext) {
+        SS4S_NDL_webOS4_LibContext->VideoStats.EndFrame(CurrentContext->player, (uint32_t) userdata);
     }
     pthread_mutex_unlock(&SS4S_NDL_webOS4_Lock);
 }
