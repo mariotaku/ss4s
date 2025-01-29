@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <stddef.h>
 #include <dlfcn.h>
 
@@ -6,18 +5,16 @@
 
 static int SupportsPCM6Channel = 0;
 
-static void Base64Enc(char *dst, const unsigned char *src, size_t srcLen);
-
 #ifdef HAS_OPUS
-#include <string.h>
-#include <opus_multistream.h>
 
-#include "opus_empty.h"
+#include <string.h>
+
 #include "opus_fix.h"
 
 static bool IsOpusPassthroughSupported(const OpusConfig *config);
 
 static bool ParseOpusConfig(const unsigned char *codecData, size_t codecDataLen, OpusConfig *config);
+
 #endif
 
 static int DriverInit(int argc, char *argv[]) {
@@ -84,45 +81,37 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
             break;
         }
 #ifdef HAS_OPUS
-            case SS4S_AUDIO_OPUS: {
-                NDL_DIRECTMEDIA_AUDIO_OPUS_INFO_T opusInfo = {
-                        .type = NDL_AUDIO_TYPE_OPUS,
-                        .channels = info->numOfChannels,
-                        .sampleRate = info->sampleRate / 1000.0,
-                };
-                if (info->codecData && info->codecDataLen) {
-                    OpusConfig opusConfig;
-                    if (!ParseOpusConfig(info->codecData, info->codecDataLen, &opusConfig)) {
-                        result = SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
-                        goto finish;
-                    }
-                    context->streamHeader = malloc(((info->codecDataLen + 3 - 1) / 3) * 4 + 1);
-                    if (!context->streamHeader) {
+        case SS4S_AUDIO_OPUS: {
+            NDL_DIRECTMEDIA_AUDIO_OPUS_INFO_T opusInfo = {
+                    .type = NDL_AUDIO_TYPE_OPUS,
+                    .channels = info->numOfChannels,
+                    .sampleRate = info->sampleRate / 1000.0,
+            };
+            if (info->codecData && info->codecDataLen) {
+                OpusConfig opusConfig;
+                if (!ParseOpusConfig(info->codecData, info->codecDataLen, &opusConfig)) {
+                    result = SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
+                    goto finish;
+                }
+                if (opusConfig.channels == 6 && !IsOpusPassthroughSupported(&opusConfig)) {
+                    SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL",
+                                        "Channel config is not supported, enabling re-encoding. "
+                                        "This will introduce audio latency");
+                    context->opusFix = SS4S_NDLOpusFixCreate(&opusConfig);
+                    if (!context->opusFix) {
                         result = SS4S_AUDIO_OPEN_ERROR;
                         goto finish;
                     }
-                    Base64Enc(context->streamHeader, info->codecData, info->codecDataLen);
-                    opusInfo.streamHeader = context->streamHeader;
-                    context->opusEmpty = SS4S_NDLOpusEmptyCreate(opusConfig.channels, opusConfig.streamCount,
-                                                                 opusConfig.coupledCount);
-                    if (opusConfig.channels == 6 && !IsOpusPassthroughSupported(&opusConfig)) {
-                        SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL",
-                                            "Channel config is not supported, enabling re-encoding. "
-                                            "This will introduce audio latency");
-                        context->opusFix = SS4S_NDLOpusFixCreate(&opusConfig);
-                        if (!context->opusFix) {
-                            result = SS4S_AUDIO_OPEN_ERROR;
-                            goto finish;
-                        }
-                    }
                 }
-                context->mediaInfo.audio.opus = opusInfo;
-                break;
             }
+            context->mediaInfo.audio.opus = opusInfo;
+            break;
+        }
 #endif
-        default:
+        default: {
             result = SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
             goto finish;
+        }
     }
     if (SS4S_NDL_webOS5_ReloadMedia(context) != 0) {
         result = SS4S_AUDIO_OPEN_ERROR;
@@ -143,18 +132,20 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
         return SS4S_AUDIO_FEED_NOT_READY;
     }
     int rc;
+    const unsigned char *dataToFeed = data;
+    size_t sizeToFeed = size;
 #ifdef HAS_OPUS
-    if (context->opusEmpty) {
-        SS4S_NDLOpusEmptyMediaAudioReady(context->opusEmpty);
-    }
     if (context->opusFix) {
-        int fixed_size = SS4S_NDLOpusFixProcess(context->opusFix, data, size);
-        rc = NDL_DirectAudioPlay((void *) SS4S_NDLOpusFixGetBuffer(context->opusFix), fixed_size, 0);
-    } else
-#endif
-    {
-        rc = NDL_DirectAudioPlay((void *) data, size, 0);
+        int fixedSize = SS4S_NDLOpusFixProcess(context->opusFix, data, size);
+        if (fixedSize < 0) {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "SS4S_NDLOpusFixProcess returned %d", fixedSize);
+            return SS4S_AUDIO_FEED_ERROR;
+        }
+        sizeToFeed = fixedSize;
+        dataToFeed = SS4S_NDLOpusFixGetBuffer(context->opusFix);
     }
+#endif
+    rc = NDL_DirectAudioPlay((void *) dataToFeed, sizeToFeed, 0);
     if (rc != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectAudioPlay returned %d: %s", rc,
                             NDL_DirectMediaGetError());
@@ -168,46 +159,18 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = (void *) instance;
     context->mediaInfo.audio.type = 0;
-    if (context->streamHeader) {
-        free(context->streamHeader);
-        context->streamHeader = NULL;
-    }
 #ifdef HAS_OPUS
     if (context->opusFix) {
         SS4S_NDLOpusFixDestroy(context->opusFix);
         context->opusFix = NULL;
-    }
-    if (context->opusEmpty) {
-        SS4S_NDLOpusEmptyDestroy(context->opusEmpty);
-        context->opusEmpty = NULL;
     }
 #endif
     SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
 }
 
-void Base64Enc(char *dst, const unsigned char *src, size_t srcLen) {
-    static const char *base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    for (size_t i = 0; i < srcLen; i += 3) {
-        unsigned int val = src[i] << 16;
-        if (i + 1 < srcLen) {
-            val |= src[i + 1] << 8;
-        }
-        if (i + 2 < srcLen) {
-            val |= src[i + 2];
-        }
-        for (int j = 0; j < 4; j++) {
-            if (i + j <= srcLen) {
-                dst[i / 3 * 4 + j] = base64[(val >> (18 - j * 6)) & 0x3F];
-            } else {
-                dst[i / 3 * 4 + j] = '=';
-            }
-        }
-    }
-    dst[(srcLen + 2) / 3 * 4] = '\0';
-}
-
 #ifdef HAS_OPUS
+
 bool IsOpusPassthroughSupported(const OpusConfig *config) {
     static const uint8_t wantedMapping[6] = {0, 1, 4, 5, 2, 3};
     return config->streamCount == 4 && config->coupledCount == 2 && memcmp(config->mapping, wantedMapping, 6) == 0;
@@ -229,6 +192,7 @@ bool ParseOpusConfig(const unsigned char *codecData, size_t codecDataLen, OpusCo
     }
     return true;
 }
+
 #endif
 
 const SS4S_AudioDriver SS4S_NDL_webOS5_AudioDriver = {

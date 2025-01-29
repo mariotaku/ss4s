@@ -14,9 +14,7 @@ struct SS4S_PlayerContext {
     SS4S_Player *player;
     uint64_t lastFrameTime;
     NDL_DIRECTMEDIA_DATA_INFO_T mediaInfo;
-    void *streamHeader;
 #ifdef HAS_OPUS
-    struct SS4S_NDLOpusEmpty *opusEmpty;
     struct SS4S_NDLOpusFix *opusFix;
 #endif
     bool mediaLoaded;

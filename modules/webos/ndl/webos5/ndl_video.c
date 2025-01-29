@@ -2,12 +2,6 @@
 #include "ndl_common.h"
 #include "o22plus_check.h"
 
-#ifdef HAS_OPUS
-
-#include "opus_empty.h"
-
-#endif
-
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
 static uint64_t GetTimeUs();
@@ -78,11 +72,6 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     if (!context->mediaLoaded) {
         return SS4S_VIDEO_FEED_NOT_READY;
     }
-#ifdef HAS_OPUS
-    if (context->opusEmpty) {
-        SS4S_NDLOpusEmptyMediaVideoReady(context->opusEmpty);
-    }
-#endif
     int rc = NDL_DirectVideoPlay((void *) data, size, 0);
     if (rc != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectVideoPlay returned %d: %s", rc,
