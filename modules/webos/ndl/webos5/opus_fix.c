@@ -1,10 +1,10 @@
-#include <malloc.h>
-
-#include "opus_fix.h"
-#include "ndl_common.h"
+#include <stdlib.h>
+#include <assert.h>
 
 #include <opus_multistream.h>
-#include <assert.h>
+#include "opus_fix.h"
+
+#include "ndl_logging.h"
 
 static const unsigned char webos_mapping[6] = {0, 1, 4, 5, 2, 3};
 
