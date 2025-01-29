@@ -4,9 +4,9 @@
 #include <NDL_directmedia_v2.h>
 
 #include "ss4s/modapi.h"
+#include "ndl_logging.h"
 
 extern bool SS4S_NDL_webOS5_Initialized;
-extern SS4S_LoggingFunction *SS4S_NDL_webOS5_Log;
 extern pthread_mutex_t SS4S_NDL_webOS5_Lock;
 extern const SS4S_LibraryContext *SS4S_NDL_webOS5_Lib;
 

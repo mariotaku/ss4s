@@ -15,10 +15,16 @@ endif ()
 
 add_library(ss4s-opus-empty STATIC opus_empty.c)
 target_include_directories(ss4s-opus-empty PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(ss4s-opus-empty PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        C_VISIBILITY_PRESET hidden)
 
 add_library(ss4s-opus-fix STATIC opus_fix.c)
 target_include_directories(ss4s-opus-fix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} SYSTEM PRIVATE ${OPUS_INCLUDE_DIRS})
-target_link_libraries(ss4s-opus-fix PUBLIC ${OPUS_LIBRARIES})
+target_link_libraries(ss4s-opus-fix PUBLIC ${OPUS_LIBRARIES} PRIVATE ss4s-module-api)
+set_target_properties(ss4s-opus-fix PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        C_VISIBILITY_PRESET hidden)
 
 
 target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${NDL_DIRECTMEDIA_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
