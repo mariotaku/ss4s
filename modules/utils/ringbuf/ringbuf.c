@@ -20,7 +20,7 @@ ss4s_ringbuf_t *ringbuf_new(size_t capacity) {
 }
 
 size_t ringbuf_write(ss4s_ringbuf_t *buf, const unsigned char *src, size_t size) {
-    if (buf->size + size >= buf->cap) {
+    if (buf->size + size > buf->cap) {
         // Buffer overflow
         return 0;
     }
@@ -66,6 +66,20 @@ size_t ringbuf_read(ss4s_ringbuf_t *buf, unsigned char *dst, size_t size) {
     return read_size;
 }
 
+size_t ringbuf_rewind(ss4s_ringbuf_t *buf, size_t size) {
+    size_t rewind_size = min(buf->size, size);
+    if (rewind_size == 0) {
+        return 0;
+    }
+    buf->size -= rewind_size;
+    if (buf->tail < rewind_size) {
+        buf->tail = buf->cap - (rewind_size - buf->tail);
+    } else {
+        buf->tail = buf->tail - rewind_size;
+    }
+    return rewind_size;
+}
+
 void ringbuf_clear(ss4s_ringbuf_t *buf) {
     buf->size = 0;
     buf->head = 0;
@@ -74,6 +88,10 @@ void ringbuf_clear(ss4s_ringbuf_t *buf) {
 
 size_t ringbuf_size(const ss4s_ringbuf_t *buf) {
     return buf->size;
+}
+
+size_t ringbuf_capacity(const ss4s_ringbuf_t *buf) {
+    return buf->cap;
 }
 
 void ringbuf_delete(ss4s_ringbuf_t *buf) {

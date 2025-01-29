@@ -1,1 +1,2 @@
 add_subdirectory(ringbuf)
+add_subdirectory(pacer)
