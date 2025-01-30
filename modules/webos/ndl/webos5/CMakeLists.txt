@@ -29,7 +29,7 @@ set_target_properties(ss4s-opus-fix PROPERTIES
 
 target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${NDL_DIRECTMEDIA_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
 target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${NDL_DIRECTMEDIA_LIBRARIES} ${OPUS_LIBRARIES}
-        pthread dl ss4s-opus-empty ss4s-opus-fix ss4s-webos-utils)
+        pthread dl ss4s-opus-empty ss4s-opus-fix ss4s-webos-utils ss4s-pacer)
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE NDL_DIRECTMEDIA_API_VERSION=2 _GNU_SOURCE)
 target_compile_options(${SS4S_MODULE_TARGET} PRIVATE -Wno-error=attributes)
 
