@@ -15,6 +15,7 @@ struct SS4S_PlayerContext {
     uint64_t lastFrameTime;
     NDL_DIRECTMEDIA_DATA_INFO_T mediaInfo;
     struct SS4S_Pacer *pacer;
+    struct SS4S_OpusEmpty *opusEmpty;
     struct SS4S_NDLOpusFix *opusFix;
     bool mediaLoaded;
     bool waitAudioVideoReady;
