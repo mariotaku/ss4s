@@ -32,9 +32,14 @@ struct SS4S_Pacer {
 
 };
 
+typedef struct FramePreamble {
+    size_t size;
+    struct timespec time;
+} FramePreamble;
+
 static void *ConsumerThread(void *arg);
 
-static size_t QueuePop(SS4S_Pacer *pacer, uint8_t *data, size_t dataCapacity);
+static size_t QueuePop(SS4S_Pacer *pacer, uint8_t *data, size_t dataCap, FramePreamble *preamble, size_t *bufRemaining);
 
 static int QueuePush(SS4S_Pacer *pacer, const uint8_t *data, size_t dataLength);
 
@@ -44,7 +49,7 @@ SS4S_Pacer *SS4S_PacerCreate(size_t healthyBufferCount, size_t bufferSizeLimit, 
                              SS4S_PacerCallback callback, void *callbackContext) {
     SS4S_Pacer *pacer = (SS4S_Pacer *) malloc(sizeof(SS4S_Pacer));
     pthread_mutex_init(&pacer->lock, NULL);
-    pacer->buffer = ringbuf_new((sizeof(size_t) + bufferSizeLimit) * healthyBufferCount * 4);
+    pacer->buffer = ringbuf_new((sizeof(FramePreamble) + bufferSizeLimit) * healthyBufferCount * 4);
     pacer->bufferCount = 0;
     pacer->underflow = true;
     pacer->healthyBufferCount = healthyBufferCount;
@@ -101,7 +106,7 @@ bool IsRunning(SS4S_Pacer *pacer) {
     return running;
 }
 
-size_t QueuePop(SS4S_Pacer *pacer, uint8_t *data, size_t dataCapacity) {
+size_t QueuePop(SS4S_Pacer *pacer, uint8_t *data, size_t dataCap, FramePreamble *preamble, size_t *bufRemaining) {
     pthread_mutex_lock(&pacer->lock);
     // Don't pop if underflow or no frames
     if (pacer->underflow) {
@@ -113,12 +118,12 @@ size_t QueuePop(SS4S_Pacer *pacer, uint8_t *data, size_t dataCapacity) {
         pthread_mutex_unlock(&pacer->lock);
         return 0;
     }
-    size_t dataLength = 0;
-    size_t sizeRead = ringbuf_read(pacer->buffer, (unsigned char *) &dataLength, sizeof(dataLength));
-    assert(sizeRead == sizeof(dataLength));
-    assert(dataLength <= dataCapacity);
+    size_t sizeRead = ringbuf_read(pacer->buffer, (unsigned char *) preamble, sizeof(FramePreamble));
+    assert(sizeRead == sizeof(FramePreamble));
+    assert(preamble->size <= dataCap);
     pacer->bufferCount--;
-    size_t read = ringbuf_read(pacer->buffer, data, dataLength);
+    size_t read = ringbuf_read(pacer->buffer, data, preamble->size);
+    *bufRemaining = pacer->bufferCount;
     pthread_mutex_unlock(&pacer->lock);
     return (int) read;
 }
@@ -129,16 +134,18 @@ int QueuePush(SS4S_Pacer *pacer, const uint8_t *data, size_t dataLength) {
         pthread_mutex_unlock(&pacer->lock);
         return -1;
     }
-    size_t sizeWritten = ringbuf_write(pacer->buffer, (const unsigned char *) &dataLength, sizeof(dataLength));
+    FramePreamble preamble = {dataLength};
+    clock_gettime(CLOCK_MONOTONIC, &preamble.time);
+    size_t sizeWritten = ringbuf_write(pacer->buffer, (const unsigned char *) &preamble, sizeof(preamble));
     if (sizeWritten == 0) {
         pthread_mutex_unlock(&pacer->lock);
         return 0;
     }
-    assert(sizeWritten == sizeof(dataLength));
+    assert(sizeWritten == sizeof(preamble));
     sizeWritten = ringbuf_write(pacer->buffer, data, dataLength);
     if (sizeWritten == 0) {
-        size_t rewindSize = ringbuf_rewind(pacer->buffer, sizeof(dataLength));
-        assert(rewindSize == sizeof(dataLength));
+        size_t rewindSize = ringbuf_rewind(pacer->buffer, sizeof(preamble));
+        assert(rewindSize == sizeof(preamble));
         pthread_mutex_unlock(&pacer->lock);
         return 0;
     }
@@ -167,6 +174,7 @@ void UpdateLastFrameTime(SS4S_Pacer *pacer) {
 void *ConsumerThread(void *arg) {
     SS4S_Pacer *pacer = (SS4S_Pacer *) arg;
     uint32_t intervalUs = pacer->intervalUs;
+    size_t healthyBufferCount = pacer->healthyBufferCount;
     size_t frameSizeLimit = pacer->bufferSizeLimit;
     SS4S_PacerCallback callback = pacer->callback;
     void *callbackContext = pacer->callbackContext;
@@ -175,16 +183,28 @@ void *ConsumerThread(void *arg) {
     while (IsRunning(pacer)) {
         struct timespec last;
         GetLastFrameTime(pacer, &last);
-        size_t frameSize = QueuePop(pacer, frame, frameSizeLimit);
+        FramePreamble preamble;
+        size_t remainingCount;
+        size_t frameSize = QueuePop(pacer, frame, frameSizeLimit, &preamble, &remainingCount);
 
         callback(callbackContext, frame, frameSize);
 
         struct timespec now;
         clock_gettime(CLOCK_MONOTONIC, &now);
         // Calculate time elapsed after callback since last frame
-        int64_t diff = TimeDiff(&last, &now);
+        int64_t diff = TimeDiff(&now, &last);
         // Wait if elapsed time is less than interval
         int64_t sleepUs = intervalUs - diff;
+
+        // If buffer is larger than healthy amount, reduce sleep time by latency
+        if (frameSize > 0 && (remainingCount + 1) >= healthyBufferCount) {
+            time_t lag = TimeDiff(&now, &preamble.time) - diff;
+            int64_t drift = lag - (int64_t) (healthyBufferCount * intervalUs);
+            if (drift > 0) {
+                sleepUs -= drift;
+            }
+        }
+
         if (sleepUs > 0) {
             usleep(sleepUs);
         }
@@ -196,5 +216,5 @@ void *ConsumerThread(void *arg) {
 }
 
 time_t TimeDiff(const struct timespec *a, const struct timespec *b) {
-    return ((*b).tv_sec - (*a).tv_sec) * 1000000 + ((*b).tv_nsec - (*a).tv_nsec) / 1000 + 100;
+    return (a->tv_sec - b->tv_sec) * 1000000 + (a->tv_nsec - b->tv_nsec) / 1000 + 100;
 }

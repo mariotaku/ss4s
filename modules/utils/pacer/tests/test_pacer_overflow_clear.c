@@ -7,7 +7,7 @@
 
 int main() {
     int iterations = 100;
-    int interval = 5000;
+    int interval = 50000;
     SS4S_Pacer *pacerRef[1];
     SS4S_Pacer *pacer = SS4S_PacerCreate(3, sizeof(struct timespec), interval, callback,
                                          pacerRef);
@@ -21,7 +21,6 @@ int main() {
             SS4S_PacerClear(pacer);
             continue;
         }
-        usleep(interval / 2);
     }
     assert(SS4S_PacerFeed(pacer, (const uint8_t *) "01234567890123456789", 20) == -1);
     usleep(interval * iterations / 2);

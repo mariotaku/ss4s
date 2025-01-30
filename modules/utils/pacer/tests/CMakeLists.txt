@@ -9,3 +9,7 @@ add_test(pacer-overflow-clear test-pacer-overflow-clear)
 add_executable(test-pacer-overflow-rewind test_pacer_overflow_rewind.c)
 target_link_libraries(test-pacer-overflow-rewind ss4s-pacer)
 add_test(pacer-overflow-rewind test-pacer-overflow-rewind)
+
+add_executable(test-pacer-duration test_pacer_duration.c)
+target_link_libraries(test-pacer-duration ss4s-pacer)
+add_test(pacer-duration test-pacer-duration 5)
