@@ -11,10 +11,10 @@ static int running = 0;
 
 static void *FeedThreadProc(void *arg) {
     SS4S_Pacer *pacer = (SS4S_Pacer *) arg;
-    while (running) {
+    for (uint64_t count = 0; running; count++) {
         struct timespec ts;
         clock_gettime(CLOCK_MONOTONIC, &ts);
-        int writeLen = SS4S_PacerFeed(pacer, (const uint8_t *) &ts, sizeof(struct timespec));
+        int writeLen = SS4S_PacerFeed(pacer, (const uint8_t *) &count, sizeof(uint64_t));
         if (writeLen == 0) {
             fprintf(stderr, "Buffer overflow. Clear the buffer\n");
             SS4S_PacerClear(pacer);
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     }
     int duration = strtol(argv[1], NULL, 10);
     SS4S_Pacer *pacerRef[1];
-    SS4S_Pacer *pacer = SS4S_PacerCreate(2, sizeof(struct timespec), INTERVAL, callback, pacerRef);
+    SS4S_Pacer *pacer = SS4S_PacerCreate(2, sizeof(uint64_t), INTERVAL, callback, pacerRef);
     pacerRef[0] = pacer;
     pthread_t feedThread;
     running = 1;

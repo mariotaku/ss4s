@@ -11,7 +11,7 @@ static bool IsOpusPassthroughSupported(const OpusConfig *config);
 
 static bool ParseOpusConfig(const unsigned char *codecData, size_t codecDataLen, OpusConfig *config);
 
-static int PacerFeed(void *arg, const unsigned char *data, size_t size);
+static int PacerFeed(void *arg, const unsigned char *data, size_t size, const struct timespec *ts);
 
 static int SupportsPCM6Channel = 0;
 
@@ -164,7 +164,8 @@ static int FeedEmpty(const unsigned char *data, size_t size) {
     return NDL_DirectAudioPlay((void *) data, size, 0);
 }
 
-static int PacerFeed(void *arg, const unsigned char *data, size_t size) {
+static int PacerFeed(void *arg, const unsigned char *data, size_t size, const struct timespec *ts) {
+    (void) ts;
     pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     SS4S_PlayerContext *context = arg;
     bool loaded = context->mediaLoaded;

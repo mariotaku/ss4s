@@ -10,13 +10,11 @@ int main() {
     int iterations = 100;
     int interval = 5000;
     SS4S_Pacer *pacerRef[1];
-    SS4S_Pacer *pacer = SS4S_PacerCreate(3, sizeof(struct timespec), interval, callback, pacerRef);
+    SS4S_Pacer *pacer = SS4S_PacerCreate(3, sizeof(uint64_t), interval, callback, pacerRef);
     pacerRef[0] = pacer;
-    for (int i = 0; i < iterations; i++) {
-        struct timespec ts;
-        clock_gettime(CLOCK_MONOTONIC, &ts);
-        int writeLen = SS4S_PacerFeed(pacer, (const uint8_t *) &ts, sizeof(struct timespec));
-        assert(writeLen == sizeof(struct timespec));
+    for (uint64_t i = 0; i < iterations; i++) {
+        int writeLen = SS4S_PacerFeed(pacer, (const uint8_t *) &i, sizeof(uint64_t));
+        assert(writeLen == sizeof(uint64_t));
         usleep(interval - 100);
     }
     usleep(10000);

@@ -5,7 +5,7 @@
 
 typedef struct SS4S_Pacer SS4S_Pacer;
 
-typedef int (*SS4S_PacerCallback)(void *arg, const uint8_t *data, size_t size);
+typedef int (*SS4S_PacerCallback)(void *arg, const uint8_t *data, size_t size, const struct timespec *ts);
 
 SS4S_Pacer *SS4S_PacerCreate(size_t healthyBufferCount, size_t bufferSizeLimit, uint32_t intervalUs,
                              SS4S_PacerCallback callback, void *arg);

@@ -183,11 +183,11 @@ void *ConsumerThread(void *arg) {
     while (IsRunning(pacer)) {
         struct timespec last;
         GetLastFrameTime(pacer, &last);
-        FramePreamble preamble;
+        FramePreamble preamble = {0};
         size_t remainingCount;
         size_t frameSize = QueuePop(pacer, frame, frameSizeLimit, &preamble, &remainingCount);
 
-        callback(callbackContext, frame, frameSize);
+        callback(callbackContext, frame, frameSize, &preamble.time);
 
         struct timespec now;
         clock_gettime(CLOCK_MONOTONIC, &now);

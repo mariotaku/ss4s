@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <time.h>
 
 #include "pacer.h"
 #include "test_common.h"
@@ -11,7 +10,7 @@ int main() {
                                          pacerRef);
     pacerRef[0] = pacer;
     uint8_t data[32];
-    for(int i = 0; i < 11; i++) {
+    for (int i = 0; i < 11; i++) {
         assert(SS4S_PacerFeed(pacer, data, 32) == 32);
     }
     assert(SS4S_PacerFeed(pacer, data, 8) == 8);
