@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <math.h>
 
 #include "ringbuf.h"
 
@@ -201,6 +202,7 @@ void *ConsumerThread(void *arg) {
             time_t lag = TimeDiff(&now, &preamble.time) - diff;
             int64_t drift = lag - (int64_t) (healthyBufferCount * intervalUs);
             if (drift > 0) {
+                drift = (int64_t) sqrt((double) drift) * 3;
                 sleepUs -= drift;
             }
         }
