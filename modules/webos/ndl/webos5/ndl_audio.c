@@ -144,6 +144,7 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
     if (context->pacer) {
         int pacerRet = SS4S_PacerFeed(context->pacer, data, size);
         if (pacerRet == 0) {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "Pacer buffer overflow");
             SS4S_PacerClear(context->pacer);
             return SS4S_AUDIO_FEED_OVERFLOW;
         }
