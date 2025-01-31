@@ -123,13 +123,11 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
     return result;
 }
 
-static int FeedEmpty(const unsigned char *data, size_t size) {
-    return NDL_DirectAudioPlay((void *) data, size, 0);
-}
-
 static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsigned char *data, size_t size) {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
     const SS4S_PlayerContext *context = (void *) instance;
     if (!context->mediaLoaded) {
+        pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
         return SS4S_AUDIO_FEED_NOT_READY;
     }
     int rc;
@@ -137,6 +135,7 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
         int fixedSize = SS4S_NDLOpusFixProcess(context->opusFix, data, size);
         if (fixedSize < 0) {
             SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "SS4S_NDLOpusFixProcess returned %d", fixedSize);
+            pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
             return SS4S_AUDIO_FEED_ERROR;
         }
         data = SS4S_NDLOpusFixGetBuffer(context->opusFix);
@@ -149,8 +148,10 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
     if (rc != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectAudioPlay returned %d: %s", rc,
                             NDL_DirectMediaGetError());
+        pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
         return SS4S_AUDIO_FEED_ERROR;
     }
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
     return SS4S_AUDIO_FEED_OK;
 }
 

@@ -14,14 +14,14 @@ static int EmptyFeed(void *arg, const unsigned char *data, size_t size) {
 }
 
 int main() {
-    SS4S_OpusEmpty *empty = SS4S_OpusEmptyCreate(2, 2, 0, 500000);
+    SS4S_OpusEmpty *empty = SS4S_OpusEmptyCreate(2, 2, 0, 5000);
     SS4S_OpusEmptyStart(empty, EmptyFeed, NULL);
-    usleep(3000000);
+    usleep(30000);
     printf("Frame arrived 1\n");
     SS4S_OpusEmptyFrameArrived(empty);
-    usleep(500000);
+    usleep(5000);
     printf("Frame arrived 2\n");
     SS4S_OpusEmptyFrameArrived(empty);
-    usleep(5000000);
+    usleep(50000);
     SS4S_OpusEmptyDestroy(empty);
 }
