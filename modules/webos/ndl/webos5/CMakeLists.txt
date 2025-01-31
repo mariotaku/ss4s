@@ -15,6 +15,8 @@ endif ()
 
 add_library(ss4s-opus-empty STATIC opus_empty.c)
 target_include_directories(ss4s-opus-empty PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(ss4s-opus-empty PRIVATE pthread)
+target_compile_definitions(ss4s-opus-empty PRIVATE _GNU_SOURCE)
 set_target_properties(ss4s-opus-empty PROPERTIES
         POSITION_INDEPENDENT_CODE ON
         C_VISIBILITY_PRESET hidden)
