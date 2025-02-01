@@ -49,7 +49,7 @@ void SS4S_OpusEmptyStart(SS4S_OpusEmpty *instance, SS4S_NDLOpusEmptyFeedFunc fee
 bool SS4S_OpusEmptyFrameArrived(SS4S_OpusEmpty *instance) {
     pthread_mutex_lock(&instance->lock);
     clock_gettime(CLOCK_MONOTONIC_RAW, &instance->feedEmptyAfter);
-    instance->feedEmptyAfter.tv_nsec += instance->frameDurationUs * 1000 * 10;
+    instance->feedEmptyAfter.tv_nsec += (int) instance->frameDurationUs * 1000 * 5;
     while (instance->feedEmptyAfter.tv_nsec >= 1000000000) {
         instance->feedEmptyAfter.tv_sec++;
         instance->feedEmptyAfter.tv_nsec -= 1000000000;
@@ -88,7 +88,7 @@ static bool IsRunning(SS4S_OpusEmpty *instance) {
 }
 
 static time_t TimeDiff(const struct timespec *a, const struct timespec *b) {
-    return (a->tv_sec - b->tv_sec) * 1000000 + (a->tv_nsec - b->tv_nsec) / 1000 + 100;
+    return (a->tv_sec - b->tv_sec) * 1000000 + (a->tv_nsec - b->tv_nsec) / 1000;
 }
 
 static bool IsPastFeedEmptyAfter(SS4S_OpusEmpty *instance) {
@@ -107,11 +107,16 @@ void *OpusEmptyProc(void *arg) {
         if (IsPastFeedEmptyAfter(instance)) {
             pthread_mutex_lock(&instance->lock);
             instance->feeding = true;
+            pthread_mutex_unlock(&instance->lock);
             OpusEmptyPlay(instance);
             usleep(instance->frameDurationUs);
+            pthread_mutex_lock(&instance->lock);
             instance->feeding = false;
             pthread_mutex_unlock(&instance->lock);
         } else {
+            pthread_mutex_lock(&instance->lock);
+            instance->feeding = false;
+            pthread_mutex_unlock(&instance->lock);
             usleep(instance->frameDurationUs);
         }
     }

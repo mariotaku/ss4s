@@ -145,6 +145,10 @@ static int OpusFeedEmpty(void *arg, const unsigned char *data, size_t size) {
     SS4S_PlayerContext *context = arg;
     int ret = 0;
     if (context->mediaLoaded) {
+        if (!SS4S_NDL_webOS5_FeedingEmpty) {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Begin feeding empty Opus audio frame");
+        }
+        SS4S_NDL_webOS5_FeedingEmpty = true;
         ret = NDL_DirectAudioPlay((void *) data, size, 0);
     }
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);

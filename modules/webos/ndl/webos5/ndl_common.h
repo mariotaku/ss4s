@@ -9,6 +9,7 @@
 extern bool SS4S_NDL_webOS5_Initialized;
 extern pthread_mutex_t SS4S_NDL_webOS5_Lock;
 extern const SS4S_LibraryContext *SS4S_NDL_webOS5_Lib;
+extern bool SS4S_NDL_webOS5_FeedingEmpty;
 
 struct SS4S_PlayerContext {
     SS4S_Player *player;

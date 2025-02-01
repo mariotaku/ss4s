@@ -11,6 +11,7 @@ static bool IsOpusPassthroughSupported(const OpusConfig *config);
 static bool ParseOpusConfig(const unsigned char *codecData, size_t codecDataLen, OpusConfig *config);
 
 static int SupportsPCM6Channel = 0;
+bool SS4S_NDL_webOS5_FeedingEmpty = false;
 
 static int DriverInit(int argc, char *argv[]) {
     (void) argc;
@@ -145,7 +146,11 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
     }
     bool emptyFeeding = false;
     if (context->opusEmpty) {
+        if (SS4S_NDL_webOS5_FeedingEmpty) {
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Empty frame feeding end");
+        }
         emptyFeeding = SS4S_OpusEmptyFrameArrived(context->opusEmpty);
+        SS4S_NDL_webOS5_FeedingEmpty = false;
     }
     rc = emptyFeeding ? 0 : NDL_DirectAudioPlay((void *) data, size, 0);
     if (rc != 0) {
