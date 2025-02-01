@@ -4,12 +4,15 @@
 #include <assert.h>
 #include <string.h>
 
+#include "opus_empty.h"
 
 static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player);
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
 static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool option);
+
+static int OpusFeedEmpty(void *arg, const unsigned char *data, size_t size);
 
 const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver = {
         .Create = CreatePlayerContext,
@@ -106,6 +109,8 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         size_t size = numChannels * sizeof(unsigned short);
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty PCM audio frame (%u bytes)", (uint32_t) size);
         NDL_DirectAudioPlay(empty_buf, size, 0);
+    } else if (context->opusEmpty) {
+        SS4S_OpusEmptyStart(context->opusEmpty, OpusFeedEmpty, context);
     }
 
     context->mediaLoaded = true;
@@ -133,4 +138,15 @@ static void LoadCallback(int type, long long numValue, const char *strValue) {
             break;
         }
     }
+}
+
+static int OpusFeedEmpty(void *arg, const unsigned char *data, size_t size) {
+    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
+    SS4S_PlayerContext *context = arg;
+    int ret = 0;
+    if (context->mediaLoaded) {
+        ret = NDL_DirectAudioPlay((void *) data, size, 0);
+    }
+    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
+    return ret;
 }
