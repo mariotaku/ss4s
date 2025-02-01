@@ -49,7 +49,7 @@ void SS4S_OpusEmptyStart(SS4S_OpusEmpty *instance, SS4S_NDLOpusEmptyFeedFunc fee
 void SS4S_OpusEmptyFrameArrived(SS4S_OpusEmpty *instance) {
     pthread_mutex_lock(&instance->lock);
     clock_gettime(CLOCK_MONOTONIC_RAW, &instance->feedEmptyAfter);
-    instance->feedEmptyAfter.tv_nsec += instance->frameDurationUs * 3;
+    instance->feedEmptyAfter.tv_nsec += instance->frameDurationUs * 1000 * 3;
     while (instance->feedEmptyAfter.tv_nsec >= 1000000000) {
         instance->feedEmptyAfter.tv_sec++;
         instance->feedEmptyAfter.tv_nsec -= 1000000000;
