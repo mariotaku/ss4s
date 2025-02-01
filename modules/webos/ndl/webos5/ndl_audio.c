@@ -85,6 +85,8 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                     goto finish;
                 }
                 uint32_t frameDuration = 1000000 / (opusConfig.sampleRate / info->samplesPerFrame);
+                // If a huge gap appeared between frames, audio output will be distorted.
+                // We will need to feed some empty frames to fill this awkward silence.
                 context->opusEmpty = SS4S_OpusEmptyCreate(opusConfig.channels, opusConfig.streamCount,
                                                           opusConfig.coupledCount, frameDuration);
                 if (!context->opusEmpty) {
