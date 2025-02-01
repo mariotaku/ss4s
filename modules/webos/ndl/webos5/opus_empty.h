@@ -16,7 +16,7 @@ void SS4S_OpusEmptyStart(SS4S_OpusEmpty *instance, SS4S_NDLOpusEmptyFeedFunc fee
  * Pause empty frame generation, and wait for 3 missing frames.
  * @param instance
  */
-void SS4S_OpusEmptyFrameArrived(SS4S_OpusEmpty *instance);
+bool SS4S_OpusEmptyFrameArrived(SS4S_OpusEmpty *instance);
 
 void SS4S_OpusEmptyDestroy(SS4S_OpusEmpty *instance);
 

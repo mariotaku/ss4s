@@ -141,10 +141,11 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
         data = SS4S_NDLOpusFixGetBuffer(context->opusFix);
         size = fixedSize;
     }
+    bool emptyFeeding = false;
     if (context->opusEmpty) {
-        SS4S_OpusEmptyFrameArrived(context->opusEmpty);
+        emptyFeeding = SS4S_OpusEmptyFrameArrived(context->opusEmpty);
     }
-    rc = NDL_DirectAudioPlay((void *) data, size, 0);
+    rc = emptyFeeding ? 0 : NDL_DirectAudioPlay((void *) data, size, 0);
     if (rc != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectAudioPlay returned %d: %s", rc,
                             NDL_DirectMediaGetError());
