@@ -1,7 +1,3 @@
-//
-// Created by Mariotaku on 2024/11/18.
-//
-
 #include "knlp_check.h"
 
 #include <stdio.h>
@@ -21,11 +17,9 @@ bool SS4S_webOS_KNLP_IsJailConfigBroken() {
         return false;
     }
     // Only k3lp/k5lp needs to be checked
-    if (memcmp(machine_name, "k5lp", 4) == 0) {
+    if (memcmp(machine_name, "k5lp", 4) == 0 || memcmp(machine_name, "k3lp", 4) == 0) {
         // Make sure /dev/rtkmem is readable, otherwise we have a broken jailer config
         return access("/dev/rtkmem", R_OK) != 0;
-    } else {
-        // Always return true for k3lp for now
-        return memcmp(machine_name, "k3lp", 4) == 0;
     }
+    return false;
 }
