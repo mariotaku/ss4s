@@ -8,5 +8,5 @@ if (NOT SS4S_ENABLE_TESTS)
     return()
 endif ()
 
-add_executable(ss4s-webos-utils-test test_highend_check.c)
-add_test(ss4s-webos-utils-test ss4s-webos-utils-test)
+add_executable(highend_check test_highend_check.c)
+add_test(highend_check test_highend_check)

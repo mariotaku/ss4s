@@ -8,7 +8,7 @@ static inline bool Is_Machine_HighEnd(const char *machine_name) {
     if (machine_name[0] == 'o') {
         int year = strtol(machine_name + 1, NULL, 10);
         return year >= 22;
-    } else if (machine_name[0] != 'k') {
+    } else if (machine_name[0] == 'k') {
         char *remaining = NULL;
         int generation = strtol(machine_name + 1, &remaining, 10);
         if (generation < 8) {
