@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "knlp_check.h"
+#include "m3_kadp_fix.h"
 
 pthread_mutex_t SS4S_NDL_webOS4_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS4_Initialized = false;
@@ -43,6 +44,7 @@ int SS4S_NDL_webOS4_Driver_Init(int argc, char *argv[]) {
         SS4S_NDL_webOS4_Log(SS4S_LogLevelError, "NDL", "Failed to init: ret=%d, error=%s", ret,
                             NDL_DirectMediaGetError());
     }
+    SS4S_webOS_M3_KADP_Fix();
     return ret;
 }
 

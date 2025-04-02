@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "knlp_check.h"
+#include "m3_kadp_fix.h"
 
 bool SS4S_LGNC_Initialized = false;
 SS4S_LoggingFunction *SS4S_LGNC_Log = NULL;
@@ -41,6 +42,7 @@ int SS4S_LGNC_Driver_Init() {
         SS4S_LGNC_Log(SS4S_LogLevelInfo, "LGNC", "Driver init.");
         SS4S_LGNC_Initialized = true;
     }
+    SS4S_webOS_M3_KADP_Fix();
     return ret;
 }
 
