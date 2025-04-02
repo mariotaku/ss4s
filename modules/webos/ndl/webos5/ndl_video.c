@@ -1,6 +1,6 @@
 #include <string.h>
 #include "ndl_common.h"
-#include "o22plus_check.h"
+#include "highend_check.h"
 
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
@@ -9,7 +9,7 @@ static uint64_t GetTimeUs();
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265 | SS4S_VIDEO_VP9 | SS4S_VIDEO_AV1;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
-    if (SS4S_webOS_Is_O22_And_Above()) {
+    if (SS4S_webOS_Is_HighEnd_SoC()) {
         capabilities->maxBitrate = 95000;
         capabilities->suggestedBitrate = 45000;
     } else {
