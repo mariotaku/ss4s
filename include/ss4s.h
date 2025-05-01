@@ -34,6 +34,8 @@ const char *SS4S_GetVideoModuleName();
 
 void SS4S_SetLoggingFunction(SS4S_LoggingFunction *function);
 
+void SS4S_SetLogLevel(SS4S_LogLevel level);
+
 SS4S_LoggingFunction * SS4S_DefaultLoggingFunction();
 
 #ifdef __cplusplus

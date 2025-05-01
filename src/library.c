@@ -33,6 +33,8 @@ static SS4S_LibraryContext SS4S_LibContext = {
         .Log = StdIOLoggingFunction,
 };
 
+static SS4S_LogLevel LogLevel = SS4S_LogLevelDebug;
+
 int SS4S_Init(int argc, char *argv[], const SS4S_Config *config) {
     assert(config != NULL);
     if (config->loggingFunction) {
@@ -139,12 +141,18 @@ void SS4S_SetLoggingFunction(SS4S_LoggingFunction *function) {
     SS4S_LibContext.Log = SS4S_Log;
 }
 
+void SS4S_SetLogLevel(SS4S_LogLevel level) {
+    LogLevel = level;
+}
+
 SS4S_LoggingFunction *SS4S_DefaultLoggingFunction() {
     return StdIOLoggingFunction;
 }
 
 static void StdIOLoggingFunction(SS4S_LogLevel level, const char *tag, const char *fmt, ...) {
-    (void) level;
+    if (level > LogLevel) {
+        return;
+    }
     fprintf(stderr, "[SS4S.%s] ", tag);
     va_list arg;
     va_start(arg, fmt);
