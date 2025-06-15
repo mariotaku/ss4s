@@ -3,9 +3,11 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
-#include "knlp_check.h"
+#include "jail_check.h"
 #include "m3_kadp_fix.h"
+#include "read_machine_name.h"
 
 pthread_mutex_t SS4S_NDL_webOS4_Lock = PTHREAD_MUTEX_INITIALIZER;
 bool SS4S_NDL_webOS4_Initialized = false;
@@ -24,8 +26,18 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_NDL_WEBOS4(SS4S_Module *module, const SS4S_Li
 }
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_NDL_WEBOS4(SS4S_ModuleCheckFlag flags) {
-    if (SS4S_webOS_KNLP_IsJailConfigBroken()) {
+    char machine_name[16] = {0};
+    if (SS4S_webOS_ReadMachineName(machine_name, sizeof(machine_name)) != 0) {
         return 0;
+    }
+    if (SS4S_webOS_IsJailConfigBroken(machine_name)) {
+        return 0;
+    }
+    if (flags & SS4S_MODULE_CHECK_AUDIO) {
+        // SoC m16p has issues with direct audio, see https://github.com/mariotaku/moonlight-tv/issues/456
+        if (strcmp(machine_name, "m16p") == 0) {
+            flags &= ~SS4S_MODULE_CHECK_AUDIO;
+        }
     }
     return flags;
 }
