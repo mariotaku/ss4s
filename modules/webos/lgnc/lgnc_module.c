@@ -4,9 +4,11 @@
 #include <lgnc_plugin.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
-#include "knlp_check.h"
+#include "jail_check.h"
 #include "m3_kadp_fix.h"
+#include "read_machine_name.h"
 
 bool SS4S_LGNC_Initialized = false;
 SS4S_LoggingFunction *SS4S_LGNC_Log = NULL;
@@ -24,8 +26,13 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_LGNC(SS4S_Module *module, const SS4S_LibraryC
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_LGNC(SS4S_ModuleCheckFlag flags) {
     if (flags & SS4S_MODULE_CHECK_AUDIO) {
-        if (SS4S_webOS_KNLP_IsJailConfigBroken()) {
-            return flags & ~SS4S_MODULE_CHECK_AUDIO;
+        char machine_name[16] = {0};
+        if (SS4S_webOS_ReadMachineName(machine_name, sizeof(machine_name)) != 0) {
+            return 0;
+        }
+        // SoC m16p has issues with direct audio, see https://github.com/mariotaku/moonlight-tv/issues/456
+        if (strcmp(machine_name, "m16p") == 0 || SS4S_webOS_IsJailConfigBroken(machine_name)) {
+            flags &= ~SS4S_MODULE_CHECK_AUDIO;
         }
     }
     return flags;

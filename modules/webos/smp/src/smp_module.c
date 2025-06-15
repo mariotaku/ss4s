@@ -4,8 +4,9 @@
 #include "ss4s/modapi.h"
 #include "smp_player.h"
 
-#ifdef SS4S_KNLP_CHECK
-#include "knlp_check.h"
+#ifdef SS4S_JAIL_CHECK
+#include "jail_check.h"
+#include "read_machine_name.h"
 #endif
 
 extern const SS4S_PlayerDriver StarfishPlayerDriver;
@@ -25,8 +26,12 @@ SS4S_EXPORTED bool SS4S_MODULE_ENTRY(SS4S_Module *module, const SS4S_LibraryCont
 }
 
 SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_MODULE_CHECK(SS4S_ModuleCheckFlag flags) {
-#ifdef SS4S_KNLP_CHECK
-    if (SS4S_webOS_KNLP_IsJailConfigBroken()) {
+#ifdef SS4S_JAIL_CHECK
+    char machine_name[16] = {0};
+    if (SS4S_webOS_ReadMachineName(machine_name, sizeof(machine_name)) != 0) {
+        return 0;
+    }
+    if (SS4S_webOS_IsJailConfigBroken(machine_name)) {
         return 0;
     }
 #endif
