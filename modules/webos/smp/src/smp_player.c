@@ -251,6 +251,14 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
         }
         case STARFISH_EVENT_INT_SVP_VDEC_READY:
             break;
+        case STARFISH_EVENT_DROPPED_FRAME: {
+            StarfishLibContext->Log(SS4S_LogLevelWarn, "SMP",
+                                    "LoadCallback STARFISH_EVENT_DROPPED_FRAME, numValue: %lld, strValue: %p\n",
+                                    numValue, strValue);
+            break;
+        }
+        case STARFISH_EVENT_RENDERED_FRAME:
+            break;
         default:
             StarfishLibContext->Log(SS4S_LogLevelInfo, "SMP", "LoadCallback unhandled 0x%02x\n", type);
             break;
@@ -259,9 +267,9 @@ static void LoadCallback(int type, int64_t numValue, const char *strValue, void 
 
 static inline jvalue_ref CreateMinMax(int minimum, int maximum) {
     return jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("minimum"), jnumber_create_i32(minimum)),
-            jkeyval(J_CSTR_TO_JVAL("maximum"), jnumber_create_i32(maximum)),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("minimum"), jnumber_create_i32(minimum)),
+        jkeyval(J_CSTR_TO_JVAL("maximum"), jnumber_create_i32(maximum)),
+        J_END_OBJ_DECL
     );
 }
 
@@ -282,16 +290,16 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
     }
     jvalue_ref codec = jobject_create();
     jvalue_ref contents = jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("codec"), codec),
-            jkeyval(J_CSTR_TO_JVAL("esInfo"), jobject_create_var(
-                    jkeyval(J_CSTR_TO_JVAL("pauseAtDecodeTime"), jboolean_create(true)),
-                    jkeyval(J_CSTR_TO_JVAL("ptsToDecode"), jnumber_create_i64(0)),
-                    jkeyval(J_CSTR_TO_JVAL("seperatedPTS"), jboolean_true()),
-                    J_END_OBJ_DECL
-            )),
-            jkeyval(J_CSTR_TO_JVAL("format"), J_CSTR_TO_JVAL("RAW")),
-            jkeyval(J_CSTR_TO_JVAL("provider"), J_CSTR_TO_JVAL("Chrome")),
+        jkeyval(J_CSTR_TO_JVAL("codec"), codec),
+        jkeyval(J_CSTR_TO_JVAL("esInfo"), jobject_create_var(
+            jkeyval(J_CSTR_TO_JVAL("pauseAtDecodeTime"), jboolean_create(true)),
+            jkeyval(J_CSTR_TO_JVAL("ptsToDecode"), jnumber_create_i64(0)),
+            jkeyval(J_CSTR_TO_JVAL("seperatedPTS"), jboolean_true()),
             J_END_OBJ_DECL
+        )),
+        jkeyval(J_CSTR_TO_JVAL("format"), J_CSTR_TO_JVAL("RAW")),
+        jkeyval(J_CSTR_TO_JVAL("provider"), J_CSTR_TO_JVAL("Chrome")),
+        J_END_OBJ_DECL
     );
     if (videoInfo) {
         jobject_set(codec, J_CSTR_TO_BUF("video"), jstring_create(videoCodec));
@@ -325,32 +333,32 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
     jvalue_ref option = jobject_create();
     jobject_set(option, J_CSTR_TO_BUF("appId"), jstring_create(ctx->appId));
     jobject_set(option, J_CSTR_TO_BUF("externalStreamingInfo"), jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("contents"), contents),
-            jkeyval(J_CSTR_TO_JVAL("streamQualityInfo"), jboolean_true()),
-            jkeyval(J_CSTR_TO_JVAL("audioSync"), jboolean_true()),
-            jkeyval(J_CSTR_TO_JVAL("streamQualityInfoCorruptedFrame"), jboolean_true()),
-            jkeyval(J_CSTR_TO_JVAL("streamQualityInfoNonFlushable"), jboolean_true()),
-            jkeyval(J_CSTR_TO_JVAL("restartStreaming"), jboolean_false()),
-            jkeyval(J_CSTR_TO_JVAL("bufferingCtrInfo"), jobject_create_var(
-                    jkeyval(J_CSTR_TO_JVAL("bufferMaxLevel"), jnumber_create_i32(0)),
-                    jkeyval(J_CSTR_TO_JVAL("bufferMinLevel"), jnumber_create_i32(0)),
-                    jkeyval(J_CSTR_TO_JVAL("preBufferByte"), jnumber_create_i32(0)),
-                    jkeyval(J_CSTR_TO_JVAL("qBufferLevelAudio"), jnumber_create_i32(0)),
-                    jkeyval(J_CSTR_TO_JVAL("qBufferLevelVideo"), jnumber_create_i32(0)),
-                    /* This affects pipeline appsrc.
-                     * A very low maximum is meaningless because it only causes the pipeline to discard buffers
-                     */
-                    jkeyval(J_CSTR_TO_JVAL("srcBufferLevelAudio"), CreateMinMax(1, 32768)),
-                    jkeyval(J_CSTR_TO_JVAL("srcBufferLevelVideo"), CreateMinMax(1, 1048576)),
-                    J_END_OBJ_DECL
-            )),
+        jkeyval(J_CSTR_TO_JVAL("contents"), contents),
+        jkeyval(J_CSTR_TO_JVAL("streamQualityInfo"), jboolean_true()),
+        jkeyval(J_CSTR_TO_JVAL("audioSync"), jboolean_true()),
+        jkeyval(J_CSTR_TO_JVAL("streamQualityInfoCorruptedFrame"), jboolean_true()),
+        jkeyval(J_CSTR_TO_JVAL("streamQualityInfoNonFlushable"), jboolean_true()),
+        jkeyval(J_CSTR_TO_JVAL("restartStreaming"), jboolean_false()),
+        jkeyval(J_CSTR_TO_JVAL("bufferingCtrInfo"), jobject_create_var(
+            jkeyval(J_CSTR_TO_JVAL("bufferMaxLevel"), jnumber_create_i32(0)),
+            jkeyval(J_CSTR_TO_JVAL("bufferMinLevel"), jnumber_create_i32(0)),
+            jkeyval(J_CSTR_TO_JVAL("preBufferByte"), jnumber_create_i32(0)),
+            jkeyval(J_CSTR_TO_JVAL("qBufferLevelAudio"), jnumber_create_i32(0)),
+            jkeyval(J_CSTR_TO_JVAL("qBufferLevelVideo"), jnumber_create_i32(0)),
+            /* This affects pipeline appsrc.
+             * A very low maximum is meaningless because it only causes the pipeline to discard buffers
+             */
+            jkeyval(J_CSTR_TO_JVAL("srcBufferLevelAudio"), CreateMinMax(1, 32768)),
+            jkeyval(J_CSTR_TO_JVAL("srcBufferLevelVideo"), CreateMinMax(1, 1048576)),
             J_END_OBJ_DECL
+        )),
+        J_END_OBJ_DECL
     ));
     // Setting contentsType to WEBRTC will reduce video latency significantly,
     // while setting to LIVE will improve audio sync
     jobject_set(option, J_CSTR_TO_BUF("transmission"), jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("contentsType"), J_CSTR_TO_JVAL("WEBRTC")),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("contentsType"), J_CSTR_TO_JVAL("WEBRTC")),
+        J_END_OBJ_DECL
     ));
     jobject_set(option, J_CSTR_TO_BUF("needAudio"), jboolean_create(false));
     // When queryPosition is set to true, STARFISH_EVENT_FRAMEREADY will not be sent
@@ -364,24 +372,24 @@ jvalue_ref MakeLoadPayload(SS4S_PlayerContext *ctx, const SS4S_AudioInfo *audioI
             frameRate = videoInfo->frameRateNumerator * 100 / videoInfo->frameRateDenominator;
         }
         jobject_set(option, J_CSTR_TO_BUF("adaptiveStreaming"), jobject_create_var(
-                jkeyval(J_CSTR_TO_JVAL("audioOnly"), jboolean_false()),
-                jkeyval(J_CSTR_TO_JVAL("maxWidth"), jnumber_create_i32(videoInfo->width)),
-                jkeyval(J_CSTR_TO_JVAL("maxHeight"), jnumber_create_i32(videoInfo->height)),
-                jkeyval(J_CSTR_TO_JVAL("maxFrameRate"), jnumber_create_f64(frameRate / 100.0)),
-                J_END_OBJ_DECL
+            jkeyval(J_CSTR_TO_JVAL("audioOnly"), jboolean_false()),
+            jkeyval(J_CSTR_TO_JVAL("maxWidth"), jnumber_create_i32(videoInfo->width)),
+            jkeyval(J_CSTR_TO_JVAL("maxHeight"), jnumber_create_i32(videoInfo->height)),
+            jkeyval(J_CSTR_TO_JVAL("maxFrameRate"), jnumber_create_f64(frameRate / 100.0)),
+            J_END_OBJ_DECL
         ));
     }
 
     jvalue_ref arg = jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("mediaTransportType"), J_CSTR_TO_JVAL("BUFFERSTREAM")),
-            jkeyval(J_CSTR_TO_JVAL("option"), option),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("mediaTransportType"), J_CSTR_TO_JVAL("BUFFERSTREAM")),
+        jkeyval(J_CSTR_TO_JVAL("option"), option),
+        J_END_OBJ_DECL
     );
     StarfishResourcePopulateLoadPayload(ctx->res, arg, ctx->hasAudio ? &ctx->audioInfo : NULL,
                                         ctx->hasVideo ? &ctx->videoInfo : NULL);
     return jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("args"), jarray_create_var(NULL, arg, J_END_ARRAY_DECL)),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("args"), jarray_create_var(NULL, arg, J_END_ARRAY_DECL)),
+        J_END_OBJ_DECL
     );
 }
 
@@ -393,20 +401,20 @@ jvalue_ref AudioCreatePcmInfo(const SS4S_AudioInfo *audioInfo) {
         channelMode = "6-channel";
     }
     return jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("channelMode"), j_cstr_to_jval(channelMode)),
-            jkeyval(J_CSTR_TO_JVAL("format"), j_cstr_to_jval("S16LE")),
-            jkeyval(J_CSTR_TO_JVAL("sampleRate"), jnumber_create_f64(audioInfo->sampleRate / 1000.0)),
-            jkeyval(J_CSTR_TO_JVAL("bitsPerSample"), jnumber_create_i32(16)),
-            jkeyval(J_CSTR_TO_JVAL("layout"), j_cstr_to_jval("interleaved")),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("channelMode"), j_cstr_to_jval(channelMode)),
+        jkeyval(J_CSTR_TO_JVAL("format"), j_cstr_to_jval("S16LE")),
+        jkeyval(J_CSTR_TO_JVAL("sampleRate"), jnumber_create_f64(audioInfo->sampleRate / 1000.0)),
+        jkeyval(J_CSTR_TO_JVAL("bitsPerSample"), jnumber_create_i32(16)),
+        jkeyval(J_CSTR_TO_JVAL("layout"), j_cstr_to_jval("interleaved")),
+        J_END_OBJ_DECL
     );
 }
 
 jvalue_ref AudioCreateOpusInfo(const SS4S_AudioInfo *audioInfo) {
     jvalue_ref info = jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("channels"), jnumber_create_i32(audioInfo->numOfChannels)),
-            jkeyval(J_CSTR_TO_JVAL("sampleRate"), jnumber_create_f64(audioInfo->sampleRate / 1000.0)),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("channels"), jnumber_create_i32(audioInfo->numOfChannels)),
+        jkeyval(J_CSTR_TO_JVAL("sampleRate"), jnumber_create_f64(audioInfo->sampleRate / 1000.0)),
+        J_END_OBJ_DECL
     );
     if (audioInfo->codecData && audioInfo->codecDataLen > 0) {
         gchar *encoded = g_base64_encode(audioInfo->codecData, audioInfo->codecDataLen);
@@ -419,24 +427,24 @@ jvalue_ref AudioCreateOpusInfo(const SS4S_AudioInfo *audioInfo) {
 
 jvalue_ref AudioCreateAacInfo(const SS4S_AudioInfo *audioInfo) {
     return jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("channels"), jnumber_create_i32(audioInfo->numOfChannels)),
-            jkeyval(J_CSTR_TO_JVAL("format"), j_cstr_to_jval("adts")),
-            jkeyval(J_CSTR_TO_JVAL("frequency"), jnumber_create_i32(audioInfo->sampleRate / 1000)),
-            jkeyval(J_CSTR_TO_JVAL("profile"), jnumber_create_i32(2)),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("channels"), jnumber_create_i32(audioInfo->numOfChannels)),
+        jkeyval(J_CSTR_TO_JVAL("format"), j_cstr_to_jval("adts")),
+        jkeyval(J_CSTR_TO_JVAL("frequency"), jnumber_create_i32(audioInfo->sampleRate / 1000)),
+        jkeyval(J_CSTR_TO_JVAL("profile"), jnumber_create_i32(2)),
+        J_END_OBJ_DECL
     );
 }
 
 jvalue_ref AudioCreateAc3PlusInfo(const SS4S_AudioInfo *audioInfo) {
     return jobject_create_var(
-            jkeyval(J_CSTR_TO_JVAL("channels"), jnumber_create_i32(audioInfo->numOfChannels)),
-            jkeyval(J_CSTR_TO_JVAL("frequency"), jnumber_create_i32(audioInfo->sampleRate / 1000)),
-            J_END_OBJ_DECL
+        jkeyval(J_CSTR_TO_JVAL("channels"), jnumber_create_i32(audioInfo->numOfChannels)),
+        jkeyval(J_CSTR_TO_JVAL("frequency"), jnumber_create_i32(audioInfo->sampleRate / 1000)),
+        J_END_OBJ_DECL
     );
 }
 
 const SS4S_PlayerDriver StarfishPlayerDriver = {
-        .Create = CreatePlayer,
-        .Destroy = DestroyPlayer,
-        .SetWaitAudioVideoReady = SetWaitAudioVideoReady,
+    .Create = CreatePlayer,
+    .Destroy = DestroyPlayer,
+    .SetWaitAudioVideoReady = SetWaitAudioVideoReady,
 };
