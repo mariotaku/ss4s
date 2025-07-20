@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
 
     SS4S_Config config = {
-            .audioDriver = SS4S_ModuleInfoGetId(selected_modules.audio_module),
-            .videoDriver = SS4S_ModuleInfoGetId(selected_modules.video_module),
+        .audioDriver = SS4S_ModuleInfoGetId(selected_modules.audio_module),
+        .videoDriver = SS4S_ModuleInfoGetId(selected_modules.video_module),
     };
     if (SS4S_Init(argc, argv, &config) != 0) {
         abort();
@@ -135,12 +135,12 @@ int audio_proc(void *arg) {
     SS4S_Player *player = arg;
     app_context_t *app = SS4S_PlayerGetUserdata(player);
     SS4S_AudioInfo audioInfo = {
-            .numOfChannels = 2,
-            .sampleRate = 48000,
-            .codec = SS4S_AUDIO_PCM_S16LE,
-            .samplesPerFrame = 240,
-            .appName = "SS4S_Test",
-            .streamName = "Music"
+        .numOfChannels = 2,
+        .sampleRate = 48000,
+        .codec = SS4S_AUDIO_PCM_S16LE,
+        .samplesPerFrame = 240,
+        .appName = "SS4S_Test",
+        .streamName = "Music"
     };
     assert(SS4S_PlayerAudioOpen(player, &audioInfo) == SS4S_AUDIO_OPEN_OK);
 
@@ -172,11 +172,11 @@ int audio_proc(void *arg) {
 int video_proc(void *arg) {
     SS4S_Player *player = arg;
     SS4S_VideoInfo videoInfo = {
-            .codec = SS4S_VIDEO_H264,
-            .width = 1280,
-            .height = 800,
-            .frameRateNumerator = 30,
-            .frameRateDenominator = 1,
+        .codec = SS4S_VIDEO_H264,
+        .width = 1280,
+        .height = 800,
+        .frameRateNumerator = 30,
+        .frameRateDenominator = 1,
     };
     assert(SS4S_PlayerVideoOpen(player, &videoInfo) == SS4S_VIDEO_OPEN_OK);
 
