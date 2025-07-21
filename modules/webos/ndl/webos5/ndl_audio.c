@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "ndl_common.h"
-#include "opus_empty.h"
 #include "opus_fix.h"
 
 static bool IsOpusPassthroughSupported(const OpusConfig *config);
@@ -11,7 +10,6 @@ static bool IsOpusPassthroughSupported(const OpusConfig *config);
 static bool ParseOpusConfig(const unsigned char *codecData, size_t codecDataLen, OpusConfig *config);
 
 static int SupportsPCM6Channel = 0;
-bool SS4S_NDL_webOS5_FeedingEmpty = false;
 
 static int DriverInit(int argc, char *argv[]) {
     (void) argc;
@@ -85,15 +83,6 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                     result = SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
                     goto finish;
                 }
-                uint32_t frameDuration = 1000000 / (opusConfig.sampleRate / info->samplesPerFrame);
-                // If a huge gap appeared between frames, audio output will be distorted.
-                // We will need to feed some empty frames to fill this awkward silence.
-                context->opusEmpty = SS4S_OpusEmptyCreate(opusConfig.channels, opusConfig.streamCount,
-                                                          opusConfig.coupledCount, frameDuration);
-                if (!context->opusEmpty) {
-                    result = SS4S_AUDIO_OPEN_ERROR;
-                    goto finish;
-                }
                 if (opusConfig.channels == 6 && !IsOpusPassthroughSupported(&opusConfig)) {
                     SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL",
                                         "Channel config is not supported, enabling re-encoding. "
@@ -144,15 +133,8 @@ static SS4S_AudioFeedResult FeedAudio(SS4S_AudioInstance *instance, const unsign
         data = SS4S_NDLOpusFixGetBuffer(context->opusFix);
         size = fixedSize;
     }
-    bool emptyFeeding = false;
-    if (context->opusEmpty) {
-        if (SS4S_NDL_webOS5_FeedingEmpty) {
-            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Empty frame feeding end");
-        }
-        emptyFeeding = SS4S_OpusEmptyFrameArrived(context->opusEmpty);
-        SS4S_NDL_webOS5_FeedingEmpty = false;
-    }
-    rc = emptyFeeding ? 0 : NDL_DirectAudioPlay((void *) data, size, 0);
+    uint64_t pts = SS4S_NDL_webOS5_GetPts(context);
+    rc = NDL_DirectAudioPlay((void *) data, size, (long long) pts);
     if (rc != 0) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectAudioPlay returned %d: %s", rc,
                             NDL_DirectMediaGetError());
@@ -171,10 +153,6 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
     if (context->opusFix) {
         SS4S_NDLOpusFixDestroy(context->opusFix);
         context->opusFix = NULL;
-    }
-    if (context->opusEmpty) {
-        SS4S_OpusEmptyDestroy(context->opusEmpty);
-        context->opusEmpty = NULL;
     }
     SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);

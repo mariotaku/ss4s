@@ -4,20 +4,16 @@
 #include <assert.h>
 #include <string.h>
 
-#include "opus_empty.h"
-
 static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player);
 
 static void DestroyPlayerContext(SS4S_PlayerContext *context);
 
 static void PlayerSetWaitAudioVideoReady(SS4S_PlayerContext *context, bool option);
 
-static int OpusFeedEmpty(void *arg, const unsigned char *data, size_t size);
-
 const SS4S_PlayerDriver SS4S_NDL_webOS5_PlayerDriver = {
-        .Create = CreatePlayerContext,
-        .Destroy = DestroyPlayerContext,
-        .SetWaitAudioVideoReady = PlayerSetWaitAudioVideoReady,
+    .Create = CreatePlayerContext,
+    .Destroy = DestroyPlayerContext,
+    .SetWaitAudioVideoReady = PlayerSetWaitAudioVideoReady,
 };
 
 static int UnloadMedia(SS4S_PlayerContext *context);
@@ -38,6 +34,14 @@ int SS4S_NDL_webOS5_ReloadMedia(SS4S_PlayerContext *context) {
 
 int SS4S_NDL_webOS5_UnloadMedia(SS4S_PlayerContext *context) {
     return UnloadMedia(context);
+}
+
+uint64_t SS4S_NDL_webOS5_GetPts(const SS4S_PlayerContext *context) {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    uint64_t pts = (now.tv_sec * 1000) + (now.tv_nsec / 1000000) - context->mediaLoadedTime.tv_sec * 1000 -
+                   context->mediaLoadedTime.tv_nsec / 1000000;
+    return pts;
 }
 
 static SS4S_PlayerContext *CreatePlayerContext(SS4S_Player *player) {
@@ -109,11 +113,10 @@ static int LoadMedia(SS4S_PlayerContext *context) {
         size_t size = numChannels * sizeof(unsigned short);
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Playing empty PCM audio frame (%u bytes)", (uint32_t) size);
         NDL_DirectAudioPlay(empty_buf, size, 0);
-    } else if (context->opusEmpty) {
-        SS4S_OpusEmptyStart(context->opusEmpty, OpusFeedEmpty, context);
     }
 
     context->mediaLoaded = true;
+    clock_gettime(CLOCK_MONOTONIC, &context->mediaLoadedTime);
     return ret;
 }
 
@@ -138,19 +141,4 @@ static void LoadCallback(int type, long long numValue, const char *strValue) {
             break;
         }
     }
-}
-
-static int OpusFeedEmpty(void *arg, const unsigned char *data, size_t size) {
-    pthread_mutex_lock(&SS4S_NDL_webOS5_Lock);
-    SS4S_PlayerContext *context = arg;
-    int ret = 0;
-    if (context->mediaLoaded) {
-        if (!SS4S_NDL_webOS5_FeedingEmpty) {
-            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Begin feeding empty Opus audio frame");
-        }
-        SS4S_NDL_webOS5_FeedingEmpty = true;
-        ret = NDL_DirectAudioPlay((void *) data, size, 0);
-    }
-    pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
-    return ret;
 }

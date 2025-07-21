@@ -12,14 +12,6 @@ if (NOT OPUS_FOUND)
     include(ExternalOPUS)
 endif ()
 
-add_library(ss4s-opus-empty STATIC opus_empty.c)
-target_include_directories(ss4s-opus-empty PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(ss4s-opus-empty PRIVATE pthread)
-target_compile_definitions(ss4s-opus-empty PRIVATE _GNU_SOURCE)
-set_target_properties(ss4s-opus-empty PROPERTIES
-        POSITION_INDEPENDENT_CODE ON
-        C_VISIBILITY_PRESET hidden)
-
 add_library(ss4s-opus-fix STATIC opus_fix.c)
 target_include_directories(ss4s-opus-fix PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} SYSTEM PRIVATE ${OPUS_INCLUDE_DIRS})
 target_link_libraries(ss4s-opus-fix PUBLIC ${OPUS_LIBRARIES} PRIVATE ss4s-module-api)
@@ -30,8 +22,6 @@ set_target_properties(ss4s-opus-fix PROPERTIES
 
 target_include_directories(${SS4S_MODULE_TARGET} SYSTEM PRIVATE ${NDL_DIRECTMEDIA_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
 target_link_libraries(${SS4S_MODULE_TARGET} PRIVATE ${NDL_DIRECTMEDIA_LIBRARIES} ${OPUS_LIBRARIES}
-        pthread dl ss4s-opus-empty ss4s-opus-fix ss4s-webos-utils)
+        pthread dl ss4s-opus-fix ss4s-webos-utils)
 target_compile_definitions(${SS4S_MODULE_TARGET} PRIVATE NDL_DIRECTMEDIA_API_VERSION=2 _GNU_SOURCE)
 target_compile_options(${SS4S_MODULE_TARGET} PRIVATE -Wno-error=attributes)
-
-add_subdirectory(tests)
