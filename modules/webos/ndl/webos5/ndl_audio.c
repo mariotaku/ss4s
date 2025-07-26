@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "ndl_common.h"
+#include "opus_empty.h"
 #include "opus_fix.h"
 
 static bool IsOpusPassthroughSupported(const OpusConfig *config);
@@ -83,6 +84,13 @@ static SS4S_AudioOpenResult OpenAudio(const SS4S_AudioInfo *info, SS4S_AudioInst
                     result = SS4S_AUDIO_OPEN_UNSUPPORTED_CODEC;
                     goto finish;
                 }
+                // Feed one empty frame to the decoder to ensure it is ready
+                context->opusEmpty = SS4S_OpusEmptyCreate(opusConfig.channels, opusConfig.streamCount,
+                                                          opusConfig.coupledCount);
+                if (!context->opusEmpty) {
+                    result = SS4S_AUDIO_OPEN_ERROR;
+                    goto finish;
+                }
                 if (opusConfig.channels == 6 && !IsOpusPassthroughSupported(&opusConfig)) {
                     SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL",
                                         "Channel config is not supported, enabling re-encoding. "
@@ -153,6 +161,10 @@ static void CloseAudio(SS4S_AudioInstance *instance) {
     if (context->opusFix) {
         SS4S_NDLOpusFixDestroy(context->opusFix);
         context->opusFix = NULL;
+    }
+    if (context->opusEmpty) {
+        SS4S_OpusEmptyDestroy(context->opusEmpty);
+        context->opusEmpty = NULL;
     }
     SS4S_NDL_webOS5_UnloadMedia(context);
     pthread_mutex_unlock(&SS4S_NDL_webOS5_Lock);
