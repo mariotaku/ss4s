@@ -1,4 +1,5 @@
 #include "ndl_common.h"
+#include "max_res.h"
 
 #include <string.h>
 
@@ -15,6 +16,12 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->suggestedBitrate = 35000;
     capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
     capabilities->fullColorRange = false;
+    if (SS4S_webOS_GetMaxVideoResolution(SS4S_VIDEO_H265, (int *) &capabilities->maxFps,
+                                         (int *) &capabilities->maxWidth, (int *) &capabilities->maxHeight) != 0) {
+        capabilities->maxFps = 0;
+        capabilities->maxWidth = 0;
+        capabilities->maxHeight = 0;
+    }
     return true;
 }
 

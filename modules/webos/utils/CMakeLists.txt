@@ -1,5 +1,6 @@
-add_library(ss4s-webos-utils STATIC jail_check.c highend_check.c m3_kadp_fix.c)
+add_library(ss4s-webos-utils STATIC jail_check.c highend_check.c m3_kadp_fix.c max_res.c)
 target_include_directories(ss4s-webos-utils PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(ss4s-webos-utils PRIVATE ss4s-module-api)
 target_compile_definitions(ss4s-webos-utils PRIVATE -D_GNU_SOURCE)
 set_target_properties(ss4s-webos-utils PROPERTIES
         POSITION_INDEPENDENT_CODE ON

@@ -1,6 +1,7 @@
 #include <string.h>
 #include "ndl_common.h"
 #include "highend_check.h"
+#include "max_res.h"
 
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
@@ -20,6 +21,12 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     // If fullColorRange is set to true, the video will be displayed with over saturated colors.
     capabilities->fullColorRange = false;
     capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT2020 | SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    if (SS4S_webOS_GetMaxVideoResolution(SS4S_VIDEO_H265, (int *) &capabilities->maxFps,
+                                         (int *) &capabilities->maxWidth, (int *) &capabilities->maxHeight) != 0) {
+        capabilities->maxFps = 0;
+        capabilities->maxWidth = 0;
+        capabilities->maxHeight = 0;
+    }
     return true;
 }
 
@@ -120,21 +127,21 @@ static bool SetHDRInfo(SS4S_VideoInstance *instance, const SS4S_VideoHDRInfo *in
         return true;
     }
     NDL_DIRECTVIDEO_HDR_INFO_T hdrInfo = {
-            .displayPrimariesX0 = info->displayPrimariesX.g,
-            .displayPrimariesY0 = info->displayPrimariesY.g,
-            .displayPrimariesX1 = info->displayPrimariesX.b,
-            .displayPrimariesY1 = info->displayPrimariesY.b,
-            .displayPrimariesX2 = info->displayPrimariesX.r,
-            .displayPrimariesY2 = info->displayPrimariesY.r,
-            .whitePointX = info->whitePointX,
-            .whitePointY = info->whitePointY,
-            .maxDisplayMasteringLuminance = info->maxDisplayMasteringLuminance,
-            .minDisplayMasteringLuminance = info->minDisplayMasteringLuminance,
-            .maxContentLightLevel = info->maxContentLightLevel,
-            .maxPicAverageLightLevel = info->maxPicAverageLightLevel,
-            .transferCharacteristics = info->transferCharacteristics,
-            .colorPrimaries = info->colorPrimaries,
-            .matrixCoeffs = info->matrixCoefficients,
+        .displayPrimariesX0 = info->displayPrimariesX.g,
+        .displayPrimariesY0 = info->displayPrimariesY.g,
+        .displayPrimariesX1 = info->displayPrimariesX.b,
+        .displayPrimariesY1 = info->displayPrimariesY.b,
+        .displayPrimariesX2 = info->displayPrimariesX.r,
+        .displayPrimariesY2 = info->displayPrimariesY.r,
+        .whitePointX = info->whitePointX,
+        .whitePointY = info->whitePointY,
+        .maxDisplayMasteringLuminance = info->maxDisplayMasteringLuminance,
+        .minDisplayMasteringLuminance = info->minDisplayMasteringLuminance,
+        .maxContentLightLevel = info->maxContentLightLevel,
+        .maxPicAverageLightLevel = info->maxPicAverageLightLevel,
+        .transferCharacteristics = info->transferCharacteristics,
+        .colorPrimaries = info->colorPrimaries,
+        .matrixCoeffs = info->matrixCoefficients,
     };
     SS4S_NDL_webOS5_Lib->Log(SS4S_LogLevelInfo, "NDL", "Setting HDR info: "
                                                        "displayPrimariesX=[%d, %d, %d], displayPrimariesY=[%d, %d, %d], "
@@ -179,14 +186,14 @@ static uint64_t GetTimeUs() {
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS5_VideoDriver = {
-        .Base = {
-                .PostInit = SS4S_NDL_webOS5_Driver_PostInit,
-                .Quit = SS4S_NDL_webOS5_Driver_Quit,
-        },
-        .GetCapabilities = GetCapabilities,
-        .Open = OpenVideo,
-        .Feed = FeedVideo,
-        .SizeChanged = SizeChanged,
-        .SetHDRInfo = SetHDRInfo,
-        .Close = CloseVideo,
+    .Base = {
+        .PostInit = SS4S_NDL_webOS5_Driver_PostInit,
+        .Quit = SS4S_NDL_webOS5_Driver_Quit,
+    },
+    .GetCapabilities = GetCapabilities,
+    .Open = OpenVideo,
+    .Feed = FeedVideo,
+    .SizeChanged = SizeChanged,
+    .SetHDRInfo = SetHDRInfo,
+    .Close = CloseVideo,
 };
