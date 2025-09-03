@@ -3,7 +3,7 @@
 
 static bool (*MRCGetMaxVideoResolution)(int codec, int *w, int *h, int *fps) = NULL;
 
-int SS4S_webOS_GetMaxVideoResolution(SS4S_VideoCodec codec, int *fps, int *w, int *h) {
+int SS4S_webOS_GetMaxVideoResolution(SS4S_VideoCodec codec, unsigned int *w, unsigned int *h, unsigned int *fps) {
     int mrc_codec;
     switch (codec) {
         case SS4S_VIDEO_H264:
@@ -26,5 +26,14 @@ int SS4S_webOS_GetMaxVideoResolution(SS4S_VideoCodec codec, int *fps, int *w, in
             return -1;
         }
     }
-    return MRCGetMaxVideoResolution(mrc_codec, w, h, fps) ? 0 : -1;
+    int iw, ih, ifps;
+    if (MRCGetMaxVideoResolution(mrc_codec, &iw, &ih, &ifps) != 0) {
+        return -1;
+    }
+    if (fps) {
+        *fps = ifps;
+    }
+    *w = iw;
+    *h = ih;
+    return 0;
 }

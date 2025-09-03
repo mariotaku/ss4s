@@ -16,9 +16,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->suggestedBitrate = 35000;
     capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
     capabilities->fullColorRange = false;
-    if (SS4S_webOS_GetMaxVideoResolution(SS4S_VIDEO_H265, (int *) &capabilities->maxFps,
-                                         (int *) &capabilities->maxWidth, (int *) &capabilities->maxHeight) != 0) {
-        capabilities->maxFps = 0;
+    if (SS4S_webOS_GetMaxVideoResolution(SS4S_VIDEO_H265, &capabilities->maxWidth, &capabilities->maxHeight, NULL)) {
         capabilities->maxWidth = 0;
         capabilities->maxHeight = 0;
     }
@@ -132,13 +130,13 @@ static void VideoCallback(unsigned long long userdata) {
 }
 
 const SS4S_VideoDriver SS4S_NDL_webOS4_VideoDriver = {
-        .Base = {
-                .Init = SS4S_NDL_webOS4_Driver_Init,
-                .Quit = SS4S_NDL_webOS4_Driver_Quit,
-        },
-        .GetCapabilities = GetCapabilities,
-        .Open = OpenVideo,
-        .Feed = FeedVideo,
-        .SizeChanged = SizeChanged,
-        .Close = CloseVideo,
+    .Base = {
+        .Init = SS4S_NDL_webOS4_Driver_Init,
+        .Quit = SS4S_NDL_webOS4_Driver_Quit,
+    },
+    .GetCapabilities = GetCapabilities,
+    .Open = OpenVideo,
+    .Feed = FeedVideo,
+    .SizeChanged = SizeChanged,
+    .Close = CloseVideo,
 };
