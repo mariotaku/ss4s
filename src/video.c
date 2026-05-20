@@ -32,12 +32,15 @@ SS4S_VideoOpenResult SS4S_PlayerVideoOpen(SS4S_Player *player, const SS4S_VideoI
     SS4S_VideoOpenResult result = driver->Open(info, &extraInfo, &player->video, player->context.video);
     if (result == SS4S_VIDEO_OPEN_OK) {
         assert(player->video != NULL);
+        size_t statsCapacity = 120;
+        if (info->frameRateNumerator > 0 && info->frameRateDenominator > 0) {
+            size_t fps = info->frameRateNumerator / info->frameRateDenominator;
+            if (fps > 0) {
+                statsCapacity = fps * 2;
+            }
+        }
+        SS4S_StatsCounterInit(&player->stats.video, statsCapacity);
     }
-    size_t statsCapacity = 120;
-    if (info->frameRateNumerator > 0 && info->frameRateDenominator > 0) {
-        statsCapacity = info->frameRateNumerator / info->frameRateDenominator * 2;
-    }
-    SS4S_StatsCounterInit(&player->stats.video, statsCapacity);
     SS4S_MutexUnlock(player->mutex);
     return result;
 }
