@@ -19,6 +19,7 @@ StarfishResource *StarfishResourceCreate(const char *appId) {
         return NULL;
     }
     if (!AcbAPI_initialize(res->acbId, PLAYER_TYPE_MSE, appId, AcbCallback)) {
+        AcbAPI_destroy(res->acbId);
         free(res);
         return NULL;
     }
