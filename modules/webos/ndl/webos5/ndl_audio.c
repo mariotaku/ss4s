@@ -184,6 +184,12 @@ bool ParseOpusConfig(const unsigned char *codecData, size_t codecDataLen, OpusCo
     config->channels = codecData[9];
     config->streamCount = codecData[19];
     config->coupledCount = codecData[20];
+    if (config->channels > sizeof(config->mapping)) {
+        // We can only represent up to sizeof(mapping) channels (5.1 layout).
+        // Anything wider (e.g. 7.1 surround = 8 channels) would overflow the
+        // fixed-size mapping array on the memcpy below.
+        return false;
+    }
     if ((int) codecDataLen >= 21 + config->channels) {
         memcpy(config->mapping, codecData + 21, config->channels);
     } else {
