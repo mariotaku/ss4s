@@ -9,7 +9,7 @@ typedef struct SS4S_StatsCounter {
     SS4S_StatsItem *items;
     size_t capacity;
     size_t index;
-    unsigned char size;
+    size_t size;
 } SS4S_StatsCounter;
 
 void SS4S_StatsCounterInit(SS4S_StatsCounter *counter, size_t capacity);
