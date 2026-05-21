@@ -3,14 +3,15 @@
 #include "ss4s/modapi.h"
 #include "stats.h"
 #include "mutex.h"
+#include "feed_guard.h"
 
 struct SS4S_Player {
     struct {
         SS4S_PlayerContext *audio;
         SS4S_PlayerContext *video;
     } context;
-    SS4S_AudioInstance *audio;
-    SS4S_VideoInstance *video;
+    SS4S_FeedGuard audio_guard;
+    SS4S_FeedGuard video_guard;
     void *userdata;
     int viewportWidth, viewportHeight;
     SS4S_Mutex *mutex;

@@ -27,38 +27,38 @@ SS4S_AudioOpenResult SS4S_PlayerAudioOpen(SS4S_Player *player, const SS4S_AudioI
     if (driver == NULL) {
         return SS4S_AUDIO_OPEN_ERROR;
     }
-    SS4S_MutexLock(player->mutex);
-    SS4S_AudioOpenResult result = driver->Open(info, &player->audio, player->context.audio);
+    SS4S_AudioInstance *instance = NULL;
+    SS4S_AudioOpenResult result = driver->Open(info, &instance, player->context.audio);
     if (result == SS4S_AUDIO_OPEN_OK) {
-        assert(player->audio != NULL);
+        assert(instance != NULL);
+        if (!SS4S_FeedGuardOpen(&player->audio_guard, instance)) {
+            // Caller violated the open/close contract; tear down the new instance.
+            driver->Close(instance);
+            return SS4S_AUDIO_OPEN_ERROR;
+        }
     }
-    SS4S_MutexUnlock(player->mutex);
     return result;
 }
 
 SS4S_AudioFeedResult SS4S_PlayerAudioFeed(SS4S_Player *player, const unsigned char *data, size_t size) {
-    SS4S_MutexLockEx(player->mutex, NULL);
-    if (player->audio == NULL) {
-        SS4S_MutexUnlockEx(player->mutex, NULL);
+    SS4S_AudioInstance *audio = SS4S_FeedGuardAcquire(&player->audio_guard);
+    if (audio == NULL) {
         return SS4S_AUDIO_FEED_NOT_READY;
     }
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     assert(driver != NULL);
-    SS4S_AudioInstance *audio = player->audio;
-    SS4S_MutexUnlockEx(player->mutex, NULL);
-    return driver->Feed(audio, data, size);
+    SS4S_AudioFeedResult result = driver->Feed(audio, data, size);
+    SS4S_FeedGuardRelease(&player->audio_guard);
+    return result;
 }
 
 bool SS4S_PlayerAudioClose(SS4S_Player *player) {
-    SS4S_MutexLock(player->mutex);
-    if (player->audio == NULL) {
-        SS4S_MutexUnlock(player->mutex);
+    SS4S_AudioInstance *audio = SS4S_FeedGuardClose(&player->audio_guard);
+    if (audio == NULL) {
         return false;
     }
     const SS4S_AudioDriver *driver = SS4S_GetAudioDriver();
     assert(driver != NULL);
-    driver->Close(player->audio);
-    player->audio = NULL;
-    SS4S_MutexUnlock(player->mutex);
+    driver->Close(audio);
     return true;
 }
