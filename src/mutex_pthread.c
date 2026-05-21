@@ -37,3 +37,31 @@ void SS4S_MutexDestroy(SS4S_Mutex *mutex) {
     pthread_mutex_destroy(&mutex->inner);
     free(mutex);
 }
+
+struct SS4S_Cond {
+    pthread_cond_t inner;
+};
+
+SS4S_Cond *SS4S_CondCreate() {
+    SS4S_Cond *cond = malloc(sizeof(SS4S_Cond));
+    assert(cond != NULL);
+    pthread_cond_init(&cond->inner, NULL);
+    return cond;
+}
+
+void SS4S_CondWait(SS4S_Cond *cond, SS4S_Mutex *mutex) {
+    assert(cond != NULL);
+    assert(mutex != NULL);
+    pthread_cond_wait(&cond->inner, &mutex->inner);
+}
+
+void SS4S_CondBroadcast(SS4S_Cond *cond) {
+    assert(cond != NULL);
+    pthread_cond_broadcast(&cond->inner);
+}
+
+void SS4S_CondDestroy(SS4S_Cond *cond) {
+    assert(cond != NULL);
+    pthread_cond_destroy(&cond->inner);
+    free(cond);
+}

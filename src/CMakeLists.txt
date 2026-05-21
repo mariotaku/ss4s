@@ -1,4 +1,4 @@
-target_sources(ss4s PRIVATE library.c driver.c player.c audio.c video.c module.c stats.c)
+target_sources(ss4s PRIVATE library.c driver.c player.c audio.c video.c module.c stats.c feed_guard.c)
 
 check_include_file("dlfcn.h" HAS_DLFCN)
 check_include_file("pthread.h" HAS_PTHREAD)

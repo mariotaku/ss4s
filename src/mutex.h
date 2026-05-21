@@ -1,6 +1,7 @@
 #pragma once
 
 typedef struct SS4S_Mutex SS4S_Mutex;
+typedef struct SS4S_Cond SS4S_Cond;
 
 SS4S_Mutex *SS4S_MutexCreate();
 
@@ -13,3 +14,11 @@ void SS4S_MutexDestroy(SS4S_Mutex *mutex);
 #define SS4S_MutexLock(mutex) SS4S_MutexLockEx(mutex, __FUNCTION__)
 
 #define SS4S_MutexUnlock(mutex) SS4S_MutexUnlockEx(mutex, __FUNCTION__)
+
+SS4S_Cond *SS4S_CondCreate();
+
+void SS4S_CondWait(SS4S_Cond *cond, SS4S_Mutex *mutex);
+
+void SS4S_CondBroadcast(SS4S_Cond *cond);
+
+void SS4S_CondDestroy(SS4S_Cond *cond);

@@ -10,6 +10,8 @@ SS4S_Player *SS4S_PlayerOpen() {
     SS4S_Player *player = calloc(1, sizeof(SS4S_Player));
     assert(player != NULL);
     player->mutex = SS4S_MutexCreate();
+    SS4S_FeedGuardInit(&player->audio_guard);
+    SS4S_FeedGuardInit(&player->video_guard);
     const SS4S_PlayerDriver *audioPlayerDriver = SS4S_GetAudioPlayerDriver();
     const SS4S_PlayerDriver *videoPlayerDriver = SS4S_GetVideoPlayerDriver();
     if (audioPlayerDriver != videoPlayerDriver) {
@@ -42,6 +44,8 @@ void SS4S_PlayerClose(SS4S_Player *player) {
         videoPlayerDriver->Destroy(player->context.video);
     }
     SS4S_MutexUnlock(player->mutex);
+    SS4S_FeedGuardDeinit(&player->audio_guard);
+    SS4S_FeedGuardDeinit(&player->video_guard);
     SS4S_MutexDestroy(player->mutex);
     free(player);
 }
