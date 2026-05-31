@@ -115,30 +115,23 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
     callbacks = cb;
     GstStateChangeReturn ret;
 
-    GstElement *audiosink, *videosink;
+    GstElement *videosink;
     char gst_args[8192];
-    const char *url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    /* Original commondatastorage.googleapis.com/.../BigBuckBunny.mp4 returns
+     * 403 Forbidden. test-videos.co.uk hosts BBB but its clips are video-only,
+     * so the pipeline below has no audio branch. */
+    const char *url = "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_5MB.mp4";
     snprintf(gst_args, 8192,
              "curlhttpsrc location=%s ! qtdemux name=demux "
-             "demux.audio_0 ! queue ! aacparse ! avdec_aac ! audioconvert ! audio/x-raw,format=S16LE ! appsink name=audsink "
-             "demux.video_0 ! queue ! h264parse config-interval=-1 ! video/x-h264,stream-format=byte-stream,alignment=nal ! appsink name=vidsink",
+             "demux.video_0 ! queue ! h264parse config-interval=-1 ! "
+             "video/x-h264,stream-format=byte-stream,alignment=nal ! appsink name=vidsink",
              url);
     pipeline = gst_parse_launch(gst_args, NULL);
 
     g_assert_nonnull(pipeline);
 
-    audiosink = gst_bin_get_by_name(GST_BIN(pipeline), "audsink");
-    g_assert_nonnull(audiosink);
-
     videosink = gst_bin_get_by_name(GST_BIN(pipeline), "vidsink");
     g_assert_nonnull(videosink);
-
-    GstAppSinkCallbacks audioCallbacks = {
-            .eos = audioEos,
-            .new_preroll = audioNewPreroll,
-            .new_sample = audioNewSample,
-    };
-    gst_app_sink_set_callbacks(GST_APP_SINK(audiosink), &audioCallbacks, NULL, NULL);
 
     GstAppSinkCallbacks videoCallbacks = {
             .eos = videoEos,
@@ -146,6 +139,13 @@ int datasrc_start(struct DATASRC_CALLBACKS *cb) {
             .new_sample = videoNewSample,
     };
     gst_app_sink_set_callbacks(GST_APP_SINK(videosink), &videoCallbacks, NULL, NULL);
+
+    /* Audio callbacks are not currently wired — touch them so the static
+     * helpers aren't flagged as unused. Restore the audio branch above
+     * when switching to a source that has an AAC track. */
+    (void) audioEos;
+    (void) audioNewPreroll;
+    (void) audioNewSample;
 
     GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
     gst_bus_add_signal_watch(bus);
