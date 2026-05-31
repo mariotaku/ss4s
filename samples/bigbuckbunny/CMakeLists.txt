@@ -8,7 +8,7 @@ pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
 
 add_executable(sample-bigbuckbunny sample.c)
 
-target_link_libraries(sample-bigbuckbunny PRIVATE ss4s esplayer-datasrc PkgConfig::SDL2)
+target_link_libraries(sample-bigbuckbunny PRIVATE ss4s esplayer-datasrc PkgConfig::SDL2 commons-os-info commons-ss4s-modules-list)
 
 set_target_properties(sample-bigbuckbunny PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE

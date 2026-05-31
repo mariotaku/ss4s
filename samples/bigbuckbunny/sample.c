@@ -1,10 +1,11 @@
-
-
 #include <SDL2/SDL.h>
 
 #include "esplayer-datasrc.h"
 
 #include "ss4s.h"
+#include "os_info.h"
+#include "ss4s_modules.h"
+#include "array_list.h"
 
 static SS4S_Player *player = NULL;
 
@@ -67,15 +68,33 @@ void pipelineQuit(int error) {
 
 int main(int argc, char *argv[]) {
     datasrc_init(argc, argv);
+
+    os_info_t os_info = {0};
+    os_info_get(&os_info);
+    array_list_t modules = {0};
+    if (SS4S_ModulesList(&modules, &os_info) != 0) {
+        fprintf(stderr, "Failed to list SS4S modules\n");
+        return 1;
+    }
+    SS4S_ModuleSelection selected = {0};
+    if (!SS4S_ModulesSelect(&modules, NULL, &selected, true)) {
+        fprintf(stderr, "No suitable SS4S modules available\n");
+        SS4S_ModulesListClear(&modules);
+        return 1;
+    }
+    fprintf(stderr, "Selected audio module: %s\n", SS4S_ModuleInfoGetName(selected.audio_module));
+    fprintf(stderr, "Selected video module: %s\n", SS4S_ModuleInfoGetName(selected.video_module));
+
     SS4S_Config config = {
-            .audioDriver = "ndl-webos4",
-            .videoDriver = "ndl-webos4",
+            .audioDriver = SS4S_ModuleInfoGetId(selected.audio_module),
+            .videoDriver = SS4S_ModuleInfoGetId(selected.video_module),
             .loggingFunction = SS4S_DefaultLoggingFunction(),
     };
 
     SDL_Init(SDL_INIT_VIDEO);
 
     if (SS4S_Init(argc, argv, &config) != 0) {
+        SS4S_ModulesListClear(&modules);
         return 1;
     }
 
@@ -118,6 +137,8 @@ int main(int argc, char *argv[]) {
     datasrc_destroy();
 
     SS4S_Quit();
+
+    SS4S_ModulesListClear(&modules);
 
     SDL_Quit();
 
