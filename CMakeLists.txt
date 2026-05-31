@@ -54,6 +54,13 @@ endif ()
 # Might be used by modules
 set(SS4S_SYSTEM_LIBRARY_MOCKS "${CMAKE_CURRENT_SOURCE_DIR}/mocks")
 
+# The dummy module is the test harness for end-to-end concurrency
+# checks (test_video_concurrent_lifecycle). Force it on when tests
+# are enabled, so the test always has a driver to load.
+if (SS4S_ENABLE_TESTS)
+    set(SS4S_MODULE_BUILD_DUMMY ON CACHE BOOL "" FORCE)
+endif ()
+
 add_subdirectory(modules)
 
 set_target_properties(ss4s PROPERTIES SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY ${SS4S_MODULE_LIBRARY_OUTPUT_DIRECTORY})
