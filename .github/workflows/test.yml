@@ -1,0 +1,87 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  test:
+    name: Test on Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Update packages
+        run: sudo apt-get -yq update
+
+      - name: Install Dependencies
+        # The host-side modules need their backend libs to compile, but each
+        # is gated by pkg-config so missing libs just disable the module. We
+        # install the common ones so they actually build and run. mmal /
+        # webOS / steamlink modules are skipped automatically.
+        run: |
+          sudo apt-get install -y -qq \
+            cmake ninja-build pkg-config \
+            libsdl2-dev libopus-dev libpulse-dev libasound2-dev
+
+      - name: Configure
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DSS4S_ENABLE_TESTS=ON \
+            -DSS4S_ENABLE_SAMPLES=OFF
+
+      - name: Build
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+      - name: Test
+        # --output-on-failure prints stdout/stderr of any failing test so
+        # CI logs are useful. The per-test 60s timeout catches anything
+        # that wedges (e.g. the concurrent lifecycle stress test is
+        # expected to finish in ~2s).
+        run: ctest --test-dir build --output-on-failure --timeout 60
+
+  test-asan:
+    name: Test on Ubuntu (ASan)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get -yq update
+          sudo apt-get install -y -qq \
+            cmake ninja-build pkg-config \
+            libsdl2-dev libopus-dev libpulse-dev libasound2-dev
+
+      - name: Configure
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DSS4S_ENABLE_TESTS=ON \
+            -DSS4S_ENABLE_SAMPLES=OFF \
+            -DSS4S_SANITIZE_ADDRESS=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+        run: ctest --test-dir build --output-on-failure --timeout 120
