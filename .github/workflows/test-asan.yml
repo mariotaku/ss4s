@@ -1,0 +1,64 @@
+name: Test (AddressSanitizer)
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test on Ubuntu (ASan)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Update packages
+        run: sudo apt-get -yq update
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install -y -qq \
+            cmake ninja-build pkg-config libopus-dev
+
+      - name: Configure
+        # Same audio-module disable list as the non-ASan job — those
+        # tests need real backends. SS4S_SANITIZE_ADDRESS=ON enables
+        # ASan instrumentation across the static library and every
+        # dynamic module; the linker uses the dynamic libasan.so so
+        # the shared modules and the test binary agree on a single
+        # runtime (the previous -static-libasan default tripped
+        # "incompatible ASan runtimes" because each .so loaded its
+        # own copy).
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DSS4S_ENABLE_TESTS=ON \
+            -DSS4S_ENABLE_SAMPLES=OFF \
+            -DSS4S_SANITIZE_ADDRESS=ON \
+            -DSS4S_MODULE_DISABLE_SDL=ON \
+            -DSS4S_MODULE_DISABLE_ALSA=ON \
+            -DSS4S_MODULE_DISABLE_PULSE=ON \
+            -DSS4S_MODULE_DISABLE_MMAL=ON
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        env:
+          # halt_on_error stops on the first ASan report so the failing
+          # stack is at the top of the log. detect_leaks=1 catches the
+          # leak class the recent ACB-handle fix addresses and prevents
+          # regressions of the same shape.
+          ASAN_OPTIONS: halt_on_error=1:detect_leaks=1:abort_on_error=0
+        # Wider timeout than the non-ASan job — ASan adds ~2-3x runtime
+        # on the multi-threaded stress tests.
+        run: ctest --test-dir build --output-on-failure --timeout 180

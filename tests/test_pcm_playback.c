@@ -25,6 +25,8 @@ int main(int argc, char *argv[]) {
     SS4S_PlayerInfo playerInfo;
     assert(SS4S_PlayerGetInfo(player, &playerInfo));
     if (playerInfo.audio.module == NULL) {
+        SS4S_PlayerClose(player);
+        SS4S_Quit();
         return 127;
     }
     assert(strcmp(playerInfo.audio.module, driver) == 0);
