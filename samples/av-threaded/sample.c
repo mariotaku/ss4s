@@ -37,8 +37,12 @@ int main(int argc, char *argv[]) {
     if (SS4S_ModulesList(&modules, &os_info) != 0) {
         return 1;
     }
+    SS4S_ModulePreferences preferences = {
+        .audio_module = getenv("SS4S_AUDIO_DRIVER"),
+        .video_module = getenv("SS4S_VIDEO_DRIVER"),
+    };
     SS4S_ModuleSelection selected_modules;
-    if (!SS4S_ModulesSelect(&modules, NULL, &selected_modules, true)) {
+    if (!SS4S_ModulesSelect(&modules, &preferences, &selected_modules, true)) {
         return 1;
     }
 

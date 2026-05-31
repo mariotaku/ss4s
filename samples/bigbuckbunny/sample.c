@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <SDL2/SDL.h>
 
 #include "esplayer-datasrc.h"
@@ -76,8 +78,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Failed to list SS4S modules\n");
         return 1;
     }
+    SS4S_ModulePreferences preferences = {
+            .audio_module = getenv("SS4S_AUDIO_DRIVER"),
+            .video_module = getenv("SS4S_VIDEO_DRIVER"),
+    };
     SS4S_ModuleSelection selected = {0};
-    if (!SS4S_ModulesSelect(&modules, NULL, &selected, true)) {
+    if (!SS4S_ModulesSelect(&modules, &preferences, &selected, true)) {
         fprintf(stderr, "No suitable SS4S modules available\n");
         SS4S_ModulesListClear(&modules);
         return 1;
