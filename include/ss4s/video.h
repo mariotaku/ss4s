@@ -127,12 +127,19 @@ typedef enum SS4S_VideoOutputFormat {
 } SS4S_VideoOutputFormat;
 
 /**
- * A single decoded frame handed to a SS4S_VideoFrameCallback. The frame
- * is borrowed: pointers inside it are valid only for the duration of the
- * callback invocation; the consumer must copy or upload before returning.
+ * A single decoded frame handed to a SS4S_VideoFrameCallback. By default
+ * the frame is borrowed: pointers inside the union are valid only for
+ * the duration of the callback invocation. To extend that lifetime —
+ * e.g. to defer rendering to another thread — call
+ * SS4S_VideoFrameRetain(frame) inside the callback, copy the struct
+ * onto a queue, and call SS4S_VideoFrameRelease(&copy) once you're
+ * done with it. After a successful Retain, the union fields keep
+ * pointing at valid data until the matching Release.
  *
  * `format` selects which union member is populated.
  */
+struct SS4S_VideoOutputFrame;
+
 typedef struct SS4S_VideoOutputFrame {
     SS4S_VideoOutputFormat format;
     union {
@@ -148,6 +155,13 @@ typedef struct SS4S_VideoOutputFrame {
             struct AVFrame *frame;
         } avframe;
     };
+    /* Module-private. Consumers must not access these directly; use
+     * SS4S_VideoFrameRetain / SS4S_VideoFrameRelease instead. */
+    struct {
+        void *handle;
+        bool (*retain)(struct SS4S_VideoOutputFrame *frame);
+        void (*release)(struct SS4S_VideoOutputFrame *frame);
+    } _private;
 } SS4S_VideoOutputFrame;
 
 typedef void (SS4S_VideoFrameCallback)(const SS4S_VideoOutputFrame *frame, void *userdata);
@@ -176,6 +190,29 @@ bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *s
  * false. The callback may be invoked from the Feed thread.
  */
 bool SS4S_PlayerVideoSetFrameCallback(SS4S_Player *player, SS4S_VideoFrameCallback *callback, void *userdata);
+
+/**
+ * Extend the lifetime of `frame` past the callback. On success the union
+ * fields keep referring to valid data until SS4S_VideoFrameRelease is
+ * called; the consumer can copy the SS4S_VideoOutputFrame struct (e.g.
+ * onto a producer/consumer queue) and use the copy.
+ *
+ * Returns false if the producing module does not support deferred
+ * lifetime, or if Retain has already been called on this frame. After
+ * a failed Retain the consumer must copy the frame data inside the
+ * callback if they want to use it later.
+ *
+ * Each successful Retain MUST be matched by exactly one Release.
+ */
+bool SS4S_VideoFrameRetain(SS4S_VideoOutputFrame *frame);
+
+/**
+ * Release a frame previously retained via SS4S_VideoFrameRetain.
+ * No-op if the frame was not retained (e.g. on a frame still owned by
+ * the callback). Calling Release more than once on the same frame
+ * struct is a no-op.
+ */
+void SS4S_VideoFrameRelease(SS4S_VideoOutputFrame *frame);
 
 bool SS4S_PlayerVideoClose(SS4S_Player *player);
 

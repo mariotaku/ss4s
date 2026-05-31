@@ -131,6 +131,23 @@ bool SS4S_PlayerVideoSetFrameCallback(SS4S_Player *player, SS4S_VideoFrameCallba
     return result;
 }
 
+bool SS4S_VideoFrameRetain(SS4S_VideoOutputFrame *frame) {
+    if (frame == NULL || frame->_private.retain == NULL) {
+        return false;
+    }
+    return frame->_private.retain(frame);
+}
+
+void SS4S_VideoFrameRelease(SS4S_VideoOutputFrame *frame) {
+    if (frame == NULL || frame->_private.release == NULL) {
+        return;
+    }
+    frame->_private.release(frame);
+    frame->_private.retain = NULL;
+    frame->_private.release = NULL;
+    frame->_private.handle = NULL;
+}
+
 bool SS4S_PlayerVideoClose(SS4S_Player *player) {
     SS4S_VideoInstance *video = SS4S_FeedGuardClose(&player->video_guard);
     if (video == NULL) {

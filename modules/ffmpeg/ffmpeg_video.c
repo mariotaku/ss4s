@@ -141,24 +141,55 @@ static SS4S_VideoOpenResult Open(const SS4S_VideoInfo *info, const SS4S_VideoExt
     return SS4S_VIDEO_OPEN_OK;
 }
 
+static bool FrameRetain(SS4S_VideoOutputFrame *frame);
+
+static void FrameRelease(SS4S_VideoOutputFrame *frame);
+
+static void FillView(SS4S_VideoOutputFrame *out, AVFrame *src) {
+    if (out->format == SS4S_VIDEO_OUTPUT_FORMAT_AVFRAME) {
+        out->avframe.frame = src;
+    } else {
+        out->yuv.data = src->data;
+        out->yuv.linesize = src->linesize;
+        out->yuv.width = src->width;
+        out->yuv.height = src->height;
+        out->yuv.pts = src->pts;
+    }
+}
+
 static void EmitFrame(SS4S_VideoInstance *instance, AVFrame *frame) {
     if (instance->callback == NULL) {
         return;
     }
     SS4S_VideoOutputFrame output;
     memset(&output, 0, sizeof(output));
-    if (frame->hw_frames_ctx != NULL) {
-        output.format = SS4S_VIDEO_OUTPUT_FORMAT_AVFRAME;
-        output.avframe.frame = frame;
-    } else {
-        output.format = SS4S_VIDEO_OUTPUT_FORMAT_YUV;
-        output.yuv.data = frame->data;
-        output.yuv.linesize = frame->linesize;
-        output.yuv.width = frame->width;
-        output.yuv.height = frame->height;
-        output.yuv.pts = frame->pts;
-    }
+    output.format = (frame->hw_frames_ctx != NULL) ? SS4S_VIDEO_OUTPUT_FORMAT_AVFRAME
+                                                   : SS4S_VIDEO_OUTPUT_FORMAT_YUV;
+    FillView(&output, frame);
+    output._private.handle = frame;
+    output._private.retain = FrameRetain;
+    /* release stays NULL until Retain succeeds — consumer-side Release
+     * on a non-retained frame must be a no-op, since the original frame
+     * is owned by our Feed loop. */
     instance->callback(&output, instance->callbackUserdata);
+}
+
+static bool FrameRetain(SS4S_VideoOutputFrame *frame) {
+    AVFrame *src = frame->_private.handle;
+    AVFrame *clone = av_frame_clone(src);
+    if (clone == NULL) {
+        return false;
+    }
+    frame->_private.handle = clone;
+    frame->_private.retain = NULL;
+    frame->_private.release = FrameRelease;
+    FillView(frame, clone);
+    return true;
+}
+
+static void FrameRelease(SS4S_VideoOutputFrame *frame) {
+    AVFrame *clone = frame->_private.handle;
+    av_frame_free(&clone);
 }
 
 static SS4S_VideoFeedResult Feed(SS4S_VideoInstance *instance, const unsigned char *data, size_t size,
