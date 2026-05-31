@@ -11,10 +11,25 @@
  *
  * Pattern:
  *   Open():   SS4S_FeedGuardOpen(g, instance)
- *   Feed():   inst = SS4S_FeedGuardAcquire(g);  // NULL if closed
+ *   Feed():   inst = SS4S_FeedGuardAcquire(g);  // NULL if closed or paused
  *             if (inst) { driver->Feed(inst); SS4S_FeedGuardRelease(g); }
  *   Close():  inst = SS4S_FeedGuardClose(g);    // blocks until Feeds drain
  *             if (inst) driver->Close(inst);
+ *
+ * Some driver calls (e.g. SetHDRInfo on ndl-webos5, SizeChanged on ndl
+ * and lgnc) internally do a destructive Unload+Load of the underlying
+ * decoder. These must not race with an in-flight Feed either, but they
+ * are not Close — the instance survives the operation. BeginExclusive
+ * / EndExclusive wrap such calls:
+ *
+ *   inst = SS4S_FeedGuardBeginExclusive(g); // drains Feeds, blocks new ones
+ *   if (inst) {
+ *       driver->SetHDRInfo(inst, info);     // safe to call destructive op
+ *       SS4S_FeedGuardEndExclusive(g);      // Feed resumes
+ *   }
+ *
+ * While exclusive is held, Acquire returns NULL so the caller sees
+ * NOT_READY and can drop/retry without holding up the Feed thread.
  *
  * Acquire/Release does not hold the mutex during the caller's Feed
  * work; the mutex is taken only briefly to bump/drop the in-flight
@@ -31,6 +46,7 @@ typedef struct SS4S_FeedGuard {
     SS4S_Cond *drained;
     void *instance;
     int in_flight;
+    bool exclusive;
 } SS4S_FeedGuard;
 
 void SS4S_FeedGuardInit(SS4S_FeedGuard *g);
@@ -43,7 +59,8 @@ bool SS4S_FeedGuardOpen(SS4S_FeedGuard *g, void *instance);
 
 /* Try to take a reference to the live instance. Returns the instance
  * pointer (guaranteed valid until Release) or NULL if the guard is
- * closed. Every successful Acquire must be paired with a Release. */
+ * closed OR if an exclusive operation is currently in progress.
+ * Every successful Acquire must be paired with a Release. */
 void *SS4S_FeedGuardAcquire(SS4S_FeedGuard *g);
 
 /* Release the reference taken by Acquire. */
@@ -54,3 +71,14 @@ void SS4S_FeedGuardRelease(SS4S_FeedGuard *g);
  * detached instance. Returns NULL if the guard was not open.
  * Caller is responsible for calling driver->Close on the result. */
 void *SS4S_FeedGuardClose(SS4S_FeedGuard *g);
+
+/* Begin an exclusive operation that must not race with Feed. Waits
+ * for any other exclusive op to finish, marks the guard as exclusive
+ * (so subsequent Acquires return NULL until EndExclusive), and waits
+ * for all in-flight Feeds to drain. Returns the live instance, or
+ * NULL if the guard is closed. Every successful BeginExclusive must
+ * be paired with EndExclusive. */
+void *SS4S_FeedGuardBeginExclusive(SS4S_FeedGuard *g);
+
+/* Release the exclusive lock taken by BeginExclusive. Feed resumes. */
+void SS4S_FeedGuardEndExclusive(SS4S_FeedGuard *g);

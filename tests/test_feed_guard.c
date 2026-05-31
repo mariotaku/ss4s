@@ -346,6 +346,241 @@ static void test_acquire_during_close_drain_returns_null(void) {
     SS4S_FeedGuardDeinit(&g);
 }
 
+/* ---------- Exclusive op (SetHDRInfo / SizeChanged) ---------- */
+
+typedef struct {
+    SS4S_FeedGuard *guard;
+    void *result;
+    bool finished;
+    pthread_mutex_t *seq_mu;
+    pthread_cond_t *seq_cv;
+    bool *began;
+    bool *should_end;
+} exclusive_ctx_t;
+
+static void *exclusive_thread(void *arg) {
+    exclusive_ctx_t *ctx = arg;
+    ctx->result = SS4S_FeedGuardBeginExclusive(ctx->guard);
+    pthread_mutex_lock(ctx->seq_mu);
+    *ctx->began = true;
+    pthread_cond_broadcast(ctx->seq_cv);
+    while (!*ctx->should_end) {
+        pthread_cond_wait(ctx->seq_cv, ctx->seq_mu);
+    }
+    pthread_mutex_unlock(ctx->seq_mu);
+    if (ctx->result != NULL) {
+        SS4S_FeedGuardEndExclusive(ctx->guard);
+    }
+    ctx->finished = true;
+    return NULL;
+}
+
+static void test_exclusive_basic(void) {
+    SS4S_FeedGuard g;
+    SS4S_FeedGuardInit(&g);
+    assert(SS4S_FeedGuardOpen(&g, &instance_a));
+    void *inst = SS4S_FeedGuardBeginExclusive(&g);
+    assert(inst == &instance_a);
+    /* While exclusive, Acquire returns NULL. */
+    assert(SS4S_FeedGuardAcquire(&g) == NULL);
+    SS4S_FeedGuardEndExclusive(&g);
+    /* After EndExclusive, Acquire succeeds again. */
+    void *got = SS4S_FeedGuardAcquire(&g);
+    assert(got == &instance_a);
+    SS4S_FeedGuardRelease(&g);
+    void *closed = SS4S_FeedGuardClose(&g);
+    assert(closed == &instance_a);
+    SS4S_FeedGuardDeinit(&g);
+}
+
+static void test_exclusive_on_closed_guard_returns_null(void) {
+    SS4S_FeedGuard g;
+    SS4S_FeedGuardInit(&g);
+    assert(SS4S_FeedGuardBeginExclusive(&g) == NULL);
+    assert(SS4S_FeedGuardOpen(&g, &instance_a));
+    SS4S_FeedGuardClose(&g);
+    assert(SS4S_FeedGuardBeginExclusive(&g) == NULL);
+    SS4S_FeedGuardDeinit(&g);
+}
+
+static void test_exclusive_drains_inflight_feeders(void) {
+    /* BeginExclusive must wait for already-in-flight Feeds to release
+     * before returning, just like Close does. */
+    SS4S_FeedGuard g;
+    SS4S_FeedGuardInit(&g);
+    assert(SS4S_FeedGuardOpen(&g, &instance_a));
+
+    pthread_mutex_t seq_mu = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t seq_cv = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t ex_mu = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t ex_cv = PTHREAD_COND_INITIALIZER;
+    bool feeder_acquired = false, feeder_should_release = false;
+    bool ex_began = false, ex_should_end = false;
+
+    feeder_ctx_t feeder_ctx = {
+        .guard = &g, .seq_mu = &seq_mu, .seq_cv = &seq_cv,
+        .acquired = &feeder_acquired, .should_release = &feeder_should_release,
+    };
+    exclusive_ctx_t ex_ctx = {
+        .guard = &g, .seq_mu = &ex_mu, .seq_cv = &ex_cv,
+        .began = &ex_began, .should_end = &ex_should_end,
+    };
+
+    pthread_t feeder, exclusive;
+    pthread_create(&feeder, NULL, feeder_thread, &feeder_ctx);
+    pthread_mutex_lock(&seq_mu);
+    while (!feeder_acquired) pthread_cond_wait(&seq_cv, &seq_mu);
+    pthread_mutex_unlock(&seq_mu);
+
+    /* Start exclusive; it should block waiting for the feeder. */
+    pthread_create(&exclusive, NULL, exclusive_thread, &ex_ctx);
+    usleep(50 * 1000);
+    pthread_mutex_lock(&ex_mu);
+    bool began_too_early = ex_began;
+    pthread_mutex_unlock(&ex_mu);
+    assert(began_too_early == false &&
+           "BeginExclusive returned while a Feed was still in flight");
+
+    /* Release the feeder. */
+    pthread_mutex_lock(&seq_mu);
+    feeder_should_release = true;
+    pthread_cond_broadcast(&seq_cv);
+    pthread_mutex_unlock(&seq_mu);
+
+    /* Exclusive should now begin. */
+    pthread_mutex_lock(&ex_mu);
+    while (!ex_began) pthread_cond_wait(&ex_cv, &ex_mu);
+    /* End the exclusive op. */
+    ex_should_end = true;
+    pthread_cond_broadcast(&ex_cv);
+    pthread_mutex_unlock(&ex_mu);
+
+    pthread_join(feeder, NULL);
+    pthread_join(exclusive, NULL);
+    assert(ex_ctx.result == &instance_a);
+
+    SS4S_FeedGuardClose(&g);
+    SS4S_FeedGuardDeinit(&g);
+}
+
+static void test_close_waits_for_exclusive(void) {
+    /* If Close is invoked while an exclusive op is in progress, Close
+     * must wait for the exclusive op to end before swapping the
+     * instance to NULL — otherwise BeginExclusive's captured instance
+     * pointer would be freed under it. */
+    SS4S_FeedGuard g;
+    SS4S_FeedGuardInit(&g);
+    assert(SS4S_FeedGuardOpen(&g, &instance_a));
+
+    pthread_mutex_t ex_mu = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t ex_cv = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t done_mu = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t done_cv = PTHREAD_COND_INITIALIZER;
+    bool ex_began = false, ex_should_end = false, closer_done = false;
+
+    exclusive_ctx_t ex_ctx = {
+        .guard = &g, .seq_mu = &ex_mu, .seq_cv = &ex_cv,
+        .began = &ex_began, .should_end = &ex_should_end,
+    };
+    closer_ctx_t closer_ctx = {
+        .guard = &g, .done_mu = &done_mu, .done_cv = &done_cv,
+        .done = &closer_done,
+    };
+
+    pthread_t exclusive, closer;
+    pthread_create(&exclusive, NULL, exclusive_thread, &ex_ctx);
+
+    /* Wait for exclusive to begin. */
+    pthread_mutex_lock(&ex_mu);
+    while (!ex_began) pthread_cond_wait(&ex_cv, &ex_mu);
+    pthread_mutex_unlock(&ex_mu);
+
+    /* Spawn closer; it must block until exclusive ends. */
+    pthread_create(&closer, NULL, closer_thread, &closer_ctx);
+    usleep(50 * 1000);
+    pthread_mutex_lock(&done_mu);
+    bool closer_done_during_block = closer_done;
+    pthread_mutex_unlock(&done_mu);
+    assert(closer_done_during_block == false &&
+           "Close returned while an exclusive op was still in progress");
+
+    /* End exclusive. */
+    pthread_mutex_lock(&ex_mu);
+    ex_should_end = true;
+    pthread_cond_broadcast(&ex_cv);
+    pthread_mutex_unlock(&ex_mu);
+
+    pthread_mutex_lock(&done_mu);
+    while (!closer_done) pthread_cond_wait(&done_cv, &done_mu);
+    pthread_mutex_unlock(&done_mu);
+
+    pthread_join(exclusive, NULL);
+    pthread_join(closer, NULL);
+    assert(closer_ctx.result == &instance_a);
+
+    SS4S_FeedGuardDeinit(&g);
+}
+
+static void test_concurrent_exclusive_ops_serialize(void) {
+    /* Two BeginExclusive calls must serialize: the second waits for
+     * the first to EndExclusive. */
+    SS4S_FeedGuard g;
+    SS4S_FeedGuardInit(&g);
+    assert(SS4S_FeedGuardOpen(&g, &instance_a));
+
+    pthread_mutex_t a_mu = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t a_cv = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t b_mu = PTHREAD_MUTEX_INITIALIZER;
+    pthread_cond_t b_cv = PTHREAD_COND_INITIALIZER;
+    bool a_began = false, a_should_end = false;
+    bool b_began = false, b_should_end = false;
+
+    exclusive_ctx_t a_ctx = {
+        .guard = &g, .seq_mu = &a_mu, .seq_cv = &a_cv,
+        .began = &a_began, .should_end = &a_should_end,
+    };
+    exclusive_ctx_t b_ctx = {
+        .guard = &g, .seq_mu = &b_mu, .seq_cv = &b_cv,
+        .began = &b_began, .should_end = &b_should_end,
+    };
+
+    pthread_t a, b;
+    pthread_create(&a, NULL, exclusive_thread, &a_ctx);
+
+    /* Wait until A is inside the exclusive section. */
+    pthread_mutex_lock(&a_mu);
+    while (!a_began) pthread_cond_wait(&a_cv, &a_mu);
+    pthread_mutex_unlock(&a_mu);
+
+    /* Start B; it should NOT begin until A ends. */
+    pthread_create(&b, NULL, exclusive_thread, &b_ctx);
+    usleep(50 * 1000);
+    pthread_mutex_lock(&b_mu);
+    bool b_began_too_early = b_began;
+    pthread_mutex_unlock(&b_mu);
+    assert(b_began_too_early == false &&
+           "Second BeginExclusive started while the first was still active");
+
+    /* Let A end. */
+    pthread_mutex_lock(&a_mu);
+    a_should_end = true;
+    pthread_cond_broadcast(&a_cv);
+    pthread_mutex_unlock(&a_mu);
+
+    /* Now B should begin. */
+    pthread_mutex_lock(&b_mu);
+    while (!b_began) pthread_cond_wait(&b_cv, &b_mu);
+    b_should_end = true;
+    pthread_cond_broadcast(&b_cv);
+    pthread_mutex_unlock(&b_mu);
+
+    pthread_join(a, NULL);
+    pthread_join(b, NULL);
+
+    SS4S_FeedGuardClose(&g);
+    SS4S_FeedGuardDeinit(&g);
+}
+
 int main(void) {
     test_open_close_basic();
     printf("test_open_close_basic: OK\n");
@@ -365,5 +600,15 @@ int main(void) {
     printf("test_close_waits_for_all_feeders: OK\n");
     test_acquire_during_close_drain_returns_null();
     printf("test_acquire_during_close_drain_returns_null: OK\n");
+    test_exclusive_basic();
+    printf("test_exclusive_basic: OK\n");
+    test_exclusive_on_closed_guard_returns_null();
+    printf("test_exclusive_on_closed_guard_returns_null: OK\n");
+    test_exclusive_drains_inflight_feeders();
+    printf("test_exclusive_drains_inflight_feeders: OK\n");
+    test_close_waits_for_exclusive();
+    printf("test_close_waits_for_exclusive: OK\n");
+    test_concurrent_exclusive_ops_serialize();
+    printf("test_concurrent_exclusive_ops_serialize: OK\n");
     return 0;
 }
