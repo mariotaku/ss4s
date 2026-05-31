@@ -12,6 +12,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->maxFps = 60;
     capabilities->fullColorRange = false;
     capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    capabilities->output = SS4S_VIDEO_CAP_OUTPUT_DIRECT;
     return true;
 }
 

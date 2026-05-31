@@ -116,6 +116,13 @@ typedef struct SS4S_VideoDriver {
 
     bool (*SetDisplayArea)(SS4S_VideoInstance *instance, const SS4S_VideoRect *src, const SS4S_VideoRect *dst);
 
+    /**
+     * Optional. Register a callback to receive decoded frames. Only video
+     * drivers that decode in-process (e.g. ffmpeg) implement this; sink-only
+     * drivers leave it NULL.
+     */
+    bool (*SetFrameCallback)(SS4S_VideoInstance *instance, SS4S_VideoFrameCallback *callback, void *userdata);
+
     void (*Close)(SS4S_VideoInstance *instance);
 } SS4S_VideoDriver;
 

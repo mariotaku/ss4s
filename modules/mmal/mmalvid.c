@@ -110,6 +110,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC | SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST;
     capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    capabilities->output = SS4S_VIDEO_CAP_OUTPUT_DIRECT;
     capabilities->fullColorRange = false;
     return true;
 }

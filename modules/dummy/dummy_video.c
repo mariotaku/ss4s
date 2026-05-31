@@ -6,6 +6,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING | SS4S_VIDEO_CAP_TRANSFORM_AREA_SRC |
                               SS4S_VIDEO_CAP_TRANSFORM_AREA_DEST;
+    capabilities->output = SS4S_VIDEO_CAP_OUTPUT_DIRECT;
     return true;
 }
 

@@ -15,6 +15,7 @@ static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->maxBitrate = 65000;
     capabilities->suggestedBitrate = 35000;
     capabilities->colorSpace = SS4S_VIDEO_CAP_COLORSPACE_BT709;
+    capabilities->output = SS4S_VIDEO_CAP_OUTPUT_DIRECT;
     capabilities->fullColorRange = false;
     if (SS4S_webOS_GetMaxVideoResolution(SS4S_VIDEO_H265, &capabilities->maxWidth, &capabilities->maxHeight, NULL)) {
         capabilities->maxWidth = 0;

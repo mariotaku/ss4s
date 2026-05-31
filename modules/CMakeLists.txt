@@ -63,6 +63,7 @@ add_subdirectory(alsa)
 add_subdirectory(pulse)
 add_subdirectory(sdl)
 add_subdirectory(mmal)
+add_subdirectory(ffmpeg)
 add_subdirectory(webos)
 add_subdirectory(steamlink)
 

@@ -5,8 +5,11 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct SS4S_Player SS4S_Player;
+
+struct AVFrame;
 
 typedef enum SS4S_VideoCodec {
     SS4S_VIDEO_NONE = 0,
@@ -100,11 +103,54 @@ typedef struct SS4S_VideoCapabilities {
         SS4S_VIDEO_CAP_COLORSPACE_BT709 = 0x01,
         SS4S_VIDEO_CAP_COLORSPACE_BT2020 = 0x02,
     } colorSpace;
+    /**
+     * Bitmask of frame-delivery formats this driver can produce.
+     * DIRECT means the driver renders to its own sink (no frame callback);
+     * the other bits indicate which SS4S_VideoOutputFormat variants the
+     * driver will deliver to a callback registered via
+     * SS4S_PlayerVideoSetFrameCallback.
+     */
+    enum {
+        SS4S_VIDEO_CAP_OUTPUT_DIRECT = 0x01,
+        SS4S_VIDEO_CAP_OUTPUT_YUV = 0x02,
+        SS4S_VIDEO_CAP_OUTPUT_AVFRAME = 0x04,
+    } output;
 } SS4S_VideoCapabilities;
 
 typedef struct SS4S_VideoExtraInfo {
     int viewportWidth, viewportHeight;
 } SS4S_VideoExtraInfo;
+
+typedef enum SS4S_VideoOutputFormat {
+    SS4S_VIDEO_OUTPUT_FORMAT_YUV = 1,
+    SS4S_VIDEO_OUTPUT_FORMAT_AVFRAME = 2,
+} SS4S_VideoOutputFormat;
+
+/**
+ * A single decoded frame handed to a SS4S_VideoFrameCallback. The frame
+ * is borrowed: pointers inside it are valid only for the duration of the
+ * callback invocation; the consumer must copy or upload before returning.
+ *
+ * `format` selects which union member is populated.
+ */
+typedef struct SS4S_VideoOutputFrame {
+    SS4S_VideoOutputFormat format;
+    union {
+        struct {
+            uint8_t **data;
+            int *linesize;
+            int width, height;
+            int64_t pts;
+        } yuv;
+        struct {
+            /* AVFrame* from libavutil. Consumers using this variant must
+             * link libavutil themselves to interpret the contents. */
+            struct AVFrame *frame;
+        } avframe;
+    };
+} SS4S_VideoOutputFrame;
+
+typedef void (SS4S_VideoFrameCallback)(const SS4S_VideoOutputFrame *frame, void *userdata);
 
 #ifndef SS4S_MODAPI_H
 
@@ -122,6 +168,14 @@ bool SS4S_PlayerVideoSizeChanged(SS4S_Player *player, int width, int height);
 bool SS4S_PlayerVideoSetHDRInfo(SS4S_Player *player, const SS4S_VideoHDRInfo *info);
 
 bool SS4S_PlayerVideoSetDisplayArea(SS4S_Player *player, const SS4S_VideoRect *src, const SS4S_VideoRect *dst);
+
+/**
+ * Register a callback to receive decoded frames. Only meaningful for video
+ * drivers that advertise a non-DIRECT bit in SS4S_VideoCapabilities.output
+ * (e.g. the ffmpeg module). For DIRECT drivers this is a no-op and returns
+ * false. The callback may be invoked from the Feed thread.
+ */
+bool SS4S_PlayerVideoSetFrameCallback(SS4S_Player *player, SS4S_VideoFrameCallback *callback, void *userdata);
 
 bool SS4S_PlayerVideoClose(SS4S_Player *player);
 
