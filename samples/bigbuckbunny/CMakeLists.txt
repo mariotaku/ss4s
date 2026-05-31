@@ -10,6 +10,14 @@ add_executable(sample-bigbuckbunny sample.c)
 
 target_link_libraries(sample-bigbuckbunny PRIVATE ss4s esplayer-datasrc PkgConfig::SDL2 commons-os-info commons-ss4s-modules-list)
 
+pkg_check_modules(LIBAVUTIL libavutil)
+if (LIBAVUTIL_FOUND)
+    target_link_libraries(sample-bigbuckbunny PRIVATE ${LIBAVUTIL_LIBRARIES})
+    target_include_directories(sample-bigbuckbunny PRIVATE ${LIBAVUTIL_INCLUDE_DIRS})
+    target_link_directories(sample-bigbuckbunny PRIVATE ${LIBAVUTIL_LIBRARY_DIRS})
+    target_compile_definitions(sample-bigbuckbunny PRIVATE HAVE_LIBAVUTIL)
+endif ()
+
 set_target_properties(sample-bigbuckbunny PROPERTIES
         BUILD_WITH_INSTALL_RPATH TRUE
         INSTALL_RPATH_USE_LINK_PATH TRUE
