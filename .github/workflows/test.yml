@@ -1,0 +1,63 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  test:
+    name: Test on Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Update packages
+        run: sudo apt-get -yq update
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install -y -qq \
+            cmake ninja-build pkg-config libopus-dev
+
+      - name: Configure
+        # pcm_playback_{sdl,alsa,pulse} and pcm_playback_mmal are
+        # integration tests that need a real audio sink / RPi hardware.
+        # On a generic GitHub runner the sdl test times out (no audio
+        # backend drains the queue, the test paces to real time on a
+        # multi-second PCM file), the pulse test aborts with
+        # "Connection refused" because no pulseaudio server is running,
+        # and the alsa/mmal tests skip via the 127 convention. Rather
+        # than try to mock out each backend, we just disable building
+        # those modules so the tests short-circuit cleanly. The
+        # h264_playback_lgnc test uses the in-tree mocks and runs fine.
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DSS4S_ENABLE_TESTS=ON \
+            -DSS4S_ENABLE_SAMPLES=OFF \
+            -DSS4S_MODULE_DISABLE_SDL=ON \
+            -DSS4S_MODULE_DISABLE_ALSA=ON \
+            -DSS4S_MODULE_DISABLE_PULSE=ON \
+            -DSS4S_MODULE_DISABLE_MMAL=ON
+
+      - name: Build
+        run: cmake --build build --config ${{env.BUILD_TYPE}}
+
+      - name: Test
+        # --output-on-failure prints stdout/stderr of any failing test so
+        # CI logs are useful. The per-test 60s timeout catches anything
+        # that wedges.
+        run: ctest --test-dir build --output-on-failure --timeout 60

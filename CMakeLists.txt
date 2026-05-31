@@ -67,3 +67,8 @@ endif ()
 if (SS4S_ENABLE_SAMPLES)
     add_subdirectory(samples)
 endif ()
+
+if (SS4S_ENABLE_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif ()
