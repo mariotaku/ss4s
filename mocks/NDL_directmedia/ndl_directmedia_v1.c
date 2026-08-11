@@ -8,6 +8,11 @@
 
 static NDLVideoPlayCallback video_callback = NULL;
 
+int NDL_DirectMediaInit(const char *app_id, ResourceReleased cb) {
+    (void) cb;
+    return mock_ndl_init(app_id);
+}
+
 int NDL_DirectAudioOpen(NDL_DIRECTAUDIO_DATA_INFO_T *data) {
     mock_ndl_lock(__func__);
     if (audio_opened) {

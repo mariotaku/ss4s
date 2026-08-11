@@ -81,7 +81,7 @@ static int LoadMedia(SS4S_PlayerContext *context) {
     int ret;
     if (!SS4S_NDL_webOS5_Initialized) {
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Initializing NDL");
-        if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) != 0) {
+        if ((ret = NDL_DirectMediaInit(getenv("APPID"))) != 0) {
             SS4S_NDL_webOS5_Log(SS4S_LogLevelError, "NDL", "Failed to init: ret=%d, error=%s", ret,
                                 NDL_DirectMediaGetError());
             return ret;
