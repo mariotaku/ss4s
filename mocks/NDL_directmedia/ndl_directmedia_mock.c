@@ -25,7 +25,7 @@ void mock_ndl_unlock(const char *func) {
     }
 }
 
-int NDL_DirectMediaInit(const char *app_id, ResourceReleased cb) {
+int mock_ndl_init(const char *app_id) {
     assert(app_id != NULL);
     mock_ndl_lock(__func__);
     if (ndl_mock_init) {

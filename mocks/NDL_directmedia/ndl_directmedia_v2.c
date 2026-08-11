@@ -6,6 +6,10 @@
 #include "ndl_directmedia_mock.h"
 
 
+int NDL_DirectMediaInit(const char *app_id) {
+    return mock_ndl_init(app_id);
+}
+
 int NDL_DirectMediaUnload(void) {
     mock_ndl_lock(__func__);
     if (!audio_opened && !video_opened) {
@@ -27,6 +31,32 @@ int NDL_DirectMediaLoad(NDL_DIRECTMEDIA_DATA_INFO_T *data, NDLMediaLoadCallback 
     usleep(1000000);
     audio_opened = data->audio.type != 0;
     video_opened = data->video.type != 0;
+    mock_ndl_unlock(__func__);
+    return 0;
+}
+
+int NDL_DirectAudioPlay(void *buffer, unsigned int size, long long pts) {
+    (void) buffer;
+    (void) size;
+    (void) pts;
+    mock_ndl_lock(__func__);
+    if (!audio_opened) {
+        mock_ndl_unlock(__func__);
+        return -1;
+    }
+    mock_ndl_unlock(__func__);
+    return 0;
+}
+
+int NDL_DirectVideoPlay(void *buffer, unsigned int size, long long pts) {
+    (void) buffer;
+    (void) size;
+    (void) pts;
+    mock_ndl_lock(__func__);
+    if (!video_opened) {
+        mock_ndl_unlock(__func__);
+        return -1;
+    }
     mock_ndl_unlock(__func__);
     return 0;
 }

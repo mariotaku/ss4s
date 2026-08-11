@@ -28,7 +28,7 @@ int SS4S_NDL_webOS5_Driver_PostInit(int argc, char *argv[]) {
         return 0;
     }
     int ret;
-    if ((ret = NDL_DirectMediaInit(getenv("APPID"), NULL)) == 0) {
+    if ((ret = NDL_DirectMediaInit(getenv("APPID"))) == 0) {
         SS4S_NDL_webOS5_Initialized = true;
         SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Driver init.");
     } else {
