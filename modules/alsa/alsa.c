@@ -91,18 +91,18 @@ SS4S_EXPORTED bool SS4S_ModuleOpen_ALSA(SS4S_Module *module, const SS4S_LibraryC
     return true;
 }
 
-SS4S_EXPORTED bool SS4S_ModuleCheck_ALSA(SS4S_ModuleCheckFlag flags) {
+SS4S_EXPORTED SS4S_ModuleCheckFlag SS4S_ModuleCheck_ALSA(SS4S_ModuleCheckFlag flags) {
     if (flags & SS4S_MODULE_CHECK_VIDEO) {
         return 0;
     }
     snd_lib_error_set_handler(alsa_logger_noop);
     snd_pcm_t *handle = NULL;
-    if (snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0 || handle == NULL) {
-        return 0;
+    bool opened = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) >= 0 && handle != NULL;
+    if (opened) {
+        snd_pcm_close(handle);
     }
-    snd_pcm_close(handle);
     snd_lib_error_set_handler(NULL);
-    return flags;
+    return opened ? flags : 0;
 }
 
 static void alsa_logger_noop(const char *file, int line, const char *function, int err, const char *fmt, ...) {
