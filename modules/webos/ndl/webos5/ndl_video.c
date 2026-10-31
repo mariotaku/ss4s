@@ -2,6 +2,7 @@
 #include "ndl_common.h"
 #include "highend_check.h"
 #include "max_res.h"
+#include "render_stats_sampling.h"
 
 static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int width, int height);
 
@@ -85,11 +86,17 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
         return SS4S_VIDEO_FEED_ERROR;
     }
     uint64_t now = GetTimeUs();
-    int renderBufferLength = 0;
-    if (context->lastFrameTime > 0 && NDL_DirectVideoGetRenderBufferLength(&renderBufferLength) == 0) {
-        float bufLen = renderBufferLength > 0 ? (float) renderBufferLength : 0.5f;
-        float latency = bufLen * (float) (now - context->lastFrameTime);
-        SS4S_NDL_webOS5_Lib->VideoStats.ReportFrame(context->player, (int) latency);
+    // Sampling this hardware API after every frame adds work to the decode hot path.
+    // Keep updating the inter-frame interval even when we skip a stats query.
+    if (context->lastFrameTime > 0 &&
+        ndl_should_sample_render_stats(now, context->lastRenderStatsSampleTime)) {
+        context->lastRenderStatsSampleTime = now;
+        int renderBufferLength = 0;
+        if (NDL_DirectVideoGetRenderBufferLength(&renderBufferLength) == 0) {
+            float bufLen = renderBufferLength > 0 ? (float) renderBufferLength : 0.5f;
+            float latency = bufLen * (float) (now - context->lastFrameTime);
+            SS4S_NDL_webOS5_Lib->VideoStats.ReportFrame(context->player, (int) latency);
+        }
     }
     context->lastFrameTime = now;
     return SS4S_VIDEO_FEED_OK;

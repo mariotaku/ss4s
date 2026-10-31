@@ -13,6 +13,7 @@ extern const SS4S_LibraryContext *SS4S_NDL_webOS5_Lib;
 struct SS4S_PlayerContext {
     SS4S_Player *player;
     uint64_t lastFrameTime;
+    uint64_t lastRenderStatsSampleTime;
     NDL_DIRECTMEDIA_DATA_INFO_T mediaInfo;
     struct SS4S_OpusEmpty *opusEmpty;
     struct SS4S_NDLOpusFix *opusFix;

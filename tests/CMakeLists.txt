@@ -29,6 +29,7 @@ configure_file(../samples/av-threaded/sample.h264 ${CMAKE_CURRENT_BINARY_DIR} CO
 ss4s_add_test(initialization SOURCES test_initialization.c)
 
 ss4s_add_test(feed_guard SOURCES test_feed_guard.c)
+ss4s_add_test(ndl_render_stats_sampling SOURCES test_ndl_render_stats_sampling.c)
 
 ss4s_add_test(video_concurrent_lifecycle_dummy SOURCES test_video_concurrent_lifecycle.c ARGS dummy)
 
