@@ -86,10 +86,32 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
     }
     uint64_t now = GetTimeUs();
     int renderBufferLength = 0;
-    if (context->lastFrameTime > 0 && NDL_DirectVideoGetRenderBufferLength(&renderBufferLength) == 0) {
-        float bufLen = renderBufferLength > 0 ? (float) renderBufferLength : 0.5f;
-        float latency = bufLen * (float) (now - context->lastFrameTime);
-        SS4S_NDL_webOS5_Lib->VideoStats.ReportFrame(context->player, (int) latency);
+    if (context->lastFrameTime > 0) {
+#ifdef SS4S_NDL_BENCH_STATS
+        uint64_t queryStartUs = GetTimeUs();
+#endif
+        int queryResult = NDL_DirectVideoGetRenderBufferLength(&renderBufferLength);
+#ifdef SS4S_NDL_BENCH_STATS
+        uint64_t queryEndUs = GetTimeUs();
+        ss4s_ndl_bench_record(&context->ndlBenchStats, queryStartUs,
+                              queryEndUs >= queryStartUs ? queryEndUs - queryStartUs : 0,
+                              queryResult != 0);
+        if (ss4s_ndl_bench_ready(&context->ndlBenchStats, queryEndUs)) {
+            const SS4S_NdlBenchStats *stats = &context->ndlBenchStats;
+            SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL",
+                                "NDL_BENCH_V1 duration_us=%llu calls=%u failures=%u total_us=%llu max_us=%llu",
+                                (unsigned long long) (queryEndUs - stats->windowStartUs),
+                                stats->calls, stats->failures,
+                                (unsigned long long) stats->totalUs,
+                                (unsigned long long) stats->maxUs);
+            ss4s_ndl_bench_reset(&context->ndlBenchStats);
+        }
+#endif
+        if (queryResult == 0) {
+            float bufLen = renderBufferLength > 0 ? (float) renderBufferLength : 0.5f;
+            float latency = bufLen * (float) (now - context->lastFrameTime);
+            SS4S_NDL_webOS5_Lib->VideoStats.ReportFrame(context->player, (int) latency);
+        }
     }
     context->lastFrameTime = now;
     return SS4S_VIDEO_FEED_OK;
