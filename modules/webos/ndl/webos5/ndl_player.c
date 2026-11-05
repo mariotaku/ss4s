@@ -30,6 +30,9 @@ static SS4S_PlayerContext *ActivatePlayerContext = NULL;
 
 int SS4S_NDL_webOS5_ReloadMedia(SS4S_PlayerContext *context) {
     SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL", "Reloading media");
+#ifdef SS4S_NDL_BENCH_STATS
+    ss4s_ndl_bench_reset(&context->ndlBenchStats);
+#endif
     if (UnloadMedia(context) != 0) {
         return -1;
     }

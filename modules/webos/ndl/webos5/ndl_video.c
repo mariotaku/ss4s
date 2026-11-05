@@ -7,6 +7,27 @@ static SS4S_VideoOpenResult ReloadWithSize(SS4S_PlayerContext *context, int widt
 
 static uint64_t GetTimeUs();
 
+#ifdef SS4S_NDL_BENCH_STATS
+static void LogBenchWindow(SS4S_PlayerContext *context, uint64_t nowUs) {
+    SS4S_NdlBenchStats *stats = &context->ndlBenchStats;
+    if (!ss4s_ndl_bench_ready(stats, nowUs)) {
+        return;
+    }
+    SS4S_NDL_webOS5_Log(SS4S_LogLevelInfo, "NDL",
+                        "NDL_BENCH_V2 duration_us=%llu "
+                        "play_calls=%u play_failures=%u play_total_us=%llu play_max_us=%llu "
+                        "query_calls=%u query_failures=%u query_total_us=%llu query_max_us=%llu",
+                        (unsigned long long) (nowUs - stats->windowStartUs),
+                        stats->videoPlay.calls, stats->videoPlay.failures,
+                        (unsigned long long) stats->videoPlay.totalUs,
+                        (unsigned long long) stats->videoPlay.maxUs,
+                        stats->renderBuffer.calls, stats->renderBuffer.failures,
+                        (unsigned long long) stats->renderBuffer.totalUs,
+                        (unsigned long long) stats->renderBuffer.maxUs);
+    ss4s_ndl_bench_reset(stats);
+}
+#endif
+
 static bool GetCapabilities(SS4S_VideoCapabilities *capabilities) {
     capabilities->codecs = SS4S_VIDEO_H264 | SS4S_VIDEO_H265 | SS4S_VIDEO_VP9 | SS4S_VIDEO_AV1;
     capabilities->transform = SS4S_VIDEO_CAP_TRANSFORM_UI_COMPOSITING;
@@ -78,20 +99,51 @@ static SS4S_VideoFeedResult FeedVideo(SS4S_VideoInstance *instance, const unsign
         return SS4S_VIDEO_FEED_NOT_READY;
     }
     uint64_t pts = SS4S_NDL_webOS5_GetPts(context);
+#ifdef SS4S_NDL_BENCH_STATS
+    uint64_t playStartUs = GetTimeUs();
+#endif
     int rc = NDL_DirectVideoPlay((void *) data, size, (long long) pts);
+#ifdef SS4S_NDL_BENCH_STATS
+    uint64_t playEndUs = GetTimeUs();
+    ss4s_ndl_bench_record(&context->ndlBenchStats, SS4S_NDL_BENCH_VIDEO_PLAY,
+                          playEndUs, playEndUs >= playStartUs ? playEndUs - playStartUs : 0,
+                          rc != 0);
+#endif
     if (rc != 0) {
+#ifdef SS4S_NDL_BENCH_STATS
+        LogBenchWindow(context, playEndUs);
+#endif
         SS4S_NDL_webOS5_Log(SS4S_LogLevelWarn, "NDL", "NDL_DirectVideoPlay returned %d: %s", rc,
                             NDL_DirectMediaGetError());
         return SS4S_VIDEO_FEED_ERROR;
     }
     uint64_t now = GetTimeUs();
+#ifdef SS4S_NDL_BENCH_STATS
+    uint64_t benchmarkEndUs = now;
+#endif
     int renderBufferLength = 0;
-    if (context->lastFrameTime > 0 && NDL_DirectVideoGetRenderBufferLength(&renderBufferLength) == 0) {
-        float bufLen = renderBufferLength > 0 ? (float) renderBufferLength : 0.5f;
-        float latency = bufLen * (float) (now - context->lastFrameTime);
-        SS4S_NDL_webOS5_Lib->VideoStats.ReportFrame(context->player, (int) latency);
+    if (context->lastFrameTime > 0) {
+#ifdef SS4S_NDL_BENCH_STATS
+        uint64_t queryStartUs = GetTimeUs();
+#endif
+        int queryResult = NDL_DirectVideoGetRenderBufferLength(&renderBufferLength);
+#ifdef SS4S_NDL_BENCH_STATS
+        uint64_t queryEndUs = GetTimeUs();
+        benchmarkEndUs = queryEndUs;
+        ss4s_ndl_bench_record(&context->ndlBenchStats, SS4S_NDL_BENCH_RENDER_BUFFER,
+                              queryEndUs, queryEndUs >= queryStartUs ? queryEndUs - queryStartUs : 0,
+                              queryResult != 0);
+#endif
+        if (queryResult == 0) {
+            float bufLen = renderBufferLength > 0 ? (float) renderBufferLength : 0.5f;
+            float latency = bufLen * (float) (now - context->lastFrameTime);
+            SS4S_NDL_webOS5_Lib->VideoStats.ReportFrame(context->player, (int) latency);
+        }
     }
     context->lastFrameTime = now;
+#ifdef SS4S_NDL_BENCH_STATS
+    LogBenchWindow(context, benchmarkEndUs);
+#endif
     return SS4S_VIDEO_FEED_OK;
 }
 
